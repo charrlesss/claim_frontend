@@ -5,6 +5,7 @@ import { UserContext } from "../App";
 import NotFound from "./NotFound";
 import { useMutation } from "@tanstack/react-query";
 import { Loading } from "./Loading";
+import DisplayReport from "./DisplayReport";
 
 function Router() {
   const { user, myAxios, setUser } = useContext(UserContext);
@@ -89,6 +90,10 @@ function Router() {
           />
         </Route>
         <Route
+          path={`/${DEPARTMENT}/dashboard/report`}
+          element={<DisplayReport />}
+        />
+        <Route
           path={`/${DEPARTMENT}/attactment/`}
           element={<Container showheader={false} />}
         >
@@ -108,4 +113,8 @@ function Router() {
     </>
   );
 }
+
+const DD = ({ children }: any) => {
+  return <div>{children}</div>;
+};
 export default Router;

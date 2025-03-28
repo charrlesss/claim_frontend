@@ -4,7 +4,7 @@ input{
     padding: 2.5px 5px;
     border: 1px solid #a1a1aa;
     border-radius: 2.5px;
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Poppins';
 }
 input:focus{
     outline: 2px solid #3b82f6;
@@ -16,7 +16,7 @@ textarea{
     padding: 2.5px 5px;
     border: 1px solid #a1a1aa;
     border-radius: 2.5px;
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Poppins';
 }
 textarea:focus{
     outline: 2px solid #3b82f6;
@@ -24,7 +24,7 @@ textarea:focus{
 }
 .select{
     border: 1px solid #a1a1aa;
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Poppins';
     border-radius: 2.5px;
 }
 .select:disabled{

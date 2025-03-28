@@ -319,7 +319,7 @@ const Dashboard = forwardRef(({}, ref) => {
     link: "/search-policy",
     column: [
       { key: "PolicyNo", label: "Policy No", width: 100 },
-      { key: "PolicyType", label: "Policy Type.", width: 70 },
+      { key: "PolicyType", label: "Policy Type.", width: 120 },
       { key: "IDNo", label: "ID No.", width: 150 },
       { key: "Name", label: "Name", width: 300 },
       {
@@ -349,7 +349,7 @@ const Dashboard = forwardRef(({}, ref) => {
     column: [
       { key: "claim_id", label: "Claim ID.", width: 100 },
       { key: "PolicyNo", label: "Policy No", width: 100 },
-      { key: "PolicyType", label: "Policy Type.", width: 70 },
+      { key: "PolicyType", label: "Policy Type.", width: 120 },
       { key: "IDNo", label: "ID No.", width: 150 },
       { key: "Name", label: "Name", width: 300 },
       { key: "ChassisNo", label: "Chassis No", width: 300 },
@@ -1043,7 +1043,7 @@ function DisplayPaymentDetails(
               payment.totalPaid
             )}</strong></div>
             <div style="width:175px;border-top:1px solid black;"></div>
-            <div style="display:flex;column-gap:20px;"><span style="width:85px";>Total Balance. :</span> 
+            <div style="display:flex;column-gap:20px;"><span style="width:90px";>Total Balance :</span> 
             <strong style="width:70px;text-align:right;color:${
               payment.totalBalance <= 0 ? "green" : "red"
             }">${formatNumber(payment.totalBalance)}</strong></div>

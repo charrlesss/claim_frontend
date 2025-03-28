@@ -895,10 +895,7 @@ function Attactment() {
                       { key: "For Check Prep" },
                       { key: "ON HOLD" },
                       { key: "With Lacking Docs" },
-                      // { key: "Denied" },
-                      // { key: "Ongoing" },
-                      // { key: "Approved Settled" },
-                      // { key: "Cancel" },
+           
                     ]}
                     values={"key"}
                     display={"key"}
