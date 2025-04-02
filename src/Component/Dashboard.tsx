@@ -660,12 +660,8 @@ const Dashboard = forwardRef(({}, ref) => {
             inputRef={inputSearchRef}
           />
           <div style={{ display: "flex", columnGap: "10px" }}>
-            {department === "UMIS" && (
-              <DropdownMenuUMIS ref={formRef} onClick={handleClick} />
-            )}
-            {department === "UCSMI" && (
-              <DropdownMenuUCSMI ref={formRef} onClick={handleClick} />
-            )}
+            <DropdownMenu ref={formRef} onClick={handleClick} />
+
             {claimMode === "" && (
               <Button
                 sx={{
@@ -1501,7 +1497,7 @@ const NestedMenuItem = ({ item, onClick }: any) => {
     </>
   );
 };
-const DropdownMenuUMIS = forwardRef(({ disabled, onClick }: any, ref) => {
+const DropdownMenu = forwardRef(({ disabled, onClick }: any, ref) => {
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
 
   const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -1537,56 +1533,5 @@ const DropdownMenuUMIS = forwardRef(({ disabled, onClick }: any, ref) => {
     </>
   );
 });
-const DropdownMenuUCSMI = forwardRef(({ disabled, onClick }: any, ref) => {
-  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
-
-  const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setMenuAnchor(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setMenuAnchor(null);
-  };
-
-  return (
-    <>
-      <Button
-        disabled={disabled}
-        onClick={handleOpen}
-        sx={{ height: "22px", fontSize: "11px" }}
-        startIcon={<AddIcon />}
-        variant="contained"
-      >
-        Add Claim
-      </Button>
-      <Menu
-        anchorEl={menuAnchor}
-        open={Boolean(menuAnchor)}
-        onClose={handleClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-        transformOrigin={{ vertical: "top", horizontal: "left" }}
-      >
-        {buttonLinks.map((item, index) => (
-          <NestedMenuItem key={index} item={item} onClick={onClick} />
-        ))}
-      </Menu>
-    </>
-  );
-});
-
-const convertFilenamesToFiles = async (filenames: Array<string>) => {
-  return Promise.all(filenames.map(fetchFileFromServer));
-};
-async function fetchFileFromServer({ filename, path }: any) {
-  const response = await fetch(path + filename); // Fetch file from server
-  const blob = await response.blob(); // Convert response to a Blob
-
-  const file = new File([blob], filename, {
-    type: blob.type,
-    lastModified: new Date().getTime(), // You can modify this if needed
-  });
-
-  return { link: URL.createObjectURL(file), filename };
-}
 
 export default Dashboard;
