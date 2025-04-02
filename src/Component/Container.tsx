@@ -1,10 +1,15 @@
-import { Suspense, useEffect, useRef, useState } from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Suspense, useContext, useEffect, useRef, useState } from "react";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Loading } from "./Loading";
 import { AccountCircle } from "@mui/icons-material";
 import "../Style/header.css";
+import { useMutation } from "@tanstack/react-query";
+import { UserContext } from "../App";
+import Swal from "sweetalert2";
 
 function Container({ showheader = true }: any) {
+  const navigate = useNavigate();
+  const { myAxios, user, setUser } = useContext(UserContext);
   const department = useRef(process.env.REACT_APP_DEPARTMENT);
   const menuData = [
     {
@@ -27,56 +32,46 @@ function Container({ showheader = true }: any) {
   const menuUserRef = useRef<any>(null); // Reference to the menu container
   const location = useLocation();
 
-  // const { refetch, isLoading } = useQuery({
-  //   queryKey: "logout",
-  //   queryFn: async () =>
-  //     wait(1200).then(async () => await Logout(myAxios, user)),
-  //   enabled: false,
-  //   onSuccess: (res) => {
-  //     if (res.data.success) {
-  //       setOpenUserMenu(false);
-  //       Swal.fire({
-  //         position: "center",
-  //         icon: "success",
-  //         title: res.data.message,
-  //         showConfirmButton: false,
-  //         timer: 800,
-  //       }).then(() => {
-  //         setUser(null);
-  //         navigate(`/${process.env.REACT_APP_DEPARTMENT}/login`);
-  //       });
-  //     }
-  //   },
-  // });
+  const { mutate: mutateLogout, isPending: isLaodingLogout } = useMutation({
+    mutationKey: ["logout"],
+    mutationFn: async (variable: any) =>
+      await myAxios.post("/logout", variable, {
+        headers: {
+          Authorization: `Bearer ${user?.accessToken}`,
+        },
+      }),
+    onSuccess: (res) => {
+      if (res.data.success) {
+        setOpenUserMenu(false);
+        Swal.fire({
+          position: "center",
+          icon: "success",
+          title: res.data.message,
+          showConfirmButton: false,
+          timer: 800,
+        }).then(() => {
+          setUser(null);
+          navigate(`/${process.env.REACT_APP_DEPARTMENT}/login`);
+        });
+      }
+    },
+  });
 
-  // const handleLogout = () => {
-  //   Swal.fire({
-  //     title: "Are you sure?",
-  //     text: "You want to logout!",
-  //     icon: "warning",
-  //     showCancelButton: true,
-  //     confirmButtonColor: "#3085d6",
-  //     cancelButtonColor: "#d33",
-  //     confirmButtonText: "Yes, logout it!",
-  //   }).then((result) => {
-  //     if (result.isConfirmed) {
-  //       axios
-  //         .get("http://localhost:7624/close-report", {
-  //           withCredentials: true,
-  //         })
-  //         .then((res) => {
-  //           if (!res.data.success) {
-  //             alert(res.data.message);
-  //           }
-  //         })
-  //         .catch(console.log);
-
-  //       setTimeout(() => {
-  //         refetch();
-  //       }, 500);
-  //     }
-  //   });
-  // };
+  const handleLogout = () => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You want to logout!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, logout it!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        mutateLogout({});
+      }
+    });
+  };
 
   const handleMouseEnter = (menuItem: any) => {
     if (!menuItem.path && menuItem.subLinks) {
@@ -115,6 +110,7 @@ function Container({ showheader = true }: any) {
 
   return (
     <>
+      {isLaodingLogout && <Loading />}
       {showheader && (
         <header>
           <nav ref={menuRef} className="menu header-ch">
@@ -201,7 +197,7 @@ function Container({ showheader = true }: any) {
                   <li>
                     <span
                       onClick={() => {
-                        // handleLogout();
+                        handleLogout();
                       }}
                     >
                       Logout

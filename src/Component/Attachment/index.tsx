@@ -17,22 +17,17 @@ import { useState } from "react";
 import { Loading } from "../Loading";
 import { Button, IconButton, Tooltip } from "@mui/material";
 import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
 import "../../Style/DragDropFileUpload.css"; // Import the CSS file
 import { useNavigate } from "react-router-dom";
-import UploadModal from "./UploadFile";
+import UploadModal, { ZoomModal } from "./UploadFile";
 import { DEPARTMENT } from "../Dashboard";
-import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import AddIcon from "@mui/icons-material/Add";
 import { green } from "@mui/material/colors";
 import CloseIcon from "@mui/icons-material/Close";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
-import BlockIcon from "@mui/icons-material/Block";
-import { wait } from "../../Lib/wait";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
+import { HandleListHover } from "./BasicDocument";
 
 const __CONFIGURATION = [
   {
@@ -469,6 +464,7 @@ function Attactment() {
   const navigate = useNavigate();
   const addDocumentModalRef = useRef<any>(null);
   const approvedDateModalRef = useRef<any>(null);
+  const zoomModalRef = useRef<any>(null);
 
   const uploadModalRef = useRef<any>(null);
   const [configuration, setConfiguration] = useState<any>(null);
@@ -547,6 +543,114 @@ function Attactment() {
     }
   };
 
+  const printDocument = (itm: any) => {
+    const image = itm.files;
+
+    const newWindow = window.open();
+    if (newWindow) {
+      let printContent = "";
+      image.forEach((file: any, idx: number) => {
+        printContent += `
+          <div class="page">
+            <img src="${file.link}" alt="image-${idx + 1}"  />
+          </div>`;
+      });
+
+      newWindow.document.open();
+      newWindow.document.write(`
+          <html>
+          <head>
+            <title>Print Images</title>
+            <style>
+          @page { 
+              size: A4 portrait; 
+              margin: 0; 
+            }
+            body { margin: 0; padding: 0; }
+            .page { 
+              width: 100vw; 
+              height: 100vh; 
+              display: flex; 
+              justify-content: center; 
+              align-items: center; 
+              overflow: hidden;
+              page-break-after: always;
+            }
+            img { 
+              width: 100%;
+              height: 100%;
+              object-fit: contain;
+            }
+            </style>
+          </head>
+          <body>
+            ${printContent}
+            <script>
+              window.onload = function() { window.print(); window.close(); }
+            </script>
+          </body>
+          </html>
+        `);
+      newWindow.document.close();
+    }
+  };
+  const downloadDocument = async (itm: any) => {
+    const images = itm.files;
+    if (images.length > 1) {
+      const zip = new JSZip();
+      const folder = zip.folder("images");
+
+      // Fetch each image and add to zip
+      const fetchAndAddToZip = async (url: string, index: number) => {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        folder?.file(`image${index + 1}.jpg`, blob);
+      };
+
+      await Promise.all(
+        images.map((file: any, index: number) =>
+          fetchAndAddToZip(file.link, index)
+        )
+      );
+
+      // Generate zip and trigger download
+      zip.generateAsync({ type: "blob" }).then((content) => {
+        saveAs(content, "images.zip");
+      });
+    } else {
+      const response = await fetch(images[0].link);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "image.jpg";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  };
+  const zoomDocument = async (data: any) => {
+    const urlToFile = async (url: any, fileName: any) => {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      return new File([blob], fileName, { type: "image/png" });
+    };
+
+    if (data.files && data.files.length > 0) {
+      const filePromises = data.files.map((url: any, index: any) => {
+        return urlToFile(url.link, url.filename);
+      });
+
+      const fileArray = await Promise.all(filePromises);
+      data.files = fileArray;
+    }
+
+    zoomModalRef.current.showModal();
+    zoomModalRef.current.setSelectedDocument(data);
+  };
+
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     const dataParam = queryParams.get("Mkr44Rt2iuy13R");
@@ -603,27 +707,68 @@ function Attactment() {
       }
     }
   }, [selected]);
-  
+
   if (!configuration) {
     return <Loading />;
   }
 
   return (
     <>
+      <ZoomModal
+        ref={zoomModalRef}
+        handleOnClose={(state: any) => {
+          if (state) {
+            const newConfigDocuments = configuration.documents.map(
+              (itm: any) => {
+                if (itm.id === state.id) {
+                  state.files = state.files.map((file: File) => {
+                    return {
+                      filename: file.name,
+                      link: URL.createObjectURL(file),
+                    };
+                  });
+
+                  itm = {
+                    ...itm,
+                    ...state,
+                    reference: configuration.reference,
+                  };
+                }
+                return itm;
+              }
+            );
+            setConfiguration({
+              ...configuration,
+              documents: newConfigDocuments,
+            });
+          }
+        }}
+      />
       <UploadModal
         ref={uploadModalRef}
         handleOnSave={(event: any, state: any) => {
           uploadModalRef.current.closeDelay(state);
         }}
         handleOnClose={(event: any, state: any) => {
-          const newConfigDocuments = configuration.documents.map((itm: any) => {
-            if (itm.id === state.id) {
-              itm = { ...itm, ...state, reference: configuration.reference };
-            }
-            return itm;
-          });
-          setConfiguration({ ...configuration, documents: newConfigDocuments });
-          uploadModalRef.current.resetUpload();
+          if (state) {
+            const newConfigDocuments = configuration.documents.map(
+              (itm: any) => {
+                if (itm.id === state.id) {
+                  itm = {
+                    ...itm,
+                    ...state,
+                    reference: configuration.reference,
+                  };
+                }
+                return itm;
+              }
+            );
+            setConfiguration({
+              ...configuration,
+              documents: newConfigDocuments,
+            });
+            uploadModalRef.current.resetUpload();
+          }
         }}
       />
       <ModalDocument
@@ -895,7 +1040,6 @@ function Attactment() {
                       { key: "For Check Prep" },
                       { key: "ON HOLD" },
                       { key: "With Lacking Docs" },
-           
                     ]}
                     values={"key"}
                     display={"key"}
@@ -1230,92 +1374,6 @@ function Attactment() {
                       padding: "5px 10px",
                     }}
                   >
-                    Basic Requirement (For Assured)
-                  </p>
-                  <List>
-                    {configuration.documents
-                      .filter((itm: any) => itm.basicDocuments)
-                      .map((itm: any, idx: number) => {
-                        return (
-                          <ListItem
-                            key={itm.id}
-                            disablePadding
-                            sx={{
-                              backgroundColor: itm.files ? "#b9f6ca" : "",
-                              position: "relative",
-                            }}
-                          >
-                            <ListItemIcon
-                              sx={{
-                                cursor: "pointer",
-                                width: "auto !important",
-                                minWidth: "auto",
-                              }}
-                            >
-                              <Tooltip title="Reset Upload">
-                                <IconButton
-                                  disabled={itm.files === null}
-                                  color="primary"
-                                  onClick={() => {
-                                    resetUpload(itm, idx);
-                                  }}
-                                >
-                                  <BlockIcon
-                                    color="primary"
-                                    sx={{ fontSize: "20px" }}
-                                  />
-                                </IconButton>
-                              </Tooltip>
-                              {itm.others && (
-                                <Tooltip title="Reset Upload">
-                                  <IconButton
-                                    color="error"
-                                    onClick={() => {
-                                      deleteOthers(itm, idx);
-                                    }}
-                                  >
-                                    <DeleteForeverIcon
-                                      color="error"
-                                      sx={{ fontSize: "20px" }}
-                                    />
-                                  </IconButton>
-                                </Tooltip>
-                              )}
-                            </ListItemIcon>
-                            <Tooltip title="Upload Document">
-                              <ListItemButton
-                                onClick={(e) => onClickItem(e, itm)}
-                              >
-                                <ListItemText
-                                  primaryTypographyProps={{ fontSize: "12px" }}
-                                  primary={`${idx + 1}.   ${itm.label}`}
-                                />
-                                {itm.required &&
-                                  !itm.files && ( // Show error only if required and no file uploaded
-                                    <ErrorOutlineIcon
-                                      sx={{
-                                        position: "absolute",
-                                        right: "10px",
-                                        top: "50%",
-                                        transform: "translateY(-50%)",
-                                        fontSize: "18px",
-                                        color: "error.main",
-                                      }}
-                                    />
-                                  )}
-                              </ListItemButton>
-                            </Tooltip>
-                          </ListItem>
-                        );
-                      })}
-                  </List>
-                  <p
-                    style={{
-                      fontSize: "13px",
-                      fontWeight: "bold",
-                      padding: "5px 10px",
-                    }}
-                  >
                     {configuration.claimType}
                   </p>
                   <List>
@@ -1323,75 +1381,17 @@ function Attactment() {
                       .filter((itm: any) => itm.primaryDocuments)
                       .map((itm: any, idx: number) => {
                         return (
-                          <ListItem
-                            key={itm.id}
-                            disablePadding
-                            sx={{
-                              backgroundColor: itm.files ? "#b9f6ca" : "",
-                              position: "relative",
-                            }}
-                          >
-                            <ListItemIcon
-                              sx={{
-                                cursor: "pointer",
-                                width: "auto !important",
-                                minWidth: "auto",
-                              }}
-                            >
-                              <Tooltip title="Reset Upload">
-                                <IconButton
-                                  disabled={itm.files === null}
-                                  color="primary"
-                                  onClick={() => {
-                                    resetUpload(itm, idx);
-                                  }}
-                                >
-                                  <BlockIcon
-                                    color="primary"
-                                    sx={{ fontSize: "20px" }}
-                                  />
-                                </IconButton>
-                              </Tooltip>
-                              {itm.others && (
-                                <Tooltip title="Reset Upload">
-                                  <IconButton
-                                    color="error"
-                                    onClick={() => {
-                                      deleteOthers(itm, idx);
-                                    }}
-                                  >
-                                    <DeleteForeverIcon
-                                      color="error"
-                                      sx={{ fontSize: "20px" }}
-                                    />
-                                  </IconButton>
-                                </Tooltip>
-                              )}
-                            </ListItemIcon>
-                            <Tooltip title="Upload Document">
-                              <ListItemButton
-                                onClick={(e) => onClickItem(e, itm)}
-                              >
-                                <ListItemText
-                                  primaryTypographyProps={{ fontSize: "12px" }}
-                                  primary={`${idx + 1}.   ${itm.label}`}
-                                />
-                                {itm.required &&
-                                  !itm.files && ( // Show error only if required and no file uploaded
-                                    <ErrorOutlineIcon
-                                      sx={{
-                                        position: "absolute",
-                                        right: "10px",
-                                        top: "50%",
-                                        transform: "translateY(-50%)",
-                                        fontSize: "18px",
-                                        color: "error.main",
-                                      }}
-                                    />
-                                  )}
-                              </ListItemButton>
-                            </Tooltip>
-                          </ListItem>
+                          <HandleListHover
+                            key={idx}
+                            itm={itm}
+                            idx={idx}
+                            onClickItem={onClickItem}
+                            deleteOthers={deleteOthers}
+                            resetUpload={resetUpload}
+                            printDocument={printDocument}
+                            downloadDocument={downloadDocument}
+                            zoomDocument={zoomDocument}
+                          />
                         );
                       })}
                   </List>
@@ -1412,77 +1412,17 @@ function Attactment() {
                           .filter((itm: any) => itm.others)
                           .map((itm: any, idx: number) => {
                             return (
-                              <ListItem
-                                key={itm.id}
-                                disablePadding
-                                sx={{
-                                  backgroundColor: itm.files ? "#b9f6ca" : "",
-                                  position: "relative",
-                                }}
-                              >
-                                <ListItemIcon
-                                  sx={{
-                                    cursor: "pointer",
-                                    width: "auto !important",
-                                    minWidth: "auto",
-                                  }}
-                                >
-                                  <Tooltip title="Reset Upload">
-                                    <IconButton
-                                      disabled={itm.files === null}
-                                      color="primary"
-                                      onClick={() => {
-                                        resetUpload(itm, idx);
-                                      }}
-                                    >
-                                      <BlockIcon
-                                        color="primary"
-                                        sx={{ fontSize: "20px" }}
-                                      />
-                                    </IconButton>
-                                  </Tooltip>
-                                  {itm.others && (
-                                    <Tooltip title="Reset Upload">
-                                      <IconButton
-                                        color="error"
-                                        onClick={() => {
-                                          deleteOthers(itm, idx);
-                                        }}
-                                      >
-                                        <DeleteForeverIcon
-                                          color="error"
-                                          sx={{ fontSize: "20px" }}
-                                        />
-                                      </IconButton>
-                                    </Tooltip>
-                                  )}
-                                </ListItemIcon>
-                                <Tooltip title="Upload Document">
-                                  <ListItemButton
-                                    onClick={(e) => onClickItem(e, itm)}
-                                  >
-                                    <ListItemText
-                                      primaryTypographyProps={{
-                                        fontSize: "12px",
-                                      }}
-                                      primary={`${idx + 1}.   ${itm.label}`}
-                                    />
-                                    {itm.required &&
-                                      !itm.files && ( // Show error only if required and no file uploaded
-                                        <ErrorOutlineIcon
-                                          sx={{
-                                            position: "absolute",
-                                            right: "10px",
-                                            top: "50%",
-                                            transform: "translateY(-50%)",
-                                            fontSize: "18px",
-                                            color: "error.main",
-                                          }}
-                                        />
-                                      )}
-                                  </ListItemButton>
-                                </Tooltip>
-                              </ListItem>
+                              <HandleListHover
+                                key={idx}
+                                itm={itm}
+                                idx={idx}
+                                onClickItem={onClickItem}
+                                deleteOthers={deleteOthers}
+                                resetUpload={resetUpload}
+                                printDocument={printDocument}
+                                downloadDocument={downloadDocument}
+                                zoomDocument={zoomDocument}
+                              />
                             );
                           })}
                       </List>

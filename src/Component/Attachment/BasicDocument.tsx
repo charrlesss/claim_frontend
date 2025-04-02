@@ -11,14 +11,19 @@ import {
 import { useEffect, useRef, useState } from "react";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
-import BlockIcon from "@mui/icons-material/Block";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import AddIcon from "@mui/icons-material/Add";
 import { useNavigate } from "react-router-dom";
 import { DEPARTMENT } from "../Dashboard";
 import { green } from "@mui/material/colors";
 import { ModalDocument } from ".";
-import UploadModal from "./UploadFile";
+import UploadModal, { ZoomModal } from "./UploadFile";
+import PrintIcon from "@mui/icons-material/Print";
+import DownloadIcon from "@mui/icons-material/Download";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
+import CropFreeIcon from "@mui/icons-material/CropFree";
+import RotateLeftIcon from "@mui/icons-material/RotateLeft";
 
 const BasicDocument = () => {
   const navigate = useNavigate();
@@ -78,6 +83,7 @@ const BasicDocument = () => {
 
   const addDocumentModalRef = useRef<any>(null);
   const uploadModalRef = useRef<any>(null);
+  const zoomModalRef = useRef<any>(null);
 
   const onClickItem = async (event: any, data: any) => {
     const urlToFile = async (url: any, fileName: any) => {
@@ -125,12 +131,118 @@ const BasicDocument = () => {
   const handleAddDocument = () => {
     addDocumentModalRef.current.showModal();
   };
-
   const handleSaveBasicDocuments = () => {
     const encodedData = encodeURIComponent(
       JSON.stringify({ ...state, basicDocuments: JSON.stringify(documents) })
     );
     navigate(`/${DEPARTMENT}/dashboard?Mkr44Rt2iuy13R=${encodedData}`);
+  };
+  const printDocument = (itm: any) => {
+    const image = itm.files;
+
+    const newWindow = window.open();
+    if (newWindow) {
+      let printContent = "";
+      image.forEach((file: any, idx: number) => {
+        printContent += `
+        <div class="page">
+          <img src="${file.link}" alt="image-${idx + 1}"  />
+        </div>`;
+      });
+
+      newWindow.document.open();
+      newWindow.document.write(`
+        <html>
+        <head>
+          <title>Print Images</title>
+          <style>
+        @page { 
+            size: A4 portrait; 
+            margin: 0; 
+          }
+          body { margin: 0; padding: 0; }
+          .page { 
+            width: 100vw; 
+            height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            overflow: hidden;
+            page-break-after: always;
+          }
+          img { 
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+          }
+          </style>
+        </head>
+        <body>
+          ${printContent}
+          <script>
+            window.onload = function() { window.print(); window.close(); }
+          </script>
+        </body>
+        </html>
+      `);
+      newWindow.document.close();
+    }
+  };
+  const downloadDocument = async (itm: any) => {
+    const images = itm.files;
+    if (images.length > 1) {
+      const zip = new JSZip();
+      const folder = zip.folder("images");
+
+      // Fetch each image and add to zip
+      const fetchAndAddToZip = async (url: string, index: number) => {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        folder?.file(`image${index + 1}.jpg`, blob);
+      };
+
+      await Promise.all(
+        images.map((file: any, index: number) =>
+          fetchAndAddToZip(file.link, index)
+        )
+      );
+
+      // Generate zip and trigger download
+      zip.generateAsync({ type: "blob" }).then((content) => {
+        saveAs(content, "images.zip");
+      });
+    } else {
+      const response = await fetch(images[0].link);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "image.jpg";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  };
+  const zoomDocument = async (data: any) => {
+    const urlToFile = async (url: any, fileName: any) => {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      return new File([blob], fileName, { type: "image/png" });
+    };
+
+    if (data.files && data.files.length > 0) {
+      const filePromises = data.files.map((url: any, index: any) => {
+        return urlToFile(url.link, url.filename);
+      });
+
+      const fileArray = await Promise.all(filePromises);
+      data.files = fileArray;
+    }
+
+    zoomModalRef.current.showModal();
+    zoomModalRef.current.setSelectedDocument(data);
   };
 
   useEffect(() => {
@@ -149,20 +261,43 @@ const BasicDocument = () => {
 
   return (
     <>
+      <ZoomModal
+        ref={zoomModalRef}
+        handleOnClose={(state: any) => {
+          if (state) {
+            setDocuments((itm: any) => {
+              const newItm = itm.map((__file: any) => {
+                if (state.id === __file.id) {
+                  __file.files = __file.files.map((file: File) => {
+                    return {
+                      filename: file.name,
+                      link: URL.createObjectURL(file),
+                    };
+                  });
+                }
+                return __file;
+              });
+              return newItm;
+            });
+          }
+        }}
+      />
       <UploadModal
         ref={uploadModalRef}
         handleOnSave={(event: any, state: any) => {
           uploadModalRef.current.closeDelay(state);
         }}
         handleOnClose={(event: any, state: any) => {
-          const newdocuments = documents.map((itm: any) => {
-            if (itm.id === state.id) {
-              itm = { ...itm, ...state };
-            }
-            return itm;
-          });
-          setDocuments(newdocuments);
-          uploadModalRef.current.resetUpload();
+          if (state) {
+            const newdocuments = documents.map((itm: any) => {
+              if (itm.id === state.id) {
+                itm = { ...itm, ...state };
+              }
+              return itm;
+            });
+            setDocuments(newdocuments);
+            uploadModalRef.current.resetUpload();
+          }
         }}
       />
       <ModalDocument
@@ -267,73 +402,17 @@ const BasicDocument = () => {
               <List>
                 {documents.map((itm: any, idx: number) => {
                   return (
-                    <ListItem
-                      key={itm.id}
-                      disablePadding
-                      sx={{
-                        backgroundColor: itm.files ? "#b9f6ca" : "",
-                        position: "relative",
-                      }}
-                    >
-                      <ListItemIcon
-                        sx={{
-                          cursor: "pointer",
-                          width: "auto !important",
-                          minWidth: "auto",
-                        }}
-                      >
-                        <Tooltip title="Reset Upload">
-                          <IconButton
-                            disabled={itm.files === null}
-                            color="primary"
-                            onClick={() => {
-                              resetUpload(itm, idx);
-                            }}
-                          >
-                            <BlockIcon
-                              color="primary"
-                              sx={{ fontSize: "20px" }}
-                            />
-                          </IconButton>
-                        </Tooltip>
-                        {itm.others && (
-                          <Tooltip title="Delete Row">
-                            <IconButton
-                              color="error"
-                              onClick={() => {
-                                deleteOthers(itm, idx);
-                              }}
-                            >
-                              <DeleteForeverIcon
-                                color="error"
-                                sx={{ fontSize: "20px" }}
-                              />
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                      </ListItemIcon>
-                      <Tooltip title="Upload Document">
-                        <ListItemButton onClick={(e) => onClickItem(e, itm)}>
-                          <ListItemText
-                            primaryTypographyProps={{ fontSize: "12px" }}
-                            primary={`${idx + 1}.   ${itm.label}`}
-                          />
-                          {itm.required &&
-                            !itm.files && ( // Show error only if required and no file uploaded
-                              <ErrorOutlineIcon
-                                sx={{
-                                  position: "absolute",
-                                  right: "10px",
-                                  top: "50%",
-                                  transform: "translateY(-50%)",
-                                  fontSize: "18px",
-                                  color: "error.main",
-                                }}
-                              />
-                            )}
-                        </ListItemButton>
-                      </Tooltip>
-                    </ListItem>
+                    <HandleListHover
+                      key={idx}
+                      itm={itm}
+                      idx={idx}
+                      onClickItem={onClickItem}
+                      deleteOthers={deleteOthers}
+                      resetUpload={resetUpload}
+                      printDocument={printDocument}
+                      downloadDocument={downloadDocument}
+                      zoomDocument={zoomDocument}
+                    />
                   );
                 })}
               </List>
@@ -381,6 +460,123 @@ const BasicDocument = () => {
         </div>
       </div>
     </>
+  );
+};
+
+export const HandleListHover = ({
+  itm,
+  idx,
+  onClickItem,
+  deleteOthers,
+  resetUpload,
+  printDocument,
+  downloadDocument,
+  zoomDocument,
+}: any) => {
+  const [hover, setHover] = useState(false);
+  return (
+    <ListItem
+      disablePadding
+      sx={{
+        backgroundColor: itm.files ? "#e7e5e4" : "",
+        position: "relative",
+      }}
+      onMouseEnter={() => {
+        setHover(true);
+      }}
+      onMouseLeave={() => {
+        setHover(false);
+      }}
+    >
+      <ListItemIcon
+        sx={{
+          cursor: "pointer",
+          width: "auto !important",
+          minWidth: "auto",
+        }}
+      ></ListItemIcon>
+      <Tooltip title="Upload Document">
+        <ListItemButton onClick={(e) => onClickItem(e, itm)}>
+          <ListItemText
+            primaryTypographyProps={{ fontSize: "12px" }}
+            primary={`${idx + 1}.   ${itm.label}`}
+          />
+          {itm.required &&
+            !itm.files && ( // Show error only if required and no file uploaded
+              <ErrorOutlineIcon
+                sx={{
+                  position: "absolute",
+                  right: "10px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  fontSize: "18px",
+                  color: "error.main",
+                }}
+              />
+            )}
+        </ListItemButton>
+      </Tooltip>
+      {hover && itm.files && itm.files.length > 0 && (
+        <Tooltip title="Zoom">
+          <IconButton
+            color="primary"
+            onClick={() => {
+              zoomDocument(itm, idx);
+            }}
+          >
+            <CropFreeIcon color="primary" sx={{ fontSize: "20px" }} />
+          </IconButton>
+        </Tooltip>
+      )}
+      {hover && itm.files && itm.files.length > 0 && (
+        <Tooltip title="Donwload">
+          <IconButton
+            color="primary"
+            onClick={() => {
+              downloadDocument(itm, idx);
+            }}
+          >
+            <DownloadIcon color="primary" sx={{ fontSize: "20px" }} />
+          </IconButton>
+        </Tooltip>
+      )}
+      {hover && itm.files && itm.files.length > 0 && (
+        <Tooltip title="Print">
+          <IconButton
+            color="primary"
+            onClick={() => {
+              printDocument(itm, idx);
+            }}
+          >
+            <PrintIcon color="primary" sx={{ fontSize: "20px" }} />
+          </IconButton>
+        </Tooltip>
+      )}
+      {hover && itm.files && itm.files.length > 0 && (
+        <Tooltip title="Reset Upload">
+          <IconButton
+            color="primary"
+            onClick={() => {
+              resetUpload(itm, idx);
+            }}
+          >
+            <RotateLeftIcon color="primary" sx={{ fontSize: "20px" }} />
+          </IconButton>
+        </Tooltip>
+      )}
+      {hover && itm.others && (
+        <Tooltip title="Delete Row">
+          <IconButton
+            color="error"
+            onClick={() => {
+              deleteOthers(itm, idx);
+            }}
+          >
+            <DeleteForeverIcon color="error" sx={{ fontSize: "20px" }} />
+          </IconButton>
+        </Tooltip>
+      )}
+    </ListItem>
   );
 };
 

@@ -900,6 +900,7 @@ const Dashboard = forwardRef(({}, ref) => {
                   width: "100%",
                   position: "relative",
                   minHeight: "100px",
+                  fontSize: "11px",
                 }}
               >
                 <div
@@ -934,6 +935,7 @@ const Dashboard = forwardRef(({}, ref) => {
                 style={{
                   width: "100%",
                   position: "relative",
+                  fontSize: "11px",
                 }}
               >
                 <div
@@ -1036,14 +1038,14 @@ function DisplayPaymentDetails(
     policyPaymentDetailsRef.current.innerHTML = `
      <div style="display:flex;flex:1,width:100%;">
       <div style="flex:1;">
-        <div style="display:flex;column-gap:20px"><span style="width:85px">Total Premium  :</span> <strong style="width:70px;text-align:right;">${formatNumber(
+        <div style="display:flex;column-gap:20px"><span style="width:120px">Total Premium  :</span> <strong style="width:70px;text-align:right;">${formatNumber(
           payment.totalGross
         )}</strong></div>
-            <div style="display:flex;column-gap:20px"><span style="width:85px">Total Paid :</span> <strong style="width:70px;text-align:right;">${formatNumber(
+            <div style="display:flex;column-gap:20px"><span style="width:120px">Total Paid :</span> <strong style="width:70px;text-align:right;">${formatNumber(
               payment.totalPaid
             )}</strong></div>
-            <div style="width:175px;border-top:1px solid black;"></div>
-            <div style="display:flex;column-gap:20px;"><span style="width:90px";>Total Balance :</span> 
+            <div style="width:220px;border-top:1px solid black;"></div>
+            <div style="display:flex;column-gap:20px;"><span style="width:120px";>Total Balance :</span> 
             <strong style="width:70px;text-align:right;color:${
               payment.totalBalance <= 0 ? "green" : "red"
             }">${formatNumber(payment.totalBalance)}</strong></div>
@@ -1061,48 +1063,48 @@ function DisplayPolicyDetails(
       policyDetailsRef.current.innerHTML = `
      <div style="display:flex;flex:1,width:100%;column-gap:20px;">
       <div style="flex:1;">
-        <div style="display:flex;column-gap:20px"><span style="width:80px">Policy No.:</span> <strong style="flex:1">${
+        <div style="display:flex;column-gap:20px"><span style="width:90px">Policy No.:</span> <strong style="flex:1">${
           data.PolicyNo || ""
         }</strong></div>
-        <div style="display:flex;column-gap:20px"><span style="width:80px">Name.:</span><strong style="flex:1"> ${
+        <div style="display:flex;column-gap:20px"><span style="width:90px">Name.:</span><strong style="flex:1"> ${
           data.Name || ""
         }</strong></div>
-        <div style="display:flex;column-gap:20px"><span style="width:80px">ID No.:</span><strong style="flex:1"> ${
+        <div style="display:flex;column-gap:20px"><span style="width:90px">ID No.:</span><strong style="flex:1"> ${
           data.IDNo || ""
         }</strong></div>
-        <div style="display:flex;column-gap:20px"><span style="width:80px">Policy Type.:</span><strong style="flex:1"> ${
+        <div style="display:flex;column-gap:20px"><span style="width:90px">Policy Type.:</span><strong style="flex:1"> ${
           data.PolicyType || ""
         }</strong></div>
-         <div style="display:flex;column-gap:20px"><span style="width:80px">Account : </span><strong style="flex:1">${
+         <div style="display:flex;column-gap:20px"><span style="width:90px">Account : </span><strong style="flex:1">${
            data.Account || ""
          }</strong></div>
-        <div style="display:flex;column-gap:20px"><span style="width:80px">Department: </span><strong style="flex:1">${
+        <div style="display:flex;column-gap:20px"><span style="width:90px">Department: </span><strong style="flex:1">${
           data.Department || ""
         }</strong></div>
-        <div style="display:flex;column-gap:20px"><span style="width:80px">Chassis No.:</span><strong style="flex:1"> ${
+        <div style="display:flex;column-gap:20px"><span style="width:90px">Chassis No.:</span><strong style="flex:1"> ${
           data.ChassisNo || ""
         }</strong></div>
       </div>
       <div style="flex:1;">
-      <div style="display:flex;column-gap:20px"><span style="width:80px">Motor No.:</span> <strong style="flex:1">${
+      <div style="display:flex;column-gap:20px"><span style="width:90px">Motor No.:</span> <strong style="flex:1">${
         data.MotorNo || ""
       }</strong></div>
-       <div style="display:flex;column-gap:20px"><span style="width:80px">Cover No.:</span> <strong style="flex:1">${
+       <div style="display:flex;column-gap:20px"><span style="width:90px">Cover No.:</span> <strong style="flex:1">${
          data.CoverNo || ""
        }</strong></div>
-        <div style="display:flex;column-gap:20px"><span style="width:80px">OR No.:</span> <strong style="flex:1">${
+        <div style="display:flex;column-gap:20px"><span style="width:90px">OR No.:</span> <strong style="flex:1">${
           data.ORNo || ""
         }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Model:</span> <strong style="flex:1">${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Model:</span> <strong style="flex:1">${
             data.Model || ""
           }</strong></div>
-             <div style="display:flex;column-gap:20px"><span style="width:80px">Make :</span> <strong style="flex:1">${
+             <div style="display:flex;column-gap:20px"><span style="width:90px">Make :</span> <strong style="flex:1">${
                data.Make || ""
              }</strong></div>
-                   <div style="display:flex;column-gap:20px"><span style="width:80px">Body Type :</span> <strong style="flex:1">${
+                   <div style="display:flex;column-gap:20px"><span style="width:90px">Body Type :</span> <strong style="flex:1">${
                      data.BodyType || ""
                    }</strong></div>
-                      <div style="display:flex;column-gap:20px"><span style="width:80px">Plate No. :</span> <strong style="flex:1">${
+                      <div style="display:flex;column-gap:20px"><span style="width:90px">Plate No. :</span> <strong style="flex:1">${
                         data.PlateNo || ""
                       }</strong></div>
       </div>
@@ -1115,39 +1117,39 @@ function DisplayPolicyDetails(
       policyDetailsRef.current.innerHTML = `
     <div style="display:flex;flex:1,width:100%;column-gap:20px;">
       <div style="flex:1;">
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Policy No. :</span> <strong style="flex:1">${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Policy No. :</span> <strong style="flex:1">${
             data.PolicyNo || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Name. :</span><strong style="flex:1"> ${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Name. :</span><strong style="flex:1"> ${
             data.Name || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">ID No. :</span><strong style="flex:1"> ${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">ID No. :</span><strong style="flex:1"> ${
             data.IDNo || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Policy Type. :</span><strong style="flex:1"> ${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Policy Type. :</span><strong style="flex:1"> ${
             data.PolicyType || ""
           }</strong></div>
-           <div style="display:flex;column-gap:20px"><span style="width:80px">Account : </span><strong style="flex:1">${
+           <div style="display:flex;column-gap:20px"><span style="width:90px">Account : </span><strong style="flex:1">${
              data.Account || ""
            }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Department : </span><strong style="flex:1">${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Department : </span><strong style="flex:1">${
             data.Department || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Location : </span><strong style="flex:1">${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Location : </span><strong style="flex:1">${
             data.Location || ""
           }</strong></div>
       </div>
       <div style="flex:1;">
-        <div style="display:flex;column-gap:20px"><span style="width:80px">Property Insured : </span><strong style="flex:1">${
+        <div style="display:flex;column-gap:20px"><span style="width:90px">Property Insured : </span><strong style="flex:1">${
           data.PropertyInsured || ""
         }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Occupancy :</span> <strong style="flex:1">${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Occupancy :</span> <strong style="flex:1">${
             data.Occupancy || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Boundaries :</span><strong style="flex:1"> ${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Boundaries :</span><strong style="flex:1"> ${
             data.Boundaries || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Mortgage :</span><strong style="flex:1"> ${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Mortgage :</span><strong style="flex:1"> ${
             data.Mortgage || ""
           }</strong></div>
       </div>
@@ -1158,27 +1160,27 @@ function DisplayPolicyDetails(
       policyDetailsRef.current.innerHTML = `
     <div style="display:flex;flex:1,width:100%;column-gap:20px;">
       <div style="flex:1;">
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Policy No. :</span> <strong style="flex:1">${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Policy No. :</span> <strong style="flex:1">${
             data.PolicyNo || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Name. :</span><strong style="flex:1"> ${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Name. :</span><strong style="flex:1"> ${
             data.Name || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">ID No. :</span><strong style="flex:1"> ${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">ID No. :</span><strong style="flex:1"> ${
             data.IDNo || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Policy Type. :</span><strong style="flex:1"> ${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Policy Type. :</span><strong style="flex:1"> ${
             data.PolicyType || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Account : </span><strong style="flex:1">${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Account : </span><strong style="flex:1">${
             data.Account || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Department : </span><strong style="flex:1">${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Department : </span><strong style="flex:1">${
             data.Department || ""
           }</strong></div>
       </div>
       <div style="flex:1;">
-        <div style="display:flex;column-gap:20px"><span style="width:80px">Location : </span><strong style="flex:1">${
+        <div style="display:flex;column-gap:20px"><span style="width:90px">Location : </span><strong style="flex:1">${
           data.Location || ""
         }</strong></div>
       </div>
@@ -1189,42 +1191,42 @@ function DisplayPolicyDetails(
       policyDetailsRef.current.innerHTML = `
     <div style="display:flex;flex:1,width:100%;column-gap:20px;">
       <div style="flex:1;">
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Policy No. :</span> <strong style="flex:1">${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Policy No. :</span> <strong style="flex:1">${
             data.PolicyNo || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Name. :</span><strong style="flex:1"> ${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Name. :</span><strong style="flex:1"> ${
             data.Name || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">ID No. :</span><strong style="flex:1"> ${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">ID No. :</span><strong style="flex:1"> ${
             data.IDNo || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Policy Type. :</span><strong style="flex:1"> ${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Policy Type. :</span><strong style="flex:1"> ${
             data.PolicyType || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Account : </span><strong style="flex:1">${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Account : </span><strong style="flex:1">${
             data.Account || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Department : </span><strong style="flex:1">${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Department : </span><strong style="flex:1">${
             data.Department || ""
           }</strong></div>
       </div>
       <div style="flex:1;">
-        <div style="display:flex;column-gap:20px"><span style="width:115px">Point Of Origin : </span><strong style="flex:1">${
+        <div style="display:flex;column-gap:20px"><span style="width:125px">Point Of Origin : </span><strong style="flex:1">${
           data.PointOfOrigin || ""
         }</strong></div>
-        <div style="display:flex;column-gap:20px"><span style="width:115px">Point of Destination : </span><strong style="flex:1">${
+        <div style="display:flex;column-gap:20px"><span style="width:125px">Point of Destination : </span><strong style="flex:1">${
           data.PointofDestination || ""
         }</strong></div>
-        <div style="display:flex;column-gap:20px"><span style="width:115px">Vessel : </span><strong style="flex:1">${
+        <div style="display:flex;column-gap:20px"><span style="width:125px">Vessel : </span><strong style="flex:1">${
           data.Vessel || ""
         }</strong></div>
-        <div style="display:flex;column-gap:20px"><span style="width:115px">Additional Info : </span><strong style="flex:1">${
+        <div style="display:flex;column-gap:20px"><span style="width:125px">Additional Info : </span><strong style="flex:1">${
           data.AdditionalInfo || ""
         }</strong></div>
-        <div style="display:flex;column-gap:20px"><span style="width:115px">Subject Insured : </span><strong style="flex:1">${
+        <div style="display:flex;column-gap:20px"><span style="width:125px">Subject Insured : </span><strong style="flex:1">${
           data.SubjectInsured || ""
         }</strong></div>
-         <div style="display:flex;column-gap:20px"><span style="width:115px">Consignee : </span><strong style="flex:1">${
+         <div style="display:flex;column-gap:20px"><span style="width:125px">Consignee : </span><strong style="flex:1">${
            data.Consignee || ""
          }</strong></div>
       </div>
@@ -1235,42 +1237,42 @@ function DisplayPolicyDetails(
       policyDetailsRef.current.innerHTML = `
     <div style="display:flex;flex:1,width:100%;column-gap:20px;">
       <div style="flex:1;">
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Policy No. :</span> <strong style="flex:1">${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Policy No. :</span> <strong style="flex:1">${
             data.PolicyNo || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Name. :</span><strong style="flex:1"> ${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Name. :</span><strong style="flex:1"> ${
             data.Name || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">ID No. :</span><strong style="flex:1"> ${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">ID No. :</span><strong style="flex:1"> ${
             data.IDNo || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Policy Type. :</span><strong style="flex:1"> ${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Policy Type. :</span><strong style="flex:1"> ${
             data.PolicyType || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Account : </span><strong style="flex:1">${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Account : </span><strong style="flex:1">${
             data.Account || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Department : </span><strong style="flex:1">${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Department : </span><strong style="flex:1">${
             data.Department || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Location : </span><strong style="flex:1">${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Location : </span><strong style="flex:1">${
             data.Location || ""
           }</strong></div>
       </div>
       <div style="flex:1;">
-        <div style="display:flex;column-gap:20px"><span style="width:80px">Safe Room : </span><strong style="flex:1">${
+        <div style="display:flex;column-gap:20px"><span style="width:90px">Safe Room : </span><strong style="flex:1">${
           data.Saferoom || ""
         }</strong></div>
-        <div style="display:flex;column-gap:20px"><span style="width:80px">Origin Point : </span><strong style="flex:1">${
+        <div style="display:flex;column-gap:20px"><span style="width:90px">Origin Point : </span><strong style="flex:1">${
           data.OriginPoint || ""
         }</strong></div>
-         <div style="display:flex;column-gap:20px"><span style="width:80px">Destination Point : </span><strong style="flex:1">${
+         <div style="display:flex;column-gap:20px"><span style="width:90px">Destination Point : </span><strong style="flex:1">${
            data.DestinationPoint || ""
          }</strong></div>
-        <div style="display:flex;column-gap:20px"><span style="width:80px">Guard : </span><strong style="flex:1">${
+        <div style="display:flex;column-gap:20px"><span style="width:90px">Guard : </span><strong style="flex:1">${
           data.Guard || ""
         }</strong></div>
-        <div style="display:flex;column-gap:20px"><span style="width:80px">Messenger : </span><strong style="flex:1">${
+        <div style="display:flex;column-gap:20px"><span style="width:90px">Messenger : </span><strong style="flex:1">${
           data.Messenger || ""
         }</strong></div>
       </div>
@@ -1281,27 +1283,27 @@ function DisplayPolicyDetails(
       policyDetailsRef.current.innerHTML = `
     <div style="display:flex;flex:1,width:100%;column-gap:20px;">
       <div style="flex:1;">
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Policy No. :</span> <strong style="flex:1">${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Policy No. :</span> <strong style="flex:1">${
             data.PolicyNo || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Name. :</span><strong style="flex:1"> ${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Name. :</span><strong style="flex:1"> ${
             data.Name || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">ID No. :</span><strong style="flex:1"> ${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">ID No. :</span><strong style="flex:1"> ${
             data.IDNo || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Policy Type. :</span><strong style="flex:1"> ${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Policy Type. :</span><strong style="flex:1"> ${
             data.PolicyType || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Account : </span><strong style="flex:1">${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Account : </span><strong style="flex:1">${
             data.Account || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Department : </span><strong style="flex:1">${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Department : </span><strong style="flex:1">${
             data.Department || ""
           }</strong></div>
       </div>
       <div style="flex:1;">
-        <div style="display:flex;column-gap:20px"><span style="width:80px">Location : </span><strong style="flex:1">${
+        <div style="display:flex;column-gap:20px"><span style="width:90px">Location : </span><strong style="flex:1">${
           data.Location || ""
         }</strong></div>
       </div>
@@ -1312,48 +1314,48 @@ function DisplayPolicyDetails(
       policyDetailsRef.current.innerHTML = `
     <div style="display:flex;flex:1,width:100%;column-gap:20px;">
       <div style="flex:1;">
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Policy No. :</span> <strong style="flex:1">${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Policy No. :</span> <strong style="flex:1">${
             data.PolicyNo || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Name. :</span><strong style="flex:1"> ${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Name. :</span><strong style="flex:1"> ${
             data.Name || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">ID No. :</span><strong style="flex:1"> ${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">ID No. :</span><strong style="flex:1"> ${
             data.IDNo || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Policy Type. :</span><strong style="flex:1"> ${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Policy Type. :</span><strong style="flex:1"> ${
             data.PolicyType || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Account : </span><strong style="flex:1">${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Account : </span><strong style="flex:1">${
             data.Account || ""
           }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:80px">Department : </span><strong style="flex:1">${
+          <div style="display:flex;column-gap:20px"><span style="width:90px">Department : </span><strong style="flex:1">${
             data.Department || ""
           }</strong></div>
-           <div style="display:flex;column-gap:20px"><span style="width:80px">Obligee : </span><strong style="flex:1">${
+           <div style="display:flex;column-gap:20px"><span style="width:90px">Obligee : </span><strong style="flex:1">${
              data.Obligee || ""
            }</strong></div>
       </div>
       <div style="flex:1;">
-         <div style="display:flex;column-gap:20px"><span style="width:120px">Unit Detail : </span><strong style="flex:1">${
+         <div style="display:flex;column-gap:20px"><span style="width:130px">Unit Detail : </span><strong style="flex:1">${
            data.UnitDetail || ""
          }</strong></div>
-         <div style="display:flex;column-gap:20px"><span style="width:120px">Notary Name : </span><strong style="flex:1">${
+         <div style="display:flex;column-gap:20px"><span style="width:130px">Notary Name : </span><strong style="flex:1">${
            data.NotaryName || ""
          }</strong></div>
-         <div style="display:flex;column-gap:20px"><span style="width:120px">Tax Cert. No : </span><strong style="flex:1">${
+         <div style="display:flex;column-gap:20px"><span style="width:130px">Tax Cert. No : </span><strong style="flex:1">${
            data.TaxCerNo || ""
          }</strong></div>
-        <div style="display:flex;column-gap:20px"><span style="width:120px">Issued Location : </span><strong style="flex:1">${
+        <div style="display:flex;column-gap:20px"><span style="width:130px">Issued Location : </span><strong style="flex:1">${
           data.IssuedLocation || ""
         }</strong></div>
-          <div style="display:flex;column-gap:20px"><span style="width:120px">Capacity As : </span><strong style="flex:1">${
+          <div style="display:flex;column-gap:20px"><span style="width:130px">Capacity As : </span><strong style="flex:1">${
             data.CapacityAs || ""
           }</strong></div>
-        <div style="display:flex;column-gap:20px"><span style="width:120px">Tax Cert. No Corp. : </span><strong style="flex:1">${
+        <div style="display:flex;column-gap:20px"><span style="width:130px">Tax Cert. No Corp. : </span><strong style="flex:1">${
           data.TaxCerNoCorp || ""
         }</strong></div>
-        <div style="display:flex;column-gap:20px"><span style="width:120px">Issued Loction Corp. : </span><strong style="flex:1">${
+        <div style="display:flex;column-gap:20px"><span style="width:130px">Issued Loction Corp. : </span><strong style="flex:1">${
           data.IssuedLoctCorp || ""
         }</strong></div>
       </div>

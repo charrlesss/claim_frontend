@@ -17,6 +17,7 @@ const buttons = [
   { label: "List of Ongoing Claims", id: 1 },
   { label: "Denied Claims", id: 2 },
   { label: "Cancel Claim", id: 3 },
+  { label: "Reimbursement", id: 4 },
   // { label: "Denied Due To Balance ", id: 4 },
   // { label: "CNC", id: 5 },
   // { label: "For Recovery", id: 6 },
