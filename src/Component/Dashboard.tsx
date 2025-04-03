@@ -1,4 +1,11 @@
-import { forwardRef, useContext, useEffect, useRef, useState } from "react";
+import {
+  forwardRef,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  useImperativeHandle,
+} from "react";
 import { wait } from "../Lib/wait";
 import {
   DataGridViewReact,
@@ -23,6 +30,7 @@ import { TextInput } from "./UpwardFields";
 import { ExpandMore, ChevronRight } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import "../Style/DragDropFileUpload.css";
+import { format } from "date-fns";
 
 const columns = [
   { key: "reference", label: "REF#", width: 100 },
@@ -60,13 +68,14 @@ const columns = [
 export const DEPARTMENT = process.env.REACT_APP_DEPARTMENT;
 
 const Dashboard = forwardRef(({}, ref) => {
+  const [dropDownButton, setDropDownButton] = useState<Array<any>>([]);
   const navigate = useNavigate();
 
   const formRef = useRef<any>(null);
   const tableRef = useRef<any>(null);
+  const claimSheetModalRef = useRef<any>(null);
 
   const [claimMode, setClaiMode] = useState("");
-  const [department, setDepartment] = useState("");
   const { myAxios, user } = useContext(UserContext);
   const inputSearchRef = useRef<HTMLInputElement>(null);
   const claimNoRef = useRef<HTMLInputElement>(null);
@@ -243,6 +252,27 @@ const Dashboard = forwardRef(({}, ref) => {
       // console.log(response);
     },
   });
+  const { isPending: isLoadingClaimSheet, mutate: mutateClaimSheet } =
+    useMutation({
+      mutationKey: ["generate-claim-sheet"],
+      mutationFn: async (variables: any) =>
+        await myAxios.post(`/generate-claim-sheet`, variables, {
+          responseType: "arraybuffer",
+          headers: {
+            Authorization: `Bearer ${user?.accessToken}`,
+          },
+        }),
+      onSuccess: (response, variable) => {
+        const pdfBlob = new Blob([response.data], { type: "application/pdf" });
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        window.open(
+          `/${
+            process.env.REACT_APP_DEPARTMENT
+          }/dashboard/report?pdf=${encodeURIComponent(pdfUrl)}`,
+          "_blank"
+        );
+      },
+    });
   const {
     isPending: isLoadingSelectedPolicySearch,
     mutate: mutateSelectedPolicySearch,
@@ -400,7 +430,144 @@ const Dashboard = forwardRef(({}, ref) => {
       policyTypeRef.current = data.PolicyType;
       policyDepartmentRef.current = data.Department;
 
-      setDepartment(data.Department);
+      if (data.PolicyType.trim() === "COM") {
+        setDropDownButton([
+          {
+            label: "Own Damage",
+            id: "0001",
+          },
+          {
+            label: "Theft/Carnap",
+            id: "0002",
+          },
+          {
+            label: "Acts of Nature",
+            id: "0003",
+          },
+          {
+            label: "Third Party Bodily Injury ",
+            id: "0004",
+          },
+          {
+            label: "Third Party Property Damage",
+            id: "0005",
+          },
+          {
+            label: "Unnamed Passenger Personal Accident ",
+            id: "0006",
+          },
+        ]);
+      } else if (data.PolicyType.trim() === "TPL") {
+        setDropDownButton([
+          {
+            label: "Bodily Injury",
+            id: "0007",
+          },
+          {
+            label: "Death Claim",
+            id: "0008",
+          },
+        ]);
+      } else if (data.PolicyType.trim() === "PA") {
+        setDropDownButton([
+          {
+            label: "Bodily Injury",
+            id: "00021",
+          },
+          {
+            label: "Death Claim",
+            id: "00022",
+          },
+        ]);
+      } else {
+        setDropDownButton([
+          {
+            label: "Comprehensive",
+            children: [
+              {
+                label: "Own Damage",
+                id: "0001",
+              },
+              {
+                label: "Theft/Carnap",
+                id: "0002",
+              },
+              {
+                label: "Acts of Nature",
+                id: "0003",
+              },
+              {
+                label: "Third Party Bodily Injury ",
+                id: "0004",
+              },
+              {
+                label: "Third Party Property Damage",
+                id: "0005",
+              },
+              {
+                label: "Unnamed Passenger Personal Accident ",
+                id: "0006",
+              },
+            ],
+          },
+          {
+            label: "TPL",
+            children: [
+              {
+                label: "Bodily Injury",
+                id: "0007",
+              },
+              {
+                label: "Death Claim",
+                id: "0008",
+              },
+            ],
+          },
+          {
+            label: "Fire",
+            children: [
+              {
+                label: "Fire",
+              },
+            ],
+          },
+          {
+            label: "Marine",
+            children: [
+              {
+                label: "Marine",
+              },
+            ],
+          },
+          {
+            label: "Property Fluater",
+            children: [
+              {
+                label: "Acts of Nature",
+              },
+              {
+                label: "Own Damage",
+              },
+              {
+                label: "Third Party Damage",
+              },
+            ],
+          },
+          {
+            label: "GPA",
+            children: [
+              {
+                label: "Bodily Injury",
+                id: "00021",
+              },
+              {
+                label: "Death Claim",
+                id: "00022",
+              },
+            ],
+          },
+        ]);
+      }
       DisplayPolicyDetails(data, policyDetailsRef);
     }
   }, [policyDetails]);
@@ -578,7 +745,6 @@ const Dashboard = forwardRef(({}, ref) => {
         </div>
       `;
     }
-    setDepartment("");
     setPolicyDetails(null);
     setBasicDocuments([]);
     wait(100).then(() => {
@@ -602,7 +768,14 @@ const Dashboard = forwardRef(({}, ref) => {
         isLoadingReferenceId ||
         isLoadingDelete ||
         isLoadingUpdate ||
-        isLoadingSelectedClaimSearch) && <Loading />}
+        isLoadingSelectedClaimSearch ||
+        isLoadingClaimSheet) && <Loading />}
+      <ModalGenerateClaimSheet
+        ref={claimSheetModalRef}
+        handleOnSave={(state: any) => {
+          mutateClaimSheet(state);
+        }}
+      />
       <SearchPolicyUpwardTableModalSearch />
       <SearchClaimUpwardTableModalSearch />
       <div
@@ -660,8 +833,6 @@ const Dashboard = forwardRef(({}, ref) => {
             inputRef={inputSearchRef}
           />
           <div style={{ display: "flex", columnGap: "10px" }}>
-            <DropdownMenu ref={formRef} onClick={handleClick} />
-
             {claimMode === "" && (
               <Button
                 sx={{
@@ -842,6 +1013,12 @@ const Dashboard = forwardRef(({}, ref) => {
                 }}
                 inputRef={policySearchRef}
               />
+              <DropdownMenu
+                ref={formRef}
+                onClick={handleClick}
+                dropDownButton={dropDownButton}
+                disabled={policyDetails === null}
+              />
               <Button
                 sx={{
                   height: "22px",
@@ -867,6 +1044,27 @@ const Dashboard = forwardRef(({}, ref) => {
                 variant="contained"
               >
                 Add Basic Documents
+              </Button>
+              <Button
+                sx={{
+                  height: "22px",
+                  fontSize: "11px",
+                }}
+                disabled={
+                  policyDetails === null ||
+                  tableRef.current?.getData().length <= 0
+                }
+                onClick={() => {
+                  claimSheetModalRef.current.showModal();
+                  claimSheetModalRef.current.setFieldInfo({
+                    policy: policyDetails,
+                    table: tableRef.current.getData(),
+                  });
+                }}
+                color="success"
+                variant="contained"
+              >
+                Claim Sheet
               </Button>
             </div>
           </div>
@@ -1025,6 +1223,572 @@ const Dashboard = forwardRef(({}, ref) => {
     </>
   );
 });
+
+const ModalGenerateClaimSheet = forwardRef(
+  ({ handleOnSave, handleOnClose }: any, ref) => {
+    const modalRef = useRef<HTMLDivElement>(null);
+    const isMoving = useRef(false);
+    const offset = useRef({ x: 0, y: 0 });
+
+    const [showModal, setShowModal] = useState(false);
+    const [handleDelayClose, setHandleDelayClose] = useState(false);
+    const [blick, setBlick] = useState(false);
+
+    const departmentRef = useRef<HTMLInputElement>(null);
+    const assuredRef = useRef<HTMLInputElement>(null);
+    const unitRef = useRef<HTMLInputElement>(null);
+    const enigneRef = useRef<HTMLInputElement>(null);
+    const chassisRef = useRef<HTMLInputElement>(null);
+    const plateRef = useRef<HTMLInputElement>(null);
+    const claimTypeRef = useRef<HTMLInputElement>(null);
+    const datePrepared = useRef<HTMLInputElement>(null);
+    const policyNoRef = useRef<HTMLInputElement>(null);
+    const dateAccidentRef = useRef<HTMLInputElement>(null);
+    const dateIssuredRef = useRef<HTMLInputElement>(null);
+    const dateFromRef = useRef<HTMLInputElement>(null);
+    const dateToRef = useRef<HTMLInputElement>(null);
+
+    const closeDelay = () => {
+      setHandleDelayClose(true);
+      setTimeout(() => {
+        setShowModal(false);
+        setHandleDelayClose(false);
+        if (handleOnClose) handleOnClose();
+      }, 100);
+    };
+    const closeDelayRef = useRef<any>(closeDelay);
+
+    useImperativeHandle(ref, () => ({
+      showModal: () => {
+        setShowModal(true);
+      },
+      clsoeModal: () => {
+        setShowModal(false);
+      },
+      getRefs: () => {
+        const refs = {};
+        return refs;
+      },
+      setFieldInfo: (state: any) => {
+        wait(100).then(() => {
+          const policyDetails = state.policy.data[0];
+          const table = state.table;
+          console.log(table);
+          if (departmentRef.current) {
+            if (policyDetails.Department.trim() === "UCSMI") {
+              departmentRef.current.value =
+                "UPWARD CONSULTANCY SERVICES AND MANAGEMENT INC.";
+            } else {
+              departmentRef.current.value =
+                "UPWARD MANAGEMENT INSURANCE SERVICES";
+            }
+          }
+
+          if (assuredRef.current) {
+            assuredRef.current.value = policyDetails.Name;
+          }
+          if (unitRef.current) {
+            unitRef.current.value = `${policyDetails.Make} ${policyDetails.BodyType} ${policyDetails.Model}`;
+          }
+          if (enigneRef.current) {
+            enigneRef.current.value = policyDetails.MotorNo;
+          }
+          if (chassisRef.current) {
+            chassisRef.current.value = policyDetails.ChassisNo;
+          }
+          if (plateRef.current) {
+            plateRef.current.value = policyDetails.PlateNo;
+          }
+          if (claimTypeRef.current) {
+            claimTypeRef.current.value = table
+              .map((itm: any) => itm[1])
+              .join("/");
+          }
+          if (policyNoRef.current) {
+            policyNoRef.current.value = policyDetails.PolicyNo;
+          }
+          if (dateAccidentRef.current) {
+            dateAccidentRef.current.value = format(
+              new Date(table[0][15]),
+              "yyyy-MM-dd"
+            );
+          }
+
+          if (dateIssuredRef.current) {
+            dateIssuredRef.current.value = format(
+              new Date(policyDetails.DateIssued),
+              "yyyy-MM-dd"
+            );
+          }
+          if (dateFromRef.current) {
+            dateFromRef.current.value = format(
+              new Date(policyDetails.DateFrom),
+              "yyyy-MM-dd"
+            );
+          }
+          if (dateToRef.current) {
+            dateToRef.current.value = format(
+              new Date(policyDetails.DateTo),
+              "yyyy-MM-dd"
+            );
+          }
+        });
+      },
+      closeDelay,
+    }));
+
+    useEffect(() => {
+      window.addEventListener("keydown", (e: any) => {
+        if (e.key === "Escape") {
+          closeDelayRef.current();
+        }
+      });
+    }, []);
+
+    const handleMouseDown = (e: any) => {
+      if (!modalRef.current) return;
+
+      isMoving.current = true;
+      offset.current = {
+        x: e.clientX - modalRef.current.offsetLeft,
+        y: e.clientY - modalRef.current.offsetTop,
+      };
+
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    };
+
+    // Move modal with mouse
+    const handleMouseMove = (e: any) => {
+      if (!isMoving.current || !modalRef.current) return;
+
+      modalRef.current.style.left = `${e.clientX - offset.current.x}px`;
+      modalRef.current.style.top = `${e.clientY - offset.current.y}px`;
+    };
+
+    // Stop moving when releasing mouse
+    const handleMouseUp = () => {
+      isMoving.current = false;
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    return showModal ? (
+      <>
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            background: "transparent",
+            zIndex: "88",
+          }}
+          onClick={() => {
+            setBlick(true);
+            setTimeout(() => {
+              setBlick(false);
+            }, 250);
+          }}
+        ></div>
+        <div
+          ref={modalRef}
+          style={{
+            height: blick ? "481px" : "480px",
+            width: blick ? "501px" : "500px",
+            border: "1px solid #64748b",
+            position: "absolute",
+            left: "50%",
+            top: "50%",
+            transform: "translate(-50%, -50%)",
+            display: "flex",
+            flexDirection: "column",
+            zIndex: handleDelayClose ? -100 : 100,
+            opacity: handleDelayClose ? 0 : 1,
+            transition: "all 150ms",
+            boxShadow: "3px 6px 32px -7px rgba(0,0,0,0.75)",
+          }}
+        >
+          <div
+            style={{
+              height: "22px",
+              background: "white",
+              display: "flex",
+              justifyContent: "space-between",
+              padding: "5px",
+              position: "relative",
+              alignItems: "center",
+              cursor: "grab",
+            }}
+            onMouseDown={handleMouseDown}
+          >
+            <span style={{ fontSize: "13px", fontWeight: "bold" }}>
+              Claim Sheet Details
+            </span>
+            <button
+              className="btn-check-exit-modal"
+              style={{
+                padding: "0 5px",
+                borderRadius: "0px",
+                background: "white",
+                color: "black",
+                height: "22px",
+                position: "absolute",
+                top: 0,
+                right: 0,
+              }}
+              onClick={() => {
+                closeDelay();
+              }}
+            >
+              <CloseIcon sx={{ fontSize: "22px" }} />
+            </button>
+          </div>
+          <div
+            style={{
+              flex: 1,
+              background: "#F1F1F1",
+              padding: "5px",
+              display: "flex",
+              flexDirection: "column",
+              rowGap: "5px",
+            }}
+          >
+            <TextInput
+              label={{
+                title: "Department :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "text",
+                style: {
+                  width: "calc(100% - 100px)",
+                  height: "22px !important",
+                },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    // expRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={departmentRef}
+            />
+            <TextInput
+              label={{
+                title: "Assured Name :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "text",
+                style: {
+                  width: "calc(100% - 100px)",
+                  height: "22px !important",
+                },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    // expRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={assuredRef}
+            />
+
+            <TextInput
+              label={{
+                title: "Unit Insured :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "text",
+                style: {
+                  width: "calc(100% - 100px)",
+                  height: "22px !important",
+                },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    // expRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={unitRef}
+            />
+            <TextInput
+              label={{
+                title: "Engine No. :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "text",
+                style: {
+                  width: "calc(100% - 100px)",
+                  height: "22px !important",
+                },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    // expRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={enigneRef}
+            />
+            <TextInput
+              label={{
+                title: "Chassis No. :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "text",
+                style: {
+                  width: "calc(100% - 100px)",
+                  height: "22px !important",
+                },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    // expRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={chassisRef}
+            />
+            <TextInput
+              label={{
+                title: "Plate No. :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "text",
+                style: {
+                  width: "calc(100% - 100px)",
+                  height: "22px !important",
+                },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    // expRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={plateRef}
+            />
+            <TextInput
+              label={{
+                title: "Type of Claim :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "text",
+                style: {
+                  width: "calc(100% - 100px)",
+                  height: "22px !important",
+                },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    // expRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={claimTypeRef}
+            />
+            <TextInput
+              label={{
+                title: "Date Prepared :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "date",
+                defaultValue: format(new Date(), "yyyy-MM-dd"),
+                style: { width: "190px", height: "22px !important" },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    // expRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={datePrepared}
+            />
+            <TextInput
+              label={{
+                title: "Policy No. :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "text",
+                style: {
+                  width: "calc(100% - 100px)",
+                  height: "22px !important",
+                },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    // expRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={policyNoRef}
+            />
+            <TextInput
+              label={{
+                title: "Date of Accident :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "date",
+                defaultValue: format(new Date(), "yyyy-MM-dd"),
+                style: { width: "190px", height: "22px !important" },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    // expRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={dateAccidentRef}
+            />
+
+            <TextInput
+              label={{
+                title: "Date Issued :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "date",
+                style: { width: "190px", height: "22px !important" },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    // expRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={dateIssuredRef}
+            />
+            <TextInput
+              label={{
+                title: "Date From :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "date",
+                style: { width: "190px", height: "22px !important" },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    // expRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={dateFromRef}
+            />
+            <TextInput
+              label={{
+                title: "Date To :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "date",
+                style: { width: "190px", height: "22px !important" },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    // expRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={dateToRef}
+            />
+            <Button
+              sx={{
+                height: "25px",
+                fontSize: "13px",
+                marginTop: "20px",
+                borderRadius: 0,
+                position: "absolute",
+                bottom: 0,
+                width: "100%",
+                left: 0,
+              }}
+              variant="contained"
+              onClick={(e: any) => {
+                handleOnSave({
+                  departmentRef: departmentRef.current?.value,
+                  assuredRef: assuredRef.current?.value,
+                  unitRef: unitRef.current?.value,
+                  enigneRef: enigneRef.current?.value,
+                  chassisRef: chassisRef.current?.value,
+                  plateRef: plateRef.current?.value,
+                  claimTypeRef: claimTypeRef.current?.value,
+                  datePrepared: datePrepared.current?.value,
+                  policyNoRef: policyNoRef.current?.value,
+                  dateAccidentRef: dateAccidentRef.current?.value,
+                  dateIssuredRef: dateIssuredRef.current?.value,
+                  dateFromRef: dateFromRef.current?.value,
+                  dateToRef: dateToRef.current?.value,
+                });
+              }}
+            >
+              Generate Claim Sheet
+            </Button>
+          </div>
+          <style>
+            {`
+              .btn-check-exit-modal:hover{
+                background:red !important;
+                color:white !important;
+              }
+            `}
+          </style>
+        </div>
+      </>
+    ) : null;
+  }
+);
 
 function DisplayPaymentDetails(
   payment: any,
@@ -1370,93 +2134,7 @@ export function formatNumber(num: number) {
     maximumFractionDigits: 2,
   });
 }
-const buttonLinks = [
-  {
-    label: "Comprehensive",
-    children: [
-      {
-        label: "Own Damage",
-        id: "0001",
-      },
-      {
-        label: "Theft/Carnap",
-        id: "0002",
-      },
-      {
-        label: "Acts of Nature",
-        id: "0003",
-      },
-      {
-        label: "Third Party Bodily Injury ",
-        id: "0004",
-      },
-      {
-        label: "Third Party Property Damage",
-        id: "0005",
-      },
-      {
-        label: "Unnamed Passenger Personal Accident ",
-        id: "0006",
-      },
-    ],
-  },
-  {
-    label: "TPL",
-    children: [
-      {
-        label: "Bodily Injury",
-        id: "0007",
-      },
-      {
-        label: "Death Claim",
-        id: "0008",
-      },
-    ],
-  },
-  {
-    label: "Fire",
-    children: [
-      {
-        label: "Fire",
-      },
-    ],
-  },
-  {
-    label: "Marine",
-    children: [
-      {
-        label: "Marine",
-      },
-    ],
-  },
-  {
-    label: "Property Fluater",
-    children: [
-      {
-        label: "Acts of Nature",
-      },
-      {
-        label: "Own Damage",
-      },
-      {
-        label: "Third Party Damage",
-      },
-    ],
-  },
-  {
-    label: "GPA",
-    children: [
-      {
-        label: "Bodily Injury",
-        id: "00021",
-      },
-      {
-        label: "Death Claim",
-        id: "00022",
-      },
-    ],
-  },
-];
+
 const NestedMenuItem = ({ item, onClick }: any) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -1497,41 +2175,43 @@ const NestedMenuItem = ({ item, onClick }: any) => {
     </>
   );
 };
-const DropdownMenu = forwardRef(({ disabled, onClick }: any, ref) => {
-  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+const DropdownMenu = forwardRef(
+  ({ disabled, onClick, dropDownButton }: any, ref) => {
+    const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
 
-  const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setMenuAnchor(event.currentTarget);
-  };
+    const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
+      setMenuAnchor(event.currentTarget);
+    };
 
-  const handleClose = () => {
-    setMenuAnchor(null);
-  };
+    const handleClose = () => {
+      setMenuAnchor(null);
+    };
 
-  return (
-    <>
-      <Button
-        disabled={disabled}
-        onClick={handleOpen}
-        sx={{ height: "22px", fontSize: "11px" }}
-        startIcon={<AddIcon />}
-        variant="contained"
-      >
-        Add Claim
-      </Button>
-      <Menu
-        anchorEl={menuAnchor}
-        open={Boolean(menuAnchor)}
-        onClose={handleClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-        transformOrigin={{ vertical: "top", horizontal: "left" }}
-      >
-        {buttonLinks.map((item, index) => (
-          <NestedMenuItem key={index} item={item} onClick={onClick} />
-        ))}
-      </Menu>
-    </>
-  );
-});
+    return (
+      <>
+        <Button
+          disabled={disabled}
+          onClick={handleOpen}
+          sx={{ height: "22px", fontSize: "11px" }}
+          startIcon={<AddIcon />}
+          variant="contained"
+        >
+          Add Claim
+        </Button>
+        <Menu
+          anchorEl={menuAnchor}
+          open={Boolean(menuAnchor)}
+          onClose={handleClose}
+          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+          transformOrigin={{ vertical: "top", horizontal: "left" }}
+        >
+          {dropDownButton.map((item: any, index: number) => (
+            <NestedMenuItem key={index} item={item} onClick={onClick} />
+          ))}
+        </Menu>
+      </>
+    );
+  }
+);
 
 export default Dashboard;
