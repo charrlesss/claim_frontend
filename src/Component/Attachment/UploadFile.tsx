@@ -96,6 +96,7 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
       if (data.files) {
         setFile(data.files);
         fileRef.current = data.files;
+        
       }
       setDocumentSelected(data);
     },
@@ -103,6 +104,7 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
       setFile([]);
       setSelected(0);
       setDocumentSelected(null);
+      fileRef.current = []
     },
     getPrevFile: () => {
       return fileRef.current;

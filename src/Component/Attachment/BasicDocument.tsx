@@ -24,8 +24,8 @@ import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import CropFreeIcon from "@mui/icons-material/CropFree";
 import RotateLeftIcon from "@mui/icons-material/RotateLeft";
-import '../../Style/attachment.css'
-
+import "../../Style/attachment.css";
+import PageHelmet from "../PageHelmet";
 
 const BasicDocument = () => {
   const navigate = useNavigate();
@@ -263,6 +263,7 @@ const BasicDocument = () => {
 
   return (
     <>
+      <PageHelmet title="Basic Documents" />
       <ZoomModal
         ref={zoomModalRef}
         handleOnClose={(state: any) => {
@@ -297,11 +298,13 @@ const BasicDocument = () => {
             setDocuments(newdocuments);
             uploadModalRef.current.resetUpload();
             uploadModalRef.current.clsoeModal();
-
           }
         }}
         handleOnClose={(event: any, state: any) => {
           if (state) {
+            if (state.files && state.files.length <= 0) {
+              state.files = null;
+            }
             const newdocuments = documents.map((itm: any) => {
               if (itm.id === state.id) {
                 itm = { ...itm, ...state };
@@ -311,11 +314,8 @@ const BasicDocument = () => {
             setDocuments(newdocuments);
             uploadModalRef.current.resetUpload();
             uploadModalRef.current.clsoeModal();
-
           }
         }}
-
-       
       />
       <ModalDocument
         ref={addDocumentModalRef}
@@ -344,7 +344,7 @@ const BasicDocument = () => {
         }}
       >
         <div
-        className="basic-document-content"
+          className="basic-document-content"
           style={{
             width: "40%",
             border: "1px solid #ebeef2",

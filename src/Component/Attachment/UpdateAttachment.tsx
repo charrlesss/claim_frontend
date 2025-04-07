@@ -23,6 +23,7 @@ import { ModalAddapproveDate, ModalDocument } from ".";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { HandleListHover } from "./BasicDocument";
+import PageHelmet from "../PageHelmet";
 
 const __CONFIGURATION = [
   {
@@ -765,6 +766,7 @@ function UpdateAttachment() {
 
   return (
     <>
+      <PageHelmet title={configuration.claimType} />
       <ZoomModal
         ref={zoomModalRef}
         handleOnClose={(state: any) => {
@@ -820,6 +822,9 @@ function UpdateAttachment() {
           }
         }}
         handleOnClose={(event: any, state: any) => {
+          if (state.files && state.files.length <= 0) {
+            state.files = null;
+          }
           const newConfigDocuments = configuration.documents.map((itm: any) => {
             if (itm.id === state.id) {
               itm = {

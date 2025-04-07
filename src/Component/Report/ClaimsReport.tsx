@@ -72,6 +72,7 @@ export default function ClaimsReport() {
                 flexDirection: "column",
                 rowGap: "2px",
                 position: "relative",
+                boxSizing: "border-box",
               }}
             >
               <span
@@ -79,7 +80,8 @@ export default function ClaimsReport() {
                   width: "100%",
                   textAlign: "center",
                   fontSize: "12px",
-                  padding: "5px",
+                  padding: " 5px",
+                  boxSizing: "border-box",
                 }}
               >
                 *** CLAIMS ****

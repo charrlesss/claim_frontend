@@ -396,7 +396,7 @@ const ListImursement = forwardRef(({}, ref) => {
           flex: 1,
           width: "100wv",
           height: "100vh",
-          boxSizing:"border-box"
+          boxSizing: "border-box",
         }}
       >
         <div
@@ -444,7 +444,10 @@ const ListImursement = forwardRef(({}, ref) => {
             }}
             inputRef={inputSearchRef}
           />
-          <div style={{ display: "flex", columnGap: "10px" }}>
+          <div
+            className="action-buttons"
+            style={{ display: "flex", columnGap: "10px" }}
+          >
             {imbursementMode === "" && (
               <Button
                 sx={{
@@ -531,7 +534,7 @@ const ListImursement = forwardRef(({}, ref) => {
             )}
           </div>
         </div>
-         <fieldset
+        <fieldset
           className="fields-reimbursement"
           style={{
             display: "flex",
@@ -861,12 +864,12 @@ const ListImursement = forwardRef(({}, ref) => {
               _inputRef={payeeRef}
             />
           </div>
-        </fieldset> 
+        </fieldset>
         <DataGridViewReact
           containerStyle={{
             flex: 1,
             height: "auto",
-            minHeight:"200px"
+            minHeight: "200px",
           }}
           ref={tableRef}
           columns={columns}
@@ -927,6 +930,96 @@ const ListImursement = forwardRef(({}, ref) => {
             }
           }}
         />
+        <div
+          className="mobile-actions-button"
+          style={{ display: "none", columnGap: "10px" }}
+        >
+          {imbursementMode === "" && (
+            <Button
+              sx={{
+                height: "22px",
+                fontSize: "11px",
+              }}
+              variant="contained"
+              startIcon={<AddIcon sx={{ width: 15, height: 15 }} />}
+              id="entry-header-save-button"
+              onClick={() => {
+                setImbursementMode("add");
+              }}
+              color="primary"
+            >
+              New
+            </Button>
+          )}
+          {imbursementMode !== "" && (
+            <Button
+              sx={{
+                height: "22px",
+                fontSize: "11px",
+              }}
+              onClick={handleOnSave}
+              color="success"
+              variant="contained"
+            >
+              Save
+            </Button>
+          )}
+
+          {imbursementMode !== "" && (
+            <Button
+              sx={{
+                height: "22px",
+                fontSize: "11px",
+              }}
+              variant="contained"
+              startIcon={<CloseIcon sx={{ width: 15, height: 15 }} />}
+              color="warning"
+              onClick={() => {
+                Swal.fire({
+                  title: "Are you sure?",
+                  text: "You won't be able to revert this!",
+                  icon: "warning",
+                  showCancelButton: true,
+                  confirmButtonColor: "#3085d6",
+                  cancelButtonColor: "#d33",
+                  confirmButtonText: "Yes, cancel it!",
+                }).then((result) => {
+                  if (result.isConfirmed) {
+                    resetAll();
+                  }
+                });
+              }}
+              disabled={imbursementMode === ""}
+            >
+              Cancel
+            </Button>
+          )}
+          {imbursementMode === "update" && (
+            <Button
+              sx={{
+                height: "22px",
+                fontSize: "11px",
+              }}
+              variant="contained"
+              startIcon={<AddIcon sx={{ width: 15, height: 15 }} />}
+              id="entry-header-save-button"
+              onClick={() => {
+                codeCondfirmationAlert({
+                  isUpdate: false,
+                  cb: (userCodeConfirmation) => {
+                    mutateDeleteImbersement({
+                      userCodeConfirmation,
+                      refNo: refNoRef.current?.value,
+                    });
+                  },
+                });
+              }}
+              color="error"
+            >
+              Delete
+            </Button>
+          )}
+        </div>
       </div>
     </>
   );

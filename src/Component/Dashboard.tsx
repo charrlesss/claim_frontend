@@ -33,6 +33,7 @@ import "../Style/DragDropFileUpload.css";
 import { format } from "date-fns";
 import PageHelmet from "./PageHelmet";
 import "../Style/dashboard.css";
+import { brown } from "@mui/material/colors";
 
 const columns = [
   { key: "reference", label: "REF#", width: 100 },
@@ -75,6 +76,7 @@ const Dashboard = forwardRef(({}, ref) => {
 
   const formRef = useRef<any>(null);
   const tableRef = useRef<any>(null);
+  const policyDetailsModal = useRef<any>(null);
   const claimSheetModalRef = useRef<any>(null);
 
   const [claimMode, setClaiMode] = useState("");
@@ -773,7 +775,10 @@ const Dashboard = forwardRef(({}, ref) => {
         isLoadingSelectedClaimSearch ||
         isLoadingClaimSheet) && <Loading />}
       <PageHelmet title="Dashboard" />
-
+      <PolicyDetailsModal
+        ref={policyDetailsModal}
+        handleOnSave={(state: any) => {}}
+      />
       <ModalGenerateClaimSheet
         ref={claimSheetModalRef}
         handleOnSave={(state: any) => {
@@ -787,10 +792,11 @@ const Dashboard = forwardRef(({}, ref) => {
           display: "flex",
           flexDirection: "column",
           rowGap: "10px",
-          padding: "10px",
           flex: 1,
           width: "100wv",
           height: "100vh",
+          boxSizing: "border-box",
+          padding: "10px",
         }}
         className="main-dashboard"
       >
@@ -936,7 +942,7 @@ const Dashboard = forwardRef(({}, ref) => {
             gap: "10px",
             border: "1px solid #cbd5e1",
             borderRadius: "5px",
-            width: "100%",
+            width: "99%",
             position: "relative",
             boxSizing: "border-box",
           }}
@@ -1038,6 +1044,20 @@ const Dashboard = forwardRef(({}, ref) => {
                   rowGap: "5px",
                 }}
               >
+                <Button
+                  sx={{
+                    height: "22px",
+                    fontSize: "11px",
+                    background: brown[400],
+                  }}
+                  onClick={() => {
+                    policyDetailsModal.current.showModal();
+                  }}
+                  color="info"
+                  variant="contained"
+                >
+                  Add Policy Details
+                </Button>
                 <DropdownMenu
                   ref={formRef}
                   onClick={handleClick}
@@ -1179,84 +1199,686 @@ const Dashboard = forwardRef(({}, ref) => {
             </fieldset>
           </div>
         </fieldset>
-        <DataGridViewReact
-          containerStyle={{
-            flex: 1,
-            height: "auto",
-            minHeight:"200px"
+        <div
+          style={{
+            width: "99%",
+            boxSizing: "border-box",
           }}
-          ref={tableRef}
-          columns={columns}
-          height="280px"
-          getSelectedItem={(rowItm: any) => {
-            if (rowItm) {
-              wait(100).then(() => {
-                const tableData = tableRef.current.getData();
-                const encodedData = encodeURIComponent(
-                  JSON.stringify({
-                    state: {
-                      claimType: rowItm[1],
-                      reference: rowItm[0],
-                      id: rowItm[18],
-                      policyNo: policyDetails.policyNo,
-                      policyType: policyDetails.policyType,
-                      policyDepartment: policyDetails.Department,
-                      claimMode,
-                    },
-                    dataPreview: {
-                      claimMode: JSON.stringify(claimMode),
-                      claimId: JSON.stringify(claimNoRef.current?.value),
-                      tableData: JSON.stringify(tableData),
-                      policyDetails: JSON.stringify(policyDetails),
-                      basicDocuments: JSON.stringify(basicDocuments),
-                    },
-                    fields: {
-                      date_report: rowItm[14],
-                      date_accident: rowItm[15],
-                      date_receive: rowItm[16],
-                      amount_claim: rowItm[6],
-                      amount_approved: rowItm[7],
-                      amount_participation: rowItm[8],
-                      amount_net: rowItm[9],
-                      name_ttpd: rowItm[10],
-                      remarks: rowItm[11],
-                      date_approved: rowItm[13],
-                      status: rowItm[17],
-                      claimStatus: rowItm[4],
-                      documentId: rowItm[18],
-                    },
-                    documents: rowItm[19],
-                    selectedIndex: tableRef.current.getSelectedRow(),
-                  })
-                );
+        >
+          <DataGridViewReact
+            containerStyle={{
+              flex: 1,
+              height: "auto",
+              minHeight: "200px",
+            }}
+            ref={tableRef}
+            columns={columns}
+            height="280px"
+            getSelectedItem={(rowItm: any) => {
+              if (rowItm) {
+                wait(100).then(() => {
+                  const tableData = tableRef.current.getData();
+                  const encodedData = encodeURIComponent(
+                    JSON.stringify({
+                      state: {
+                        claimType: rowItm[1],
+                        reference: rowItm[0],
+                        id: rowItm[18],
+                        policyNo: policyDetails.policyNo,
+                        policyType: policyDetails.policyType,
+                        policyDepartment: policyDetails.Department,
+                        claimMode,
+                      },
+                      dataPreview: {
+                        claimMode: JSON.stringify(claimMode),
+                        claimId: JSON.stringify(claimNoRef.current?.value),
+                        tableData: JSON.stringify(tableData),
+                        policyDetails: JSON.stringify(policyDetails),
+                        basicDocuments: JSON.stringify(basicDocuments),
+                      },
+                      fields: {
+                        date_report: rowItm[14],
+                        date_accident: rowItm[15],
+                        date_receive: rowItm[16],
+                        amount_claim: rowItm[6],
+                        amount_approved: rowItm[7],
+                        amount_participation: rowItm[8],
+                        amount_net: rowItm[9],
+                        name_ttpd: rowItm[10],
+                        remarks: rowItm[11],
+                        date_approved: rowItm[13],
+                        status: rowItm[17],
+                        claimStatus: rowItm[4],
+                        documentId: rowItm[18],
+                      },
+                      documents: rowItm[19],
+                      selectedIndex: tableRef.current.getSelectedRow(),
+                    })
+                  );
 
-                navigate(
-                  `/${DEPARTMENT}/attactment/update?Mkr44Rt2iuy13R=${encodedData}`
-                );
-              });
-            }
-          }}
-          onKeyDown={(rowItm: any, rowIdx: any, e: any) => {
-            if (e.code === "Delete" || e.code === "Backspace") {
-              const isConfim = window.confirm(
-                `Are you sure you want to delete?`
-              );
-              if (isConfim) {
-                const data = tableRef.current.getData();
-                data.splice(rowIdx, 1);
-                tableRef.current.setData(data);
-                tableRef.current.setSelectedRow(null);
-                tableRef.current.resetCheckBox();
-                return;
+                  navigate(
+                    `/${DEPARTMENT}/attactment/update?Mkr44Rt2iuy13R=${encodedData}`
+                  );
+                });
               }
-            }
-          }}
-        />
+            }}
+            onKeyDown={(rowItm: any, rowIdx: any, e: any) => {
+              if (e.code === "Delete" || e.code === "Backspace") {
+                const isConfim = window.confirm(
+                  `Are you sure you want to delete?`
+                );
+                if (isConfim) {
+                  const data = tableRef.current.getData();
+                  data.splice(rowIdx, 1);
+                  tableRef.current.setData(data);
+                  tableRef.current.setSelectedRow(null);
+                  tableRef.current.resetCheckBox();
+                  return;
+                }
+              }
+            }}
+          />
+        </div>
+        <div className="mobile-actions-button">
+          {claimMode === "" && (
+            <Button
+              sx={{
+                height: "22px",
+                fontSize: "11px",
+              }}
+              variant="contained"
+              startIcon={<AddIcon sx={{ width: 15, height: 15 }} />}
+              id="entry-header-save-button"
+              onClick={() => {
+                setClaiMode("add");
+              }}
+              color="primary"
+            >
+              New
+            </Button>
+          )}
+          {claimMode !== "" && (
+            <Button
+              sx={{
+                height: "22px",
+                fontSize: "11px",
+              }}
+              onClick={handleOnSave}
+              color="success"
+              variant="contained"
+            >
+              Save
+            </Button>
+          )}
+          {claimMode !== "" && (
+            <Button
+              sx={{
+                height: "22px",
+                fontSize: "11px",
+              }}
+              variant="contained"
+              startIcon={<CloseIcon sx={{ width: 15, height: 15 }} />}
+              color="warning"
+              onClick={() => {
+                Swal.fire({
+                  title: "Are you sure?",
+                  text: "You won't be able to revert this!",
+                  icon: "warning",
+                  showCancelButton: true,
+                  confirmButtonColor: "#3085d6",
+                  cancelButtonColor: "#d33",
+                  confirmButtonText: "Yes, cancel it!",
+                }).then((result) => {
+                  if (result.isConfirmed) {
+                    resetAll();
+                  }
+                });
+              }}
+              disabled={claimMode === ""}
+            >
+              Cancel
+            </Button>
+          )}
+              {claimMode === "update" && (
+            <Button
+              sx={{
+                height: "22px",
+                fontSize: "11px",
+              }}
+              variant="contained"
+              startIcon={<AddIcon sx={{ width: 15, height: 15 }} />}
+              id="entry-header-save-button"
+              onClick={() => {
+                codeCondfirmationAlert({
+                  isUpdate: false,
+                  cb: (userCodeConfirmation) => {
+                    mutateDelete({
+                      userCodeConfirmation,
+                      isUpdate: true,
+                      claimId: claimNoRef.current?.value,
+                    });
+                  },
+                });
+              }}
+              color="error"
+            >
+              Void
+            </Button>
+          )}
+        </div>
       </div>
     </>
   );
 });
 
+const PolicyDetailsModal = forwardRef(
+  ({ handleOnSave, handleOnClose }: any, ref) => {
+    const modalRef = useRef<HTMLDivElement>(null);
+    const isMoving = useRef(false);
+    const offset = useRef({ x: 0, y: 0 });
+
+    const [showModal, setShowModal] = useState(false);
+    const [handleDelayClose, setHandleDelayClose] = useState(false);
+    const [blick, setBlick] = useState(false);
+
+    const departmentRef = useRef<HTMLInputElement>(null);
+    const assuredRef = useRef<HTMLInputElement>(null);
+    const unitRef = useRef<HTMLInputElement>(null);
+    const enigneRef = useRef<HTMLInputElement>(null);
+    const chassisRef = useRef<HTMLInputElement>(null);
+    const plateRef = useRef<HTMLInputElement>(null);
+    const policyNoRef = useRef<HTMLInputElement>(null);
+    const accountRef = useRef<HTMLInputElement>(null);
+    const policyTypeRef = useRef<HTMLInputElement>(null);
+
+    const dateFromRef = useRef<HTMLInputElement>(null);
+    const dateToRef = useRef<HTMLInputElement>(null);
+
+    const closeDelay = () => {
+      setHandleDelayClose(true);
+      setTimeout(() => {
+        setShowModal(false);
+        setHandleDelayClose(false);
+        if (handleOnClose) handleOnClose();
+      }, 100);
+    };
+    const closeDelayRef = useRef<any>(closeDelay);
+
+    useImperativeHandle(ref, () => ({
+      showModal: () => {
+        setShowModal(true);
+      },
+      clsoeModal: () => {
+        setShowModal(false);
+      },
+      getRefs: () => {
+        const refs = {};
+        return refs;
+      },
+      setFieldInfo: (state: any) => {
+        wait(100).then(() => {
+          const policyDetails = state.policy.data[0];
+          const table = state.table;
+          console.log(table);
+          if (departmentRef.current) {
+            if (policyDetails.Department.trim() === "UCSMI") {
+              departmentRef.current.value =
+                "UPWARD CONSULTANCY SERVICES AND MANAGEMENT INC.";
+            } else {
+              departmentRef.current.value =
+                "UPWARD MANAGEMENT INSURANCE SERVICES";
+            }
+          }
+
+          if (assuredRef.current) {
+            assuredRef.current.value = policyDetails.Name;
+          }
+          if (unitRef.current) {
+            unitRef.current.value = `${policyDetails.Make} ${policyDetails.BodyType} ${policyDetails.Model}`;
+          }
+          if (enigneRef.current) {
+            enigneRef.current.value = policyDetails.MotorNo;
+          }
+          if (chassisRef.current) {
+            chassisRef.current.value = policyDetails.ChassisNo;
+          }
+          if (plateRef.current) {
+            plateRef.current.value = policyDetails.PlateNo;
+          }
+
+          if (policyNoRef.current) {
+            policyNoRef.current.value = policyDetails.PolicyNo;
+          }
+
+          if (dateFromRef.current) {
+            dateFromRef.current.value = format(
+              new Date(policyDetails.DateFrom),
+              "yyyy-MM-dd"
+            );
+          }
+          if (dateToRef.current) {
+            dateToRef.current.value = format(
+              new Date(policyDetails.DateTo),
+              "yyyy-MM-dd"
+            );
+          }
+        });
+      },
+      closeDelay,
+    }));
+
+    useEffect(() => {
+      window.addEventListener("keydown", (e: any) => {
+        if (e.key === "Escape") {
+          closeDelayRef.current();
+        }
+      });
+    }, []);
+
+    const handleMouseDown = (e: any) => {
+      if (!modalRef.current) return;
+
+      isMoving.current = true;
+      offset.current = {
+        x: e.clientX - modalRef.current.offsetLeft,
+        y: e.clientY - modalRef.current.offsetTop,
+      };
+
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    };
+
+    // Move modal with mouse
+    const handleMouseMove = (e: any) => {
+      if (!isMoving.current || !modalRef.current) return;
+
+      modalRef.current.style.left = `${e.clientX - offset.current.x}px`;
+      modalRef.current.style.top = `${e.clientY - offset.current.y}px`;
+    };
+
+    // Stop moving when releasing mouse
+    const handleMouseUp = () => {
+      isMoving.current = false;
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    return showModal ? (
+      <>
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            background: "transparent",
+            zIndex: "88",
+          }}
+          onClick={() => {
+            setBlick(true);
+            setTimeout(() => {
+              setBlick(false);
+            }, 250);
+          }}
+        ></div>
+        <div
+          className="modal-claim-generate-claim-sheet"
+          ref={modalRef}
+          style={{
+            height: blick ? "481px" : "480px",
+            width: blick ? "501px" : "500px",
+            border: "1px solid #64748b",
+            position: "absolute",
+            left: "50%",
+            top: "50%",
+            transform: "translate(-50%, -50%)",
+            display: "flex",
+            flexDirection: "column",
+            zIndex: handleDelayClose ? -100 : 100,
+            opacity: handleDelayClose ? 0 : 1,
+            transition: "all 150ms",
+            boxShadow: "3px 6px 32px -7px rgba(0,0,0,0.75)",
+          }}
+        >
+          <div
+            style={{
+              height: "22px",
+              background: "white",
+              display: "flex",
+              justifyContent: "space-between",
+              padding: "5px",
+              position: "relative",
+              alignItems: "center",
+              cursor: "grab",
+            }}
+            onMouseDown={handleMouseDown}
+          >
+            <span style={{ fontSize: "13px", fontWeight: "bold" }}>
+              Policy Details
+            </span>
+            <button
+              className="btn-check-exit-modal"
+              style={{
+                padding: "0 5px",
+                borderRadius: "0px",
+                background: "white",
+                color: "black",
+                height: "22px",
+                position: "absolute",
+                top: 0,
+                right: 0,
+              }}
+              onClick={() => {
+                closeDelay();
+              }}
+            >
+              <CloseIcon sx={{ fontSize: "22px" }} />
+            </button>
+          </div>
+          <div
+            style={{
+              flex: 1,
+              background: "#F1F1F1",
+              padding: "5px",
+              display: "flex",
+              flexDirection: "column",
+              rowGap: "5px",
+            }}
+          >
+            <TextInput
+              label={{
+                title: "Department :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "text",
+                style: {
+                  width: "calc(100% - 100px)",
+                  height: "22px !important",
+                },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    // expRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={departmentRef}
+            />
+            <TextInput
+              label={{
+                title: "Policy No. :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "text",
+                style: {
+                  width: "calc(100% - 100px)",
+                  height: "22px !important",
+                },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    // expRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={policyNoRef}
+            />
+            <TextInput
+              label={{
+                title: "Policy Type. :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "text",
+                style: {
+                  width: "calc(100% - 100px)",
+                  height: "22px !important",
+                },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    // expRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={policyTypeRef}
+            />
+            <TextInput
+              label={{
+                title: "Account  :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "text",
+                style: {
+                  width: "calc(100% - 100px)",
+                  height: "22px !important",
+                },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    // expRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={accountRef}
+            />
+            <TextInput
+              label={{
+                title: "Assured Name :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "text",
+                style: {
+                  width: "calc(100% - 100px)",
+                  height: "22px !important",
+                },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    // expRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={assuredRef}
+            />
+
+            <TextInput
+              label={{
+                title: "Unit Insured :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "text",
+                style: {
+                  width: "calc(100% - 100px)",
+                  height: "22px !important",
+                },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    // expRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={unitRef}
+            />
+            <TextInput
+              label={{
+                title: "Engine No. :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "text",
+                style: {
+                  width: "calc(100% - 100px)",
+                  height: "22px !important",
+                },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    // expRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={enigneRef}
+            />
+            <TextInput
+              label={{
+                title: "Chassis No. :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "text",
+                style: {
+                  width: "calc(100% - 100px)",
+                  height: "22px !important",
+                },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    // expRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={chassisRef}
+            />
+            <TextInput
+              label={{
+                title: "Plate No. :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "text",
+                style: {
+                  width: "calc(100% - 100px)",
+                  height: "22px !important",
+                },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    // expRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={plateRef}
+            />
+
+            <TextInput
+              offValidation={true}
+              label={{
+                title: "Date From :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "date",
+                style: { width: "190px", height: "22px !important" },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    // expRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={dateFromRef}
+            />
+            <TextInput
+              offValidation={true}
+              label={{
+                title: "Date To :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "date",
+                style: { width: "190px", height: "22px !important" },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    // expRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={dateToRef}
+            />
+            <Button
+              sx={{
+                height: "25px",
+                fontSize: "13px",
+                marginTop: "20px",
+                borderRadius: 0,
+                position: "absolute",
+                bottom: 0,
+                width: "100%",
+                left: 0,
+              }}
+              variant="contained"
+              onClick={(e: any) => {
+                handleOnSave({
+                  departmentRef: departmentRef.current?.value,
+                  assuredRef: assuredRef.current?.value,
+                  unitRef: unitRef.current?.value,
+                  enigneRef: enigneRef.current?.value,
+                  chassisRef: chassisRef.current?.value,
+                  plateRef: plateRef.current?.value,
+                  policyNoRef: policyNoRef.current?.value,
+                  dateFromRef: dateFromRef.current?.value,
+                  dateToRef: dateToRef.current?.value,
+                });
+              }}
+            >
+              Save Policy Details
+            </Button>
+          </div>
+          <style>
+            {`
+          .btn-check-exit-modal:hover{
+            background:red !important;
+            color:white !important;
+          }
+        `}
+          </style>
+        </div>
+      </>
+    ) : null;
+  }
+);
 const ModalGenerateClaimSheet = forwardRef(
   ({ handleOnSave, handleOnClose }: any, ref) => {
     const modalRef = useRef<HTMLDivElement>(null);
@@ -1426,7 +2048,7 @@ const ModalGenerateClaimSheet = forwardRef(
           }}
         ></div>
         <div
-        className="modal-claim-generate-claim-sheet"
+          className="modal-claim-generate-claim-sheet"
           ref={modalRef}
           style={{
             height: blick ? "481px" : "480px",

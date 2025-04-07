@@ -1,16 +1,46 @@
+.mobile-actions-button{
+    display: none;
+}
 @media (max-width: 768px) {
+
+    .mobile-actions-button{
+        position: fixed;
+        height: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #f7f5f5;
+        display: flex;
+        align-items: center;
+        column-gap: 10px;
+        justify-content: flex-end;
+        padding: 5px;
+        box-sizing: border-box;
+        
+    }
+
     .search-input{
         width: 100% !important;
     }
     .claim-no-input{
         width: 100% !important;
     }
+    .main-dashboard{
+        padding: 0 !important;
+    }
     .search-header{
         flex-direction: column-reverse;
         row-gap: 5px;
+        position: sticky;
+        top: 2;
+        background-color: #f7f5f5;
+        z-index: 2;
+        padding: 10px;
+        box-sizing: border-box;
     }
     .button-action-container{
         justify-content: flex-end;
+        display: none !important;
     }
    
     .fieldset-container .fields .fields-with-buttons .search-policy-input{

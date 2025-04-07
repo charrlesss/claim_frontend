@@ -1,4 +1,24 @@
+
 @media (max-width: 768px) {
+  .mobile-actions-button {
+    display: flex !important;
+    position: fixed;
+    height: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #f7f5f5;
+    display: flex;
+    align-items: center;
+    column-gap: 10px;
+    justify-content: flex-end;
+    padding: 5px;
+    box-sizing: border-box;
+  }
+
+  .action-buttons {
+    display: none !important;
+  }
   .search-container {
     flex-direction: column-reverse;
     row-gap: 5px;

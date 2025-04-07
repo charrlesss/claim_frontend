@@ -147,6 +147,9 @@ header .header-ch {
     display: flex;
     width: 100%;
     box-sizing: border-box;
+    position: sticky;
+    top: 0;
+    z-index: 4;
   }
 
   .sidebar-shadow {
@@ -175,4 +178,5 @@ header .header-ch {
     flex-direction: column;
     text-align: left;
   }
+ 
 }

@@ -1,24 +1,27 @@
 @media (max-width: 768px) {
-    .main-container-report{
-        justify-content: flex-start !important;
-        align-items: flex-start;
-        display: block;
-    }
+  .main-container-report {
+    display: inline-block;
+    box-sizing: border-box !important;
+  }
   .report-container {
     width: 100% !important;
+    height: 100% !important;
     box-sizing: border-box;
-    height: auto !important;
     box-shadow: none !important;
     border: none !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
   }
 
   .report-container .content {
     flex-direction: column;
     row-gap: 10px;
+    width: 100% !important;
+    height: 100% !important;
   }
   .report-container .content .report-selection {
     width: 100% !important;
-    height: 100px !important;
+    height: 155px !important;
   }
   .report-container .content .report-fields {
     width: 100% !important;
