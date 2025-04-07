@@ -10,6 +10,7 @@ import PageHelmet from "../PageHelmet";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "../../Style/datepicker.css";
+import "../../Style/report.css";
 import { wait } from "../../Lib/wait";
 
 const buttons = [
@@ -31,6 +32,7 @@ export default function ClaimsReport() {
     <>
       <PageHelmet title={buttons[buttonSelected].label} />
       <div
+        className="main-container-report"
         style={{
           display: "flex",
           alignItems: "center",
@@ -41,6 +43,7 @@ export default function ClaimsReport() {
         }}
       >
         <div
+          className="report-container"
           style={{
             border: "1px solid #94a3b8",
             width: "700px",
@@ -53,6 +56,7 @@ export default function ClaimsReport() {
           }}
         >
           <div
+            className="content"
             style={{
               flex: 1,
               display: "flex",
@@ -60,6 +64,7 @@ export default function ClaimsReport() {
             }}
           >
             <div
+              className="report-selection"
               style={{
                 width: "250px",
                 background: "white",
@@ -327,12 +332,14 @@ const ClaimStatus = ({ titleHeader, linkPdf, linkExcel, hideReport }: any) => {
         <Loading />
       )}
       <div
+        className="report-fields"
         style={{
           display: "flex",
           flex: 1,
           flexDirection: "column",
           padding: "5px",
           rowGap: "7px",
+          boxSizing: "border-box",
         }}
       >
         <TextAreaInput
@@ -349,7 +356,7 @@ const ClaimStatus = ({ titleHeader, linkPdf, linkExcel, hideReport }: any) => {
             },
           }}
           textarea={{
-            rows: 7,
+            rows: 3,
             style: { flex: 1 },
             value: title,
             onChange: (e) => {
@@ -636,7 +643,7 @@ const ClaimStatus = ({ titleHeader, linkPdf, linkExcel, hideReport }: any) => {
           }}
           selectRef={claimTypeRef}
           select={{
-            style: { flex: 1, height: "22px" },
+            style: { width: "calc(100% - 100px)", height: "22px" },
             defaultValue: "All",
             onKeyDown: (e) => {
               if (e.code === "NumpadEnter" || e.code === "Enter") {

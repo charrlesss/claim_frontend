@@ -1,0 +1,52 @@
+@media (max-width: 768px) {
+    .search-input{
+        width: 100% !important;
+    }
+    .claim-no-input{
+        width: 100% !important;
+    }
+    .search-header{
+        flex-direction: column-reverse;
+        row-gap: 5px;
+    }
+    .button-action-container{
+        justify-content: flex-end;
+    }
+   
+    .fieldset-container .fields .fields-with-buttons .search-policy-input{
+        width: 100% !important;
+    }
+    .fieldset-container .fields .fields-with-buttons{
+        flex-direction: column !important;
+        text-align: left;
+        justify-content: flex-start;
+        align-items: flex-start;
+        row-gap: 5px;
+    }
+    
+    .policy-container{
+        flex-direction: column;
+
+    }
+    .policy-container .policy-details{
+        width: 100% !important;
+    }
+
+    .policy-container .policy-payment{
+        width: 100% !important;
+    }
+
+    .policy-container .policy-details .policy-details-container{
+        flex-direction: column;
+        row-gap: 5px;
+    }
+
+
+
+    /* modal */
+
+    .modal-claim-generate-claim-sheet{
+        width: 100% !important;
+        box-sizing: border-box;
+    }
+}

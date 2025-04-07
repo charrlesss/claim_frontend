@@ -31,6 +31,8 @@ import { ExpandMore, ChevronRight } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import "../Style/DragDropFileUpload.css";
 import { format } from "date-fns";
+import PageHelmet from "./PageHelmet";
+import "../Style/dashboard.css";
 
 const columns = [
   { key: "reference", label: "REF#", width: 100 },
@@ -770,6 +772,8 @@ const Dashboard = forwardRef(({}, ref) => {
         isLoadingUpdate ||
         isLoadingSelectedClaimSearch ||
         isLoadingClaimSheet) && <Loading />}
+      <PageHelmet title="Dashboard" />
+
       <ModalGenerateClaimSheet
         ref={claimSheetModalRef}
         handleOnSave={(state: any) => {
@@ -788,14 +792,17 @@ const Dashboard = forwardRef(({}, ref) => {
           width: "100wv",
           height: "100vh",
         }}
+        className="main-dashboard"
       >
         <div
           style={{
             display: "flex",
             columnGap: "10px",
           }}
+          className="search-header"
         >
           <TextInput
+            containerClassName="search-input"
             label={{
               title: "Search: ",
               style: {
@@ -832,7 +839,10 @@ const Dashboard = forwardRef(({}, ref) => {
             }}
             inputRef={inputSearchRef}
           />
-          <div style={{ display: "flex", columnGap: "10px" }}>
+          <div
+            className="button-action-container"
+            style={{ display: "flex", columnGap: "10px" }}
+          >
             {claimMode === "" && (
               <Button
                 sx={{
@@ -920,6 +930,7 @@ const Dashboard = forwardRef(({}, ref) => {
           </div>
         </div>
         <fieldset
+          className="fieldset-container"
           style={{
             flexDirection: "column",
             gap: "10px",
@@ -931,13 +942,16 @@ const Dashboard = forwardRef(({}, ref) => {
           }}
         >
           <div
+            className="fields"
             style={{
               display: "flex",
               flexDirection: "column",
               rowGap: "5px",
+              boxSizing: "border-box",
             }}
           >
             <TextInput
+              containerClassName="claim-no-input"
               containerStyle={{
                 width: "200px",
               }}
@@ -970,6 +984,7 @@ const Dashboard = forwardRef(({}, ref) => {
               }}
             />
             <div
+              className="fields-with-buttons"
               style={{
                 display: "flex",
                 flexDirection: "row",
@@ -977,6 +992,7 @@ const Dashboard = forwardRef(({}, ref) => {
               }}
             >
               <TextInput
+                containerClassName="search-policy-input"
                 containerStyle={{
                   width: "550px",
                   marginBottom: "5px",
@@ -1013,68 +1029,81 @@ const Dashboard = forwardRef(({}, ref) => {
                 }}
                 inputRef={policySearchRef}
               />
-              <DropdownMenu
-                ref={formRef}
-                onClick={handleClick}
-                dropDownButton={dropDownButton}
-                disabled={policyDetails === null}
-              />
-              <Button
-                sx={{
-                  height: "22px",
-                  fontSize: "11px",
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  columnGap: "5px",
+                  flexWrap: "wrap",
+                  rowGap: "5px",
                 }}
-                disabled={policyDetails === null}
-                onClick={() => {
-                  const tableData = tableRef.current.getData();
-                  const encodedData = encodeURIComponent(
-                    JSON.stringify({
-                      claimMode: JSON.stringify(claimMode),
-                      claimId: JSON.stringify(claimNoRef.current?.value),
-                      tableData: JSON.stringify(tableData),
-                      policyDetails: JSON.stringify(policyDetails),
-                      basicDocuments: JSON.stringify(basicDocuments),
-                    })
-                  );
-                  navigate(
-                    `/${DEPARTMENT}/attactment/basic-document?Mkr44Rt2iuy13R=${encodedData}`
-                  );
-                }}
-                color="success"
-                variant="contained"
               >
-                Add Basic Documents
-              </Button>
-              <Button
-                sx={{
-                  height: "22px",
-                  fontSize: "11px",
-                }}
-                disabled={
-                  policyDetails === null ||
-                  tableRef.current?.getData().length <= 0
-                }
-                onClick={() => {
-                  claimSheetModalRef.current.showModal();
-                  claimSheetModalRef.current.setFieldInfo({
-                    policy: policyDetails,
-                    table: tableRef.current.getData(),
-                  });
-                }}
-                color="success"
-                variant="contained"
-              >
-                Claim Sheet
-              </Button>
+                <DropdownMenu
+                  ref={formRef}
+                  onClick={handleClick}
+                  dropDownButton={dropDownButton}
+                  disabled={policyDetails === null}
+                />
+                <Button
+                  sx={{
+                    height: "22px",
+                    fontSize: "11px",
+                  }}
+                  disabled={policyDetails === null}
+                  onClick={() => {
+                    const tableData = tableRef.current.getData();
+                    const encodedData = encodeURIComponent(
+                      JSON.stringify({
+                        claimMode: JSON.stringify(claimMode),
+                        claimId: JSON.stringify(claimNoRef.current?.value),
+                        tableData: JSON.stringify(tableData),
+                        policyDetails: JSON.stringify(policyDetails),
+                        basicDocuments: JSON.stringify(basicDocuments),
+                      })
+                    );
+                    navigate(
+                      `/${DEPARTMENT}/attactment/basic-document?Mkr44Rt2iuy13R=${encodedData}`
+                    );
+                  }}
+                  color="success"
+                  variant="contained"
+                >
+                  Basic Documents
+                </Button>
+                <Button
+                  sx={{
+                    height: "22px",
+                    fontSize: "11px",
+                  }}
+                  disabled={
+                    policyDetails === null ||
+                    tableRef.current?.getData().length <= 0
+                  }
+                  onClick={() => {
+                    claimSheetModalRef.current.showModal();
+                    claimSheetModalRef.current.setFieldInfo({
+                      policy: policyDetails,
+                      table: tableRef.current.getData(),
+                    });
+                  }}
+                  color="success"
+                  variant="contained"
+                >
+                  Claim Sheet
+                </Button>
+              </div>
             </div>
           </div>
           <div
+            className="policy-container"
             style={{
               display: "flex",
               columnGap: "10px",
+              boxSizing: "border-box",
             }}
           >
             <fieldset
+              className="policy-details"
               style={{
                 flexDirection: "row",
                 gap: "10px",
@@ -1085,6 +1114,7 @@ const Dashboard = forwardRef(({}, ref) => {
                 fontSize: "13px",
                 display: "flex",
                 columnGap: "100px",
+                boxSizing: "border-box",
               }}
             >
               <legend>Policy Details</legend>
@@ -1111,6 +1141,7 @@ const Dashboard = forwardRef(({}, ref) => {
               </div>
             </fieldset>
             <fieldset
+              className="policy-payment"
               style={{
                 flexDirection: "row",
                 gap: "10px",
@@ -1121,6 +1152,7 @@ const Dashboard = forwardRef(({}, ref) => {
                 fontSize: "13px",
                 display: "flex",
                 columnGap: "100px",
+                boxSizing: "border-box",
               }}
             >
               <legend>Payment Details</legend>
@@ -1151,6 +1183,7 @@ const Dashboard = forwardRef(({}, ref) => {
           containerStyle={{
             flex: 1,
             height: "auto",
+            minHeight:"200px"
           }}
           ref={tableRef}
           columns={columns}
@@ -1393,6 +1426,7 @@ const ModalGenerateClaimSheet = forwardRef(
           }}
         ></div>
         <div
+        className="modal-claim-generate-claim-sheet"
           ref={modalRef}
           style={{
             height: blick ? "481px" : "480px",
@@ -1821,7 +1855,7 @@ function DisplayPolicyDetails(
   if (data.PolicyType === "COM" || data.PolicyType === "TPL") {
     if (policyDetailsRef.current)
       policyDetailsRef.current.innerHTML = `
-     <div style="display:flex;flex:1,width:100%;column-gap:20px;">
+     <div class="policy-details-container" style="display:flex;flex:1,width:100%;column-gap:20px;">
       <div style="flex:1;">
         <div style="display:flex;column-gap:20px"><span style="width:90px">Policy No.:</span> <strong style="flex:1">${
           data.PolicyNo || ""
@@ -1875,7 +1909,7 @@ function DisplayPolicyDetails(
   } else if (data.PolicyType === "FIRE") {
     if (policyDetailsRef.current)
       policyDetailsRef.current.innerHTML = `
-    <div style="display:flex;flex:1,width:100%;column-gap:20px;">
+    <div class="policy-details-container" style="display:flex;flex:1,width:100%;column-gap:20px;">
       <div style="flex:1;">
           <div style="display:flex;column-gap:20px"><span style="width:90px">Policy No. :</span> <strong style="flex:1">${
             data.PolicyNo || ""
@@ -1918,7 +1952,7 @@ function DisplayPolicyDetails(
   } else if (data.PolicyType === "CGL") {
     if (policyDetailsRef.current)
       policyDetailsRef.current.innerHTML = `
-    <div style="display:flex;flex:1,width:100%;column-gap:20px;">
+    <div class="policy-details-container" style="display:flex;flex:1,width:100%;column-gap:20px;">
       <div style="flex:1;">
           <div style="display:flex;column-gap:20px"><span style="width:90px">Policy No. :</span> <strong style="flex:1">${
             data.PolicyNo || ""
@@ -1949,7 +1983,7 @@ function DisplayPolicyDetails(
   } else if (data.PolicyType === "MAR") {
     if (policyDetailsRef.current)
       policyDetailsRef.current.innerHTML = `
-    <div style="display:flex;flex:1,width:100%;column-gap:20px;">
+    <div class="policy-details-container" style="display:flex;flex:1,width:100%;column-gap:20px;">
       <div style="flex:1;">
           <div style="display:flex;column-gap:20px"><span style="width:90px">Policy No. :</span> <strong style="flex:1">${
             data.PolicyNo || ""
@@ -1995,7 +2029,7 @@ function DisplayPolicyDetails(
   } else if (data.PolicyType === "MSPR") {
     if (policyDetailsRef.current)
       policyDetailsRef.current.innerHTML = `
-    <div style="display:flex;flex:1,width:100%;column-gap:20px;">
+    <div class="policy-details-container" style="display:flex;flex:1,width:100%;column-gap:20px;">
       <div style="flex:1;">
           <div style="display:flex;column-gap:20px"><span style="width:90px">Policy No. :</span> <strong style="flex:1">${
             data.PolicyNo || ""
@@ -2041,7 +2075,7 @@ function DisplayPolicyDetails(
   } else if (data.PolicyType === "PA") {
     if (policyDetailsRef.current)
       policyDetailsRef.current.innerHTML = `
-    <div style="display:flex;flex:1,width:100%;column-gap:20px;">
+    <div  class="policy-details-container" style="display:flex;flex:1,width:100%;column-gap:20px;">
       <div style="flex:1;">
           <div style="display:flex;column-gap:20px"><span style="width:90px">Policy No. :</span> <strong style="flex:1">${
             data.PolicyNo || ""
@@ -2072,7 +2106,7 @@ function DisplayPolicyDetails(
   } else {
     if (policyDetailsRef.current)
       policyDetailsRef.current.innerHTML = `
-    <div style="display:flex;flex:1,width:100%;column-gap:20px;">
+    <div class="policy-details-container" style="display:flex;flex:1,width:100%;column-gap:20px;">
       <div style="flex:1;">
           <div style="display:flex;column-gap:20px"><span style="width:90px">Policy No. :</span> <strong style="flex:1">${
             data.PolicyNo || ""

@@ -1,0 +1,31 @@
+@media (max-width: 768px) {
+  .search-container {
+    flex-direction: column-reverse;
+    row-gap: 5px;
+    box-sizing: border-box;
+  }
+  .search-container .search-input {
+    width: 100% !important;
+  }
+
+  .fields-reimbursement {
+    flex-direction: column;
+  }
+
+  .fields-reimbursement .container-field {
+    flex-direction: column;
+    align-items: flex-start !important;
+    text-align: left !important;
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+  .fields-reimbursement .container-field input {
+    width: calc(100% - 10px) !important;
+  }
+  .fields-reimbursement .container-field textarea {
+    width: calc(100% - 10px) !important;
+  }
+  .fields-reimbursement .container-field select {
+    width: 100% !important;
+  }
+}

@@ -6,9 +6,15 @@ import "../Style/header.css";
 import { useMutation } from "@tanstack/react-query";
 import { UserContext } from "../App";
 import Swal from "sweetalert2";
+import MenuIcon from "@mui/icons-material/Menu";
+import { IconButton } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 
 function Container({ showheader = true }: any) {
   const navigate = useNavigate();
+
+  const [showSidebar, setShowSidebar] = useState(false);
+
   const { myAxios, user, setUser } = useContext(UserContext);
   const department = useRef(process.env.REACT_APP_DEPARTMENT);
   const menuData = [
@@ -56,6 +62,15 @@ function Container({ showheader = true }: any) {
       }
     },
   });
+
+  // Handle menu hover or click event
+  const handleDropdownToggle = (menuItemName: any) => {
+    if (openMenu === menuItemName) {
+      setOpenMenu(null); // Close the menu if already open
+    } else {
+      setOpenMenu(menuItemName); // Open the clicked menu item
+    }
+  };
 
   const handleLogout = () => {
     Swal.fire({
@@ -112,7 +127,7 @@ function Container({ showheader = true }: any) {
     <>
       {isLaodingLogout && <Loading />}
       {showheader && (
-        <header>
+        <header id="desk-header">
           <nav ref={menuRef} className="menu header-ch">
             <ul className="main-menu">
               {menuData.map((menuItem: any, index: any) => (
@@ -210,12 +225,121 @@ function Container({ showheader = true }: any) {
           </div>
         </header>
       )}
+      {showheader && (
+        <>
+          <header className="mobile-header">
+            <IconButton
+              onClick={() => {
+                setShowSidebar(true);
+              }}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Clock />
+          </header>
+          {showSidebar && (
+            <div
+              className="sidebar-shadow"
+              onClick={() => setShowSidebar(false)}
+            ></div>
+          )}
+          {showSidebar && (
+            <div className="sidebar mh">
+              <IconButton
+                sx={{
+                  position: "absolute",
+                  top: "0px",
+                  right: "5px",
+                }}
+                onClick={() => {
+                  setShowSidebar(false);
+                }}
+              >
+                <CloseIcon />
+              </IconButton>
+              <nav ref={menuRef} className="menu header-ch">
+                <ul className="main-menu">
+                  {menuData.map((menuItem: any, index: any) => (
+                    <li
+                      key={index}
+                      onMouseEnter={() => handleMouseEnter(menuItem)}
+                    >
+                      {/* Conditional rendering for click vs link */}
+                      {menuItem.path ? (
+                        <Link
+                          style={{ fontSize: "14px", fontWeight: "bold" }}
+                          to={menuItem.path}
+                          onClick={() => {
+                            setShowSidebar(false);
+                          }}
+                        >
+                          {menuItem.name}
+                        </Link>
+                      ) : (
+                        <span
+                          style={{
+                            cursor: "pointer",
+                            fontSize: "14px",
+                            fontWeight: "bold",
+                          }}
+                          onClick={() => handleClick(menuItem)}
+                        >
+                          {menuItem.name}
+                        </span>
+                      )}
+
+                      {/* Show submenu based on hover or click */}
+                      {menuItem.subLinks && openMenu === menuItem.name && (
+                        <ul className="submenu">
+                          {menuItem.subLinks.map(
+                            (subLink: any, subIndex: any) => (
+                              <li
+                                key={subIndex}
+                                style={{
+                                  background:
+                                    subLink.path === location.pathname
+                                      ? "#555"
+                                      : "",
+                                }}
+                              >
+                                <Link
+                                  to={subLink.path}
+                                  onClick={handleSubLinkClick}
+                                >
+                                  {subLink.name}
+                                </Link>
+                              </li>
+                            )
+                          )}
+                        </ul>
+                      )}
+                    </li>
+                  ))}
+                  <li
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: "bold",
+                      paddingLeft: "10px",
+                    }}
+                    onClick={() => {
+                      handleLogout();
+                    }}
+                  >
+                    Logout
+                  </li>
+                </ul>
+              </nav>
+            </div>
+          )}
+        </>
+      )}
       <Suspense fallback={<Loading />}>
         <Outlet />
       </Suspense>
     </>
   );
 }
+
 export default Container;
 
 function Clock() {

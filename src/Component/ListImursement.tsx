@@ -24,6 +24,8 @@ import {
   codeCondfirmationAlert,
   saveCondfirmationAlert,
 } from "../Lib/confirmationAlert";
+import PageHelmet from "./PageHelmet";
+import "../Style/reimbursement.css";
 
 const columns = [
   { key: "refNo", label: "REF#", width: 100 },
@@ -383,6 +385,7 @@ const ListImursement = forwardRef(({}, ref) => {
         isLoadingDeleteImbersement ||
         isLoadingSearch ||
         isLoadingRefNo) && <Loading />}
+      <PageHelmet title="Reimbursement" />
 
       <div
         style={{
@@ -393,15 +396,18 @@ const ListImursement = forwardRef(({}, ref) => {
           flex: 1,
           width: "100wv",
           height: "100vh",
+          boxSizing:"border-box"
         }}
       >
         <div
+          className="search-container"
           style={{
             display: "flex",
             columnGap: "10px",
           }}
         >
           <TextInput
+            containerClassName="search-input"
             label={{
               title: "Search: ",
               style: {
@@ -525,7 +531,8 @@ const ListImursement = forwardRef(({}, ref) => {
             )}
           </div>
         </div>
-        <fieldset
+         <fieldset
+          className="fields-reimbursement"
           style={{
             display: "flex",
             gap: "10px",
@@ -543,8 +550,9 @@ const ListImursement = forwardRef(({}, ref) => {
             }}
           >
             <TextInput
+              containerClassName="container-field"
               containerStyle={{
-                width: "300px",
+                width: "350px",
                 marginBottom: "5px",
               }}
               label={{
@@ -552,14 +560,14 @@ const ListImursement = forwardRef(({}, ref) => {
                 style: {
                   fontSize: "12px",
                   fontWeight: "bold",
-                  width: "130px",
+                  width: "180px",
                 },
               }}
               input={{
                 readOnly: true,
                 type: "text",
                 style: {
-                  width: "calc(100% - 130px)",
+                  width: "calc(100% - 182px)",
                   height: "22px !important",
                 },
                 onKeyDown: (e) => {
@@ -576,8 +584,9 @@ const ListImursement = forwardRef(({}, ref) => {
               }}
             />
             <SelectInput
+              containerClassName="container-field"
               containerStyle={{
-                width: "300px",
+                width: "350px",
                 marginBottom: "5px",
               }}
               label={{
@@ -585,13 +594,13 @@ const ListImursement = forwardRef(({}, ref) => {
                 style: {
                   fontSize: "12px",
                   fontWeight: "bold",
-                  width: "125px",
+                  width: "175px",
                 },
               }}
               selectRef={checkFromRef}
               select={{
                 disabled: true,
-                style: { width: "calc(100% - 125px)", height: "22px" },
+                style: { width: "calc(100% - 175px)", height: "22px" },
                 defaultValue: "UCSMI",
                 onKeyDown: (e) => {
                   if (e.code === "NumpadEnter" || e.code === "Enter") {
@@ -605,8 +614,9 @@ const ListImursement = forwardRef(({}, ref) => {
               display={"key"}
             />
             <SelectInput
+              containerClassName="container-field"
               containerStyle={{
-                width: "300px",
+                width: "350px",
                 marginBottom: "5px",
               }}
               label={{
@@ -614,13 +624,13 @@ const ListImursement = forwardRef(({}, ref) => {
                 style: {
                   fontSize: "12px",
                   fontWeight: "bold",
-                  width: "125px",
+                  width: "175px",
                 },
               }}
               selectRef={typeclaimRef}
               select={{
                 disabled: true,
-                style: { width: "calc(100% - 125px)", height: "22px" },
+                style: { width: "calc(100% - 175px)", height: "22px" },
                 defaultValue: "UCSMI",
                 onKeyDown: (e) => {
                   if (e.code === "NumpadEnter" || e.code === "Enter") {
@@ -640,8 +650,9 @@ const ListImursement = forwardRef(({}, ref) => {
               display={"key"}
             />
             <TextInput
+              containerClassName="container-field"
               containerStyle={{
-                width: "300px",
+                width: "350px",
                 marginBottom: "5px",
               }}
               label={{
@@ -649,13 +660,13 @@ const ListImursement = forwardRef(({}, ref) => {
                 style: {
                   fontSize: "12px",
                   fontWeight: "bold",
-                  width: "130px",
+                  width: "180px",
                 },
               }}
               input={{
                 disabled: true,
                 type: "date",
-                style: { width: "calc(100% - 130px)" },
+                style: { width: "calc(100% - 182px)" },
                 defaultValue: format(new Date(), "yyyy-MM-dd"),
                 onKeyDown: (e) => {
                   if (e.code === "NumpadEnter" || e.code === "Enter") {
@@ -666,8 +677,9 @@ const ListImursement = forwardRef(({}, ref) => {
               inputRef={dateClaimRef}
             />
             <TextFormatedInput
+              containerClassName="container-field"
               containerStyle={{
-                width: "300px",
+                width: "350px",
                 marginBottom: "5px",
               }}
               label={{
@@ -675,14 +687,14 @@ const ListImursement = forwardRef(({}, ref) => {
                 style: {
                   fontSize: "12px",
                   fontWeight: "bold",
-                  width: "130px",
+                  width: "180px",
                 },
               }}
               input={{
                 disabled: true,
                 type: "text",
                 defaultValue: "0.00",
-                style: { width: "calc(100% - 130px)" },
+                style: { width: "calc(100% - 182px)" },
                 onKeyDown: (e) => {
                   if (e.code === "NumpadEnter" || e.code === "Enter") {
                     clientsNameRef.current?.focus();
@@ -692,18 +704,19 @@ const ListImursement = forwardRef(({}, ref) => {
               inputRef={amountClaimRef}
             />
             <TextAreaInput
+              containerClassName="clientname-input container-field"
               containerStyle={{ width: "500px", marginBottom: "5px" }}
               label={{
                 title: "Client's Name : ",
                 style: {
                   fontSize: "12px",
                   fontWeight: "bold",
-                  width: "128px",
+                  width: "180px",
                 },
               }}
               textarea={{
                 disabled: true,
-                style: { width: "calc(100% - 128px)" },
+                style: { width: "calc(100% - 180px)" },
                 onKeyDown: (e) => {
                   if (e.code === "NumpadEnter" || e.code === "Enter") {
                     dateReleaseRef.current?.focus();
@@ -715,6 +728,7 @@ const ListImursement = forwardRef(({}, ref) => {
           </div>
           <div>
             <TextInput
+              containerClassName="container-field"
               containerStyle={{
                 width: "350px",
                 marginBottom: "5px",
@@ -741,6 +755,7 @@ const ListImursement = forwardRef(({}, ref) => {
               inputRef={dateReleaseRef}
             />
             <TextInput
+              containerClassName="container-field"
               containerStyle={{
                 width: "350px",
                 marginBottom: "5px",
@@ -767,6 +782,7 @@ const ListImursement = forwardRef(({}, ref) => {
               inputRef={dateReturnUpwardRef}
             />
             <TextFormatedInput
+              containerClassName="container-field"
               containerStyle={{
                 width: "350px",
                 marginBottom: "5px",
@@ -793,6 +809,7 @@ const ListImursement = forwardRef(({}, ref) => {
               inputRef={amountImbursementRef}
             />
             <SelectInput
+              containerClassName="container-field"
               containerStyle={{
                 width: "350px",
                 marginBottom: "5px",
@@ -822,6 +839,7 @@ const ListImursement = forwardRef(({}, ref) => {
               display={"key"}
             />
             <TextAreaInput
+              containerClassName="clientname-input container-field"
               containerStyle={{ width: "500px", marginBottom: "5px" }}
               label={{
                 title: "Payee : ",
@@ -843,11 +861,12 @@ const ListImursement = forwardRef(({}, ref) => {
               _inputRef={payeeRef}
             />
           </div>
-        </fieldset>
+        </fieldset> 
         <DataGridViewReact
           containerStyle={{
             flex: 1,
             height: "auto",
+            minHeight:"200px"
           }}
           ref={tableRef}
           columns={columns}

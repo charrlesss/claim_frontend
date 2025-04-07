@@ -460,6 +460,8 @@ function UpdateAttachment() {
   const approvedDateModalRef = useRef<any>(null);
   const zoomModalRef = useRef<any>(null);
 
+  const [contentShow, setContentShow] = useState("Fields");
+
   const uploadModalRef = useRef<any>(null);
   const [configuration, setConfiguration] = useState<any>(null);
   const [selected, setSelected] = useState("Ongoing");
@@ -796,9 +798,6 @@ function UpdateAttachment() {
       <UploadModal
         ref={uploadModalRef}
         handleOnSave={(event: any, state: any) => {
-          uploadModalRef.current.closeDelay(state);
-        }}
-        handleOnClose={(event: any, state: any) => {
           if (state) {
             const newConfigDocuments = configuration.documents.map(
               (itm: any) => {
@@ -817,7 +816,26 @@ function UpdateAttachment() {
               documents: newConfigDocuments,
             });
             uploadModalRef.current.resetUpload();
+            uploadModalRef.current.clsoeModal();
           }
+        }}
+        handleOnClose={(event: any, state: any) => {
+          const newConfigDocuments = configuration.documents.map((itm: any) => {
+            if (itm.id === state.id) {
+              itm = {
+                ...itm,
+                ...state,
+                reference: configuration.reference,
+              };
+            }
+            return itm;
+          });
+          setConfiguration({
+            ...configuration,
+            documents: newConfigDocuments,
+          });
+          uploadModalRef.current.resetUpload();
+          uploadModalRef.current.clsoeModal();
         }}
       />
       <ModalDocument
@@ -864,8 +882,10 @@ function UpdateAttachment() {
           justifyContent: "center",
           alignItems: "center",
         }}
+        className="container-attachment"
       >
         <div
+          className="content"
           style={{
             display: "flex",
             flexDirection: "column",
@@ -908,7 +928,24 @@ function UpdateAttachment() {
 
             {configuration.claimType}
           </div>
+          <div className="mobile-button">
+            <Button
+              onClick={() => {
+                setContentShow("Fields");
+              }}
+            >
+              Fields
+            </Button>
+            <Button
+              onClick={() => {
+                setContentShow("Documents");
+              }}
+            >
+              Documents
+            </Button>
+          </div>
           <div
+            className="content-details"
             style={{
               flex: "1",
               display: "flex",
@@ -916,6 +953,7 @@ function UpdateAttachment() {
             }}
           >
             <div
+              className={`fields ${contentShow === "Fields" ? "active" : ""}`}
               style={{
                 flex: "1",
                 display: "flex",
@@ -993,7 +1031,7 @@ function UpdateAttachment() {
                         height: "25px ",
                         borderRadius: "5px",
                       },
-                      defaultValue: format(new Date(), "yyyy-MM-dd"),
+                      defaultValue: "",
                       onKeyDown: (e) => {
                         if (e.key === "Enter" || e.key === "NumpadEnter") {
                           e.preventDefault();
@@ -1004,6 +1042,7 @@ function UpdateAttachment() {
                       },
                     }}
                     inputRef={dateReportRef}
+                    offValidation={true}
                   />
                   <TextInput
                     containerStyle={{
@@ -1388,6 +1427,9 @@ function UpdateAttachment() {
               </div>
             </div>
             <div
+              className={`documents ${
+                contentShow === "Documents" ? "active" : ""
+              }`}
               style={{
                 flex: "1",
                 display: "flex",
@@ -1486,6 +1528,9 @@ function UpdateAttachment() {
               </div>
             </div>
             <div
+              className={`documents-other ${
+                contentShow === "Documents" ? "active" : ""
+              }`}
               style={{
                 position: "absolute",
                 bottom: "10px",
@@ -1544,10 +1589,12 @@ function UpdateAttachment() {
                     const newData = [
                       configuration.reference,
                       configuration.claimType,
-                      format(
-                        new Date(dateReportRef.current?.value as any),
-                        "MM/dd/YYY"
-                      ),
+                      dateReportRef.current?.value === ""
+                        ? ""
+                        : format(
+                            new Date(dateReportRef.current?.value as any),
+                            "MM/dd/YYY"
+                          ),
                       format(
                         new Date(dateAccidentRef.current?.value as any),
                         "MM/dd/YYY"

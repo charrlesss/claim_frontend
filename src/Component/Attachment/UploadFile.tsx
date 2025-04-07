@@ -10,6 +10,7 @@ import FolderCopyIcon from "@mui/icons-material/FolderCopy";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import CloseIcon from "@mui/icons-material/Close";
+import "../../Style/uploadfile.css";
 
 const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
   const [selected, setSelected] = useState(0);
@@ -30,12 +31,12 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
   const [handleDelayClose, setHandleDelayClose] = useState(false);
   const [blick, setBlick] = useState(false);
 
-  const closeDelay = (e: any, state: any) => {
+  const closeDelay = (e: any) => {
     setHandleDelayClose(true);
     setTimeout(() => {
       setShowModal(false);
       setHandleDelayClose(false);
-      handleOnClose(e, state);
+      handleOnClose(e);
     }, 100);
   };
   const closeDelayRef = useRef<any>(closeDelay);
@@ -55,14 +56,20 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
 
     if (e.dataTransfer.files.length > 0) {
       setSelected(0);
-      setFile(Array.from(e.dataTransfer.files));
+      setFile((files: Array<File>) => [
+        ...Array.from(e.dataTransfer.files),
+        ...files,
+      ]);
     }
   };
 
   const handleFileSelect = (e: any) => {
     if (e.target.files.length > 0) {
       setSelected(0);
-      setFile(Array.from(e.target.files));
+      setFile((files: Array<File>) => [
+        ...Array.from(e.target.files),
+        ...files,
+      ]);
     }
   };
 
@@ -97,9 +104,10 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
       setSelected(0);
       setDocumentSelected(null);
     },
-    closeDelay: (state: any) => {
-      closeDelay(null, state);
+    getPrevFile: () => {
+      return fileRef.current;
     },
+    closeDelay,
   }));
 
   return showModal ? (
@@ -122,6 +130,7 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
         }}
       ></div>
       <div
+        className="uplaod-container"
         style={{
           height: blick ? "90.1vh" : "90vh",
           width: blick ? "70.1%" : "70%",
@@ -164,41 +173,28 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
               cursor: "pointer",
             }}
             onClick={(e) => {
-              if (file.length > 0) {
-                const state = {
-                  id: documentSelected?.id,
-                  label: documentSelected?.label,
-                  document_id: documentSelected?.document_id,
-                  required: documentSelected?.required,
-                  files: file.map((itm: File) => {
-                    return {
-                      link: URL.createObjectURL(itm),
-                      filename: itm.name,
-                      document_id: documentSelected?.document_id,
-                      reference: documentSelected?.reference,
-                      id: documentSelected?.id,
-                    };
-                  }),
-                };
-                closeDelay(e, state);
-                return;
-              } else {
-                const state = {
-                  id: documentSelected?.id,
-                  label: documentSelected?.label,
-                  document_id: documentSelected?.document_id,
-                  required: documentSelected?.required,
-                  files: null,
-                };
-
-                closeDelay(e, state);
-                return;
-              }
+              const state = {
+                id: documentSelected?.id,
+                label: documentSelected?.label,
+                document_id: documentSelected?.document_id,
+                required: documentSelected?.required,
+                files: fileRef.current.map((itm: File) => {
+                  return {
+                    link: URL.createObjectURL(itm),
+                    filename: itm.name,
+                    document_id: documentSelected?.document_id,
+                    reference: documentSelected?.reference,
+                    id: documentSelected?.id,
+                  };
+                }),
+              };
+              handleOnClose(e, state);
             }}
           >
             <CloseIcon sx={{ fontSize: "20px" }} />
           </button>
           <div
+            className="content"
             style={{
               display: "flex",
               padding: "20px",
@@ -234,6 +230,7 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
                   }}
                 >
                   <FolderCopyIcon
+                    className="folder-icon"
                     sx={{
                       fontSize: "22rem",
                       color: dragActive ? "#c3facf" : "#ebe8e8",
@@ -282,7 +279,7 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
                       <ArrowBackIosIcon
                         sx={{
                           fontSize: "3rem",
-                          color: "white",
+                          color: "green",
                           textAlign: "center",
                           marginLeft: "10px",
                         }}
@@ -308,7 +305,7 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
                       color="success"
                     >
                       <ArrowForwardIosIcon
-                        sx={{ fontSize: "3rem", color: "white" }}
+                        sx={{ fontSize: "3rem", color: "green" }}
                       />
                     </IconButton>
                   </>
@@ -557,7 +554,7 @@ export const ZoomModal = forwardRef(({ handleOnClose }: any, ref) => {
             background: "#F1F1F1",
             display: "flex",
             flexDirection: "row",
-            position:"relative"
+            position: "relative",
           }}
         >
           <button

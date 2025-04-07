@@ -466,6 +466,8 @@ function Attactment() {
   const approvedDateModalRef = useRef<any>(null);
   const zoomModalRef = useRef<any>(null);
 
+  const [contentShow, setContentShow] = useState("Fields");
+
   const uploadModalRef = useRef<any>(null);
   const [configuration, setConfiguration] = useState<any>(null);
   const [selected, setSelected] = useState("Ongoing");
@@ -747,9 +749,6 @@ function Attactment() {
       <UploadModal
         ref={uploadModalRef}
         handleOnSave={(event: any, state: any) => {
-          uploadModalRef.current.closeDelay(state);
-        }}
-        handleOnClose={(event: any, state: any) => {
           if (state) {
             const newConfigDocuments = configuration.documents.map(
               (itm: any) => {
@@ -768,7 +767,26 @@ function Attactment() {
               documents: newConfigDocuments,
             });
             uploadModalRef.current.resetUpload();
+            uploadModalRef.current.clsoeModal();
           }
+        }}
+        handleOnClose={(event: any, state: any) => {
+          const newConfigDocuments = configuration.documents.map((itm: any) => {
+            if (itm.id === state.id) {
+              itm = {
+                ...itm,
+                ...state,
+                reference: configuration.reference,
+              };
+            }
+            return itm;
+          });
+          setConfiguration({
+            ...configuration,
+            documents: newConfigDocuments,
+          });
+          uploadModalRef.current.resetUpload();
+          uploadModalRef.current.clsoeModal();
         }}
       />
       <ModalDocument
@@ -808,6 +826,7 @@ function Attactment() {
         }}
       />
       <div
+        className="container-attachment"
         style={{
           display: "flex",
           flex: 1,
@@ -817,6 +836,7 @@ function Attactment() {
         }}
       >
         <div
+          className="content"
           style={{
             display: "flex",
             flexDirection: "column",
@@ -859,7 +879,24 @@ function Attactment() {
 
             {configuration.claimType}
           </div>
+          <div className="mobile-button">
+            <Button
+              onClick={() => {
+                setContentShow("Fields");
+              }}
+            >
+              Fields
+            </Button>
+            <Button
+              onClick={() => {
+                setContentShow("Documents");
+              }}
+            >
+              Documents
+            </Button>
+          </div>
           <div
+            className="content-details"
             style={{
               flex: "1",
               display: "flex",
@@ -867,6 +904,7 @@ function Attactment() {
             }}
           >
             <div
+              className={`fields ${contentShow === "Fields" ? "active" : ""}`}
               style={{
                 flex: "1",
                 display: "flex",
@@ -944,7 +982,7 @@ function Attactment() {
                         height: "25px ",
                         borderRadius: "5px",
                       },
-                      defaultValue: format(new Date(), "yyyy-MM-dd"),
+                      defaultValue: "",
                       onKeyDown: (e) => {
                         if (e.key === "Enter" || e.key === "NumpadEnter") {
                           e.preventDefault();
@@ -955,6 +993,7 @@ function Attactment() {
                       },
                     }}
                     inputRef={dateReportRef}
+                    offValidation={true}
                   />
                   <TextInput
                     containerStyle={{
@@ -1333,132 +1372,140 @@ function Attactment() {
                 </div>
               </div>
             </div>
-            <div
-              style={{
-                flex: "1",
-                display: "flex",
-                position: "relative",
-                flexDirection: "column",
-                overflowY: "auto",
-                overflowX: "hidden",
-                height: "100%",
-                borderRight: "1px solid #d1d5db",
-              }}
-            >
+            <>
               <div
+                className={`documents ${
+                  contentShow === "Documents" ? "active" : ""
+                }`}
                 style={{
-                  background: "red",
-                  position: "absolute",
-                  left: "0",
-                  right: "0",
-                  height: "auto",
+                  flex: "1",
                   display: "flex",
+                  position: "relative",
                   flexDirection: "column",
-                  boxSizing: "border-box",
+                  overflowY: "auto",
+                  overflowX: "hidden",
+                  height: "100%",
+                  borderRight: "1px solid #d1d5db",
                 }}
               >
-                {/* documents */}
-                <nav
-                  aria-label="main mailbox folders"
+                <div
                   style={{
+                    background: "red",
                     position: "absolute",
                     left: "0",
                     right: "0",
-                    marginBottom: "50px",
+                    height: "auto",
+                    display: "flex",
+                    flexDirection: "column",
+                    boxSizing: "border-box",
                   }}
                 >
-                  <p
+                  {/* documents */}
+                  <nav
+                    aria-label="main mailbox folders"
                     style={{
-                      fontSize: "13px",
-                      fontWeight: "bold",
-                      padding: "5px 10px",
+                      position: "absolute",
+                      left: "0",
+                      right: "0",
+                      marginBottom: "50px",
                     }}
                   >
-                    {configuration.claimType}
-                  </p>
-                  <List>
-                    {configuration.documents
-                      .filter((itm: any) => itm.primaryDocuments)
-                      .map((itm: any, idx: number) => {
-                        return (
-                          <HandleListHover
-                            key={idx}
-                            itm={itm}
-                            idx={idx}
-                            onClickItem={onClickItem}
-                            deleteOthers={deleteOthers}
-                            resetUpload={resetUpload}
-                            printDocument={printDocument}
-                            downloadDocument={downloadDocument}
-                            zoomDocument={zoomDocument}
-                          />
-                        );
-                      })}
-                  </List>
-                  {configuration.documents.filter((itm: any) => itm.others)
-                    .length > 0 && (
-                    <>
-                      <p
-                        style={{
-                          fontSize: "13px",
-                          fontWeight: "bold",
-                          padding: "5px 10px",
-                        }}
-                      >
-                        Other Documents
-                      </p>
-                      <List>
-                        {configuration.documents
-                          .filter((itm: any) => itm.others)
-                          .map((itm: any, idx: number) => {
-                            return (
-                              <HandleListHover
-                                key={idx}
-                                itm={itm}
-                                idx={idx}
-                                onClickItem={onClickItem}
-                                deleteOthers={deleteOthers}
-                                resetUpload={resetUpload}
-                                printDocument={printDocument}
-                                downloadDocument={downloadDocument}
-                                zoomDocument={zoomDocument}
-                              />
-                            );
-                          })}
-                      </List>
-                    </>
-                  )}
-                </nav>
+                    <p
+                      style={{
+                        fontSize: "13px",
+                        fontWeight: "bold",
+                        padding: "5px 10px",
+                      }}
+                    >
+                      {configuration.claimType}
+                    </p>
+                    <List>
+                      {configuration.documents
+                        .filter((itm: any) => itm.primaryDocuments)
+                        .map((itm: any, idx: number) => {
+                          return (
+                            <HandleListHover
+                              key={idx}
+                              itm={itm}
+                              idx={idx}
+                              onClickItem={onClickItem}
+                              deleteOthers={deleteOthers}
+                              resetUpload={resetUpload}
+                              printDocument={printDocument}
+                              downloadDocument={downloadDocument}
+                              zoomDocument={zoomDocument}
+                            />
+                          );
+                        })}
+                    </List>
+                    {configuration.documents.filter((itm: any) => itm.others)
+                      .length > 0 && (
+                      <>
+                        <p
+                          style={{
+                            fontSize: "13px",
+                            fontWeight: "bold",
+                            padding: "5px 10px",
+                          }}
+                        >
+                          Other Documents
+                        </p>
+                        <List>
+                          {configuration.documents
+                            .filter((itm: any) => itm.others)
+                            .map((itm: any, idx: number) => {
+                              return (
+                                <HandleListHover
+                                  key={idx}
+                                  itm={itm}
+                                  idx={idx}
+                                  onClickItem={onClickItem}
+                                  deleteOthers={deleteOthers}
+                                  resetUpload={resetUpload}
+                                  printDocument={printDocument}
+                                  downloadDocument={downloadDocument}
+                                  zoomDocument={zoomDocument}
+                                />
+                              );
+                            })}
+                        </List>
+                      </>
+                    )}
+                  </nav>
+                </div>
               </div>
-            </div>
-            <div
-              style={{
-                position: "absolute",
-                bottom: "10px",
-                right: "10px",
-                width: "50px",
-                height: "50px",
-                borderRadius: "50%",
-                cursor: "pointer",
-                zIndex: 999,
-              }}
-              onClick={handleAddDocument}
-            >
-              <Tooltip title="Add Other Document">
-                <IconButton
-                  aria-label="delete"
-                  size="large"
-                  sx={{
-                    background: green[800],
-                    ":hover": {
-                      background: green[900],
-                    },
-                  }}
-                >
-                  <AddIcon sx={{ color: "white" }} />
-                </IconButton>
-              </Tooltip>
-            </div>
+              <div
+                className={`documents-other ${
+                  contentShow === "Documents" ? "active" : ""
+                }`}
+                style={{
+                  position: "absolute",
+                  bottom: "10px",
+                  right: "10px",
+                  width: "50px",
+                  height: "50px",
+                  borderRadius: "50%",
+                  cursor: "pointer",
+                  zIndex: 999,
+                }}
+                onClick={handleAddDocument}
+              >
+                <Tooltip title="Add Other Document">
+                  <IconButton
+                    aria-label="delete"
+                    size="large"
+                    sx={{
+                      background: green[800],
+                      ":hover": {
+                        background: green[900],
+                      },
+                    }}
+                  >
+                    <AddIcon sx={{ color: "white" }} />
+                  </IconButton>
+                </Tooltip>
+              </div>
+            </>
           </div>
           <div style={{ height: "40px", background: "#d1d5db" }}>
             <Tooltip title="Submit Claim">
@@ -1490,10 +1537,12 @@ function Attactment() {
                     const newData = [
                       configuration.reference,
                       configuration.claimType,
-                      format(
-                        new Date(dateReportRef.current?.value as any),
-                        "MM/dd/YYY"
-                      ),
+                      dateReportRef.current?.value === ""
+                        ? ""
+                        : format(
+                            new Date(dateReportRef.current?.value as any),
+                            "MM/dd/YYY"
+                          ),
                       format(
                         new Date(dateAccidentRef.current?.value as any),
                         "MM/dd/YYY"
@@ -1639,9 +1688,10 @@ export const ModalDocument = forwardRef(
           }}
         ></div>
         <div
+          className="add-other-document"
           ref={modalRef}
           style={{
-            height: blick ? "142px" : "140px",
+            height: blick ? "141px" : "140px",
             width: blick ? "40.3%" : "40%",
             border: "1px solid #64748b",
             position: "absolute",

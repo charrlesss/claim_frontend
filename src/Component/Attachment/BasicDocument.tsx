@@ -24,6 +24,8 @@ import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import CropFreeIcon from "@mui/icons-material/CropFree";
 import RotateLeftIcon from "@mui/icons-material/RotateLeft";
+import '../../Style/attachment.css'
+
 
 const BasicDocument = () => {
   const navigate = useNavigate();
@@ -285,7 +287,18 @@ const BasicDocument = () => {
       <UploadModal
         ref={uploadModalRef}
         handleOnSave={(event: any, state: any) => {
-          uploadModalRef.current.closeDelay(state);
+          if (state) {
+            const newdocuments = documents.map((itm: any) => {
+              if (itm.id === state.id) {
+                itm = { ...itm, ...state };
+              }
+              return itm;
+            });
+            setDocuments(newdocuments);
+            uploadModalRef.current.resetUpload();
+            uploadModalRef.current.clsoeModal();
+
+          }
         }}
         handleOnClose={(event: any, state: any) => {
           if (state) {
@@ -297,8 +310,12 @@ const BasicDocument = () => {
             });
             setDocuments(newdocuments);
             uploadModalRef.current.resetUpload();
+            uploadModalRef.current.clsoeModal();
+
           }
         }}
+
+       
       />
       <ModalDocument
         ref={addDocumentModalRef}
@@ -327,6 +344,7 @@ const BasicDocument = () => {
         }}
       >
         <div
+        className="basic-document-content"
           style={{
             width: "40%",
             border: "1px solid #ebeef2",

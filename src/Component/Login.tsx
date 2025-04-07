@@ -5,6 +5,7 @@ import { Loading } from "./Loading";
 import { UserContext } from "../App";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
+import PageHelmet from "./PageHelmet";
 
 function Login() {
   const navigate = useNavigate();
@@ -63,7 +64,7 @@ function Login() {
   return (
     <>
       {isPending && <Loading />}
-
+      <PageHelmet title="Login" />
       <div className="main-landing-page">
         <form className="content" onSubmit={onSubmit}>
           <img

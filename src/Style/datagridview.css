@@ -1,0 +1,11 @@
+@media (max-width: 768px) {
+  #modal-inject {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+  }
+  .modal-table-datagridview {
+    width: 98% !important;
+    box-sizing: border-box;
+  }
+}

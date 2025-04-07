@@ -25,6 +25,7 @@ interface TextInputProps {
   disableIcon?: boolean;
   containerStyle?: CSSProperties;
   offValidation?: boolean;
+  containerClassName?: string;
 }
 
 interface TextAreaPrps {
@@ -36,6 +37,7 @@ interface TextAreaPrps {
   onIconClick?: React.MouseEventHandler<HTMLDivElement> | undefined;
   disableIcon?: boolean;
   containerStyle?: CSSProperties;
+  containerClassName?: string;
 }
 
 interface TextFormatedInputProps extends TextInputProps {
@@ -53,6 +55,7 @@ export function TextFormatedInput({
   onChange = (e) => {},
   onBlur = (e) => {},
   containerStyle,
+  containerClassName = "",
 }: TextFormatedInputProps) {
   // const [inputValue, setInputValue] = useState('');
   const id = useId();
@@ -138,6 +141,7 @@ export function TextFormatedInput({
 
   return (
     <div
+      className={containerClassName}
       style={{
         display: "flex",
         alignItems: "center",
@@ -209,7 +213,8 @@ export function TextInput({
   disableIcon = false,
   containerStyle,
   onIconClick = (e) => {},
-  offValidation = false
+  offValidation = false,
+  containerClassName = "",
 }: TextInputProps) {
   const id = useId();
 
@@ -221,6 +226,7 @@ export function TextInput({
         position: "relative",
         ...containerStyle,
       }}
+      className={containerClassName}
     >
       <label {...label} htmlFor={id}>
         {label.title}
@@ -303,11 +309,13 @@ export function TextAreaInput({
   disableIcon = false,
   onIconClick = (e) => {},
   containerStyle,
+  containerClassName = "",
 }: TextAreaPrps) {
   const id = useId();
 
   return (
     <div
+      className={containerClassName}
       style={{
         display: "flex",
         alignItems: "center",
@@ -366,6 +374,7 @@ export const SelectInput = forwardRef(
       values = "",
       display = "",
       containerStyle,
+      containerClassName,
     }: {
       selectRef?: React.RefObject<HTMLSelectElement | null>;
       labelRef?: React.RefObject<HTMLLabelElement>;
@@ -375,6 +384,7 @@ export const SelectInput = forwardRef(
       values: string;
       display: string;
       containerStyle?: React.CSSProperties | undefined;
+      containerClassName?: string;
     },
     ref: any
   ) => {
@@ -392,6 +402,7 @@ export const SelectInput = forwardRef(
 
     return (
       <div
+        className={containerClassName}
         style={{
           display: "flex",
           alignItems: "center",

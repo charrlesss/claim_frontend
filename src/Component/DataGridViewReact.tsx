@@ -13,6 +13,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { Loading } from "./Loading";
 import ReactDOM from "react-dom";
 import { UserContext } from "../App";
+import "../Style/datagridview.css";
 
 export const DataGridViewReact = forwardRef(
   (
@@ -1433,6 +1434,7 @@ export const useUpwardTableModalSearchSafeMode = ({
           ></div>
 
           <div
+            className="modal-table-datagridview"
             ref={modalRef}
             style={{
               background: "#F1F1F1",
@@ -1488,6 +1490,7 @@ export const useUpwardTableModalSearchSafeMode = ({
             <div
               style={{
                 padding: "5px",
+                boxSizing: "border-box",
               }}
             >
               <TextInput
@@ -1551,6 +1554,7 @@ export const useUpwardTableModalSearchSafeMode = ({
             <div
               style={{
                 flex: 1,
+                boxSizing: "border-box",
               }}
             >
               <DataGridViewReact
@@ -1564,18 +1568,18 @@ export const useUpwardTableModalSearchSafeMode = ({
                 }}
               />
             </div>
-            <div style={{ padding: "0 10px" }}>
+            <div style={{ padding: "0 10px", boxSizing: "border-box" }}>
               <span style={{ fontSize: "13px", fontWeight: "bold" }}>
                 Records: Top {data.length}
               </span>
             </div>
             <style>
               {`
-                                    .btn-check-exit-modal:hover{
-                                        background:red !important;
-                                        color:white !important;
-                                    }
-                                `}
+                .btn-check-exit-modal:hover{
+                    background:red !important;
+                    color:white !important;
+                }
+            `}
             </style>
           </div>
         </div>,
