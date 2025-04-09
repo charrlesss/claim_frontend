@@ -2,8 +2,7 @@ import Router from "./Component/Router";
 import "../src/Style/App.css";
 import { createContext, useEffect, useRef, useState } from "react";
 import axios, { AxiosInstance } from "axios";
-import { useMutation } from "@tanstack/react-query";
-import { Loading } from "./Component/Loading";
+import PageHelmet from "./Component/PageHelmet";
 
 interface UserContextType {
   user: any;
@@ -28,50 +27,9 @@ function App() {
     setNewUser(_user);
   };
 
-  myAxios.interceptors.request.use(
-    function (req) {
-      return req;
-    },
-    function (error) {
-      console.log("req Err", error);
-      return Promise.reject(error);
-    }
-  );
-  myAxios.interceptors.response.use(
-    function (response) {
-      return response;
-    },
-    async function (error) {
-      if (error.response.status === 403) {
-        // try {
-        //   const token = await myAxios.get("/token", {
-        //     withCredentials: true,
-        //   });
-        //   const refreshResponse = await myAxios.post(
-        //     "/refresh-token",
-        //     { REFRESH_TOKEN: token.data.refreshToken },
-        //     { withCredentials: true }
-        //   );
-
-        //   setUser(token.data);
-
-        //   error.config.headers.Authorization = `Bearer ${refreshResponse.data.accessToken}`;
-        //   return myAxios.request(error.config);
-        // } catch (refreshError) {
-        //   return Promise.reject(error);
-        // }
-        window.location.reload()
-        return Promise.reject(error);
-
-      }
-      return Promise.reject(error);
-    }
-  );
-
-
-
-
   return (
+  <>
+  <PageHelmet title="Loading..." />
     <div
       style={{
         flex: 1,
@@ -79,11 +37,11 @@ function App() {
         flexDirection: "column",
       }}
     >
-    
       <UserContext.Provider value={{ myAxios, user, setUser }}>
         <Router />
       </UserContext.Provider>
     </div>
+  </>
   );
 }
 

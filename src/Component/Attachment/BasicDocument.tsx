@@ -26,9 +26,12 @@ import CropFreeIcon from "@mui/icons-material/CropFree";
 import RotateLeftIcon from "@mui/icons-material/RotateLeft";
 import "../../Style/attachment.css";
 import PageHelmet from "../PageHelmet";
+import { Loading } from "../Loading";
 
 const BasicDocument = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
   const [documents, setDocuments] = useState<Array<any>>([
     {
       id: 0,
@@ -93,19 +96,29 @@ const BasicDocument = () => {
       const blob = await response.blob();
       return new File([blob], fileName, { type: "image/png" });
     };
+    setLoading(true);
 
-    if (data.files && data.files.length > 0) {
-      const filePromises = data.files.map((url: any, index: any) => {
-        return urlToFile(url.link, url.filename);
-      });
+    try {
+      if (data.files && data.files.length > 0) {
+        const filePromises = data.files.map((url: any, index: any) => {
+          return urlToFile(url.link, url.filename);
+        });
 
-      const fileArray = await Promise.all(filePromises);
-      data.files = fileArray;
+        const fileArray = await Promise.all(filePromises);
+        data.files = fileArray;
+      }
+      setLoading(false);
+
+      uploadModalRef.current.showModal();
+      uploadModalRef.current.setSelectedDocument(data);
+    } catch (error) {
+      console.error("Error loading files:", error);
+    } finally {
+      // End loading after the process is done
+      setLoading(false);
     }
-
-    uploadModalRef.current.showModal();
-    uploadModalRef.current.setSelectedDocument(data);
   };
+
   const resetUpload = (itm: any, idx: number) => {
     const isConfirm = window.confirm(
       `Are you sure you want to reset this document? \n${itm.label}`
@@ -263,6 +276,7 @@ const BasicDocument = () => {
 
   return (
     <>
+      {loading && <Loading />}
       <PageHelmet title="Basic Documents" />
       <ZoomModal
         ref={zoomModalRef}

@@ -41,9 +41,15 @@
   .mobile-button{
     display: flex;
     width: 100%;
+    box-sizing: border-box;
+    box-shadow: 2px 4px 30px -13px rgba(0,0,0,0.75);
   }
 
   .add-other-document{
     width: 98% !important;
+  }
+  .claim-title-text{
+    font-size: 13px;
+    font-weight: bold;
   }
 }

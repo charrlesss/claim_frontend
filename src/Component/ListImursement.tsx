@@ -937,11 +937,11 @@ const ListImursement = forwardRef(({}, ref) => {
           {imbursementMode === "" && (
             <Button
               sx={{
-                height: "22px",
+                height: "100%",
                 fontSize: "11px",
+                flex:1
               }}
               variant="contained"
-              startIcon={<AddIcon sx={{ width: 15, height: 15 }} />}
               id="entry-header-save-button"
               onClick={() => {
                 setImbursementMode("add");
@@ -954,8 +954,9 @@ const ListImursement = forwardRef(({}, ref) => {
           {imbursementMode !== "" && (
             <Button
               sx={{
-                height: "22px",
+                height: "100%",
                 fontSize: "11px",
+                flex:1
               }}
               onClick={handleOnSave}
               color="success"
@@ -968,11 +969,11 @@ const ListImursement = forwardRef(({}, ref) => {
           {imbursementMode !== "" && (
             <Button
               sx={{
-                height: "22px",
+                height: "100%",
                 fontSize: "11px",
+                flex:1
               }}
               variant="contained"
-              startIcon={<CloseIcon sx={{ width: 15, height: 15 }} />}
               color="warning"
               onClick={() => {
                 Swal.fire({
@@ -997,11 +998,11 @@ const ListImursement = forwardRef(({}, ref) => {
           {imbursementMode === "update" && (
             <Button
               sx={{
-                height: "22px",
+                height: "100%",
                 fontSize: "11px",
+                flex:1
               }}
               variant="contained"
-              startIcon={<AddIcon sx={{ width: 15, height: 15 }} />}
               id="entry-header-save-button"
               onClick={() => {
                 codeCondfirmationAlert({

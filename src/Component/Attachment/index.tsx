@@ -463,6 +463,8 @@ const __CONFIGURATION = [
 
 function Attactment() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
   const addDocumentModalRef = useRef<any>(null);
   const approvedDateModalRef = useRef<any>(null);
   const zoomModalRef = useRef<any>(null);
@@ -501,18 +503,33 @@ function Attactment() {
       return new File([blob], fileName, { type: "image/png" });
     };
 
-    if (data.files && data.files.length > 0) {
-      const filePromises = data.files.map((url: any, index: any) => {
-        return urlToFile(url.link, url.filename);
-      });
+    // Start loading
+    setLoading(true);
 
-      const fileArray = await Promise.all(filePromises);
+    try {
+      if (data.files && data.files.length > 0) {
+        const filePromises = data.files.map((url: any, index: any) => {
+          return urlToFile(url.link, url.filename);
+        });
 
-      data.files = fileArray;
+        const fileArray = await Promise.all(filePromises);
+
+        // Assign converted files back to data
+        data.files = fileArray;
+      }
+
+      data.reference = configuration.reference;
+      setLoading(false);
+
+      // Show modal after files are processed
+      uploadModalRef.current.showModal();
+      uploadModalRef.current.setSelectedDocument(data);
+    } catch (error) {
+      console.error("Error loading files:", error);
+    } finally {
+      // End loading after the process is done
+      setLoading(false);
     }
-    data.reference = configuration.reference;
-    uploadModalRef.current.showModal();
-    uploadModalRef.current.setSelectedDocument(data);
   };
 
   const handleAddDocument = () => {
@@ -712,12 +729,13 @@ function Attactment() {
   }, [selected]);
 
   if (!configuration) {
-    return <Loading />;
+    return <div>Wag Kang susubok masisira ang buhay mo!!!</div>;
   }
 
   return (
     <>
-      <PageHelmet title={configuration.claimType}/>
+      {loading && <Loading />}
+      <PageHelmet title={configuration.claimType} />
 
       <ZoomModal
         ref={zoomModalRef}
@@ -883,13 +901,20 @@ function Attactment() {
               </IconButton>
             </Tooltip>
 
-            {configuration.claimType}
+            <span className="claim-title-text">{configuration.claimType}</span>
           </div>
           <div className="mobile-button">
             <Button
               onClick={() => {
                 setContentShow("Fields");
               }}
+              sx={{
+                flex: 1,
+                borderRadius: 0,
+                boxShadow: "none",
+              }}
+              color={contentShow === "Fields" ? "primary" : "info"}
+              variant="contained"
             >
               Fields
             </Button>
@@ -897,6 +922,13 @@ function Attactment() {
               onClick={() => {
                 setContentShow("Documents");
               }}
+              sx={{
+                flex: 1,
+                borderRadius: 0,
+                boxShadow: "none",
+              }}
+              color={contentShow === "Documents" ? "primary" : "info"}
+              variant="contained"
             >
               Documents
             </Button>
@@ -2059,7 +2091,7 @@ const CheckBoxLabel = ({
       <label
         htmlFor={id}
         style={{
-          fontSize: "12px",
+          fontSize: "10px",
           cursor: "pointer",
         }}
       >

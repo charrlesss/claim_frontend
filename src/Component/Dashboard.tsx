@@ -67,10 +67,10 @@ const columns = [
   { key: "documentId", label: "", width: 0, hide: true },
   { key: "files", label: "", width: 0, hide: true },
 ];
-
 export const DEPARTMENT = process.env.REACT_APP_DEPARTMENT;
 
 const Dashboard = forwardRef(({}, ref) => {
+  const [checkCodeLoading, setCheckCodeLoading] = useState(false);
   const [dropDownButton, setDropDownButton] = useState<Array<any>>([]);
   const navigate = useNavigate();
 
@@ -177,9 +177,22 @@ const Dashboard = forwardRef(({}, ref) => {
           Authorization: `Bearer ${user?.accessToken}`,
           "Content-Type": "multipart/form-data",
         },
+        onUploadProgress(progressEvent: any) {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          const percentElement = document.getElementById(
+            "loading-percentage"
+          ) as HTMLSpanElement;
+          if (percentElement) {
+            percentElement.innerHTML = `${percentCompleted}%`;
+          }
+          console.log(`Upload Progress: ${percentCompleted}%`);
+        },
       });
     },
     onSuccess: (res) => {
+      console.log(res.data);
       const response = res as any;
       if (response.data.success) {
         resetAll();
@@ -205,6 +218,18 @@ const Dashboard = forwardRef(({}, ref) => {
         headers: {
           Authorization: `Bearer ${user?.accessToken}`,
           "Content-Type": "multipart/form-data",
+        },
+        onUploadProgress(progressEvent: any) {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          const percentElement = document.getElementById(
+            "loading-percentage"
+          ) as HTMLSpanElement;
+          if (percentElement) {
+            percentElement.innerHTML = `${percentCompleted}%`;
+          }
+          console.log(`Upload Progress: ${percentCompleted}%`);
         },
       });
     },
@@ -233,6 +258,18 @@ const Dashboard = forwardRef(({}, ref) => {
       return await myAxios.post(`/delete-claim`, variable, {
         headers: {
           Authorization: `Bearer ${user?.accessToken}`,
+        },
+        onUploadProgress(progressEvent: any) {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          const percentElement = document.getElementById(
+            "loading-percentage"
+          ) as HTMLSpanElement;
+          if (percentElement) {
+            percentElement.innerHTML = `${percentCompleted}%`;
+          }
+          console.log(`Upload Progress: ${percentCompleted}%`);
         },
       });
     },
@@ -277,6 +314,7 @@ const Dashboard = forwardRef(({}, ref) => {
         );
       },
     });
+
   const {
     isPending: isLoadingSelectedPolicySearch,
     mutate: mutateSelectedPolicySearch,
@@ -575,7 +613,6 @@ const Dashboard = forwardRef(({}, ref) => {
       DisplayPolicyDetails(data, policyDetailsRef);
     }
   }, [policyDetails]);
-
   useEffect(() => {
     if (claimMode === "") {
       diabledField.current(true);
@@ -583,7 +620,6 @@ const Dashboard = forwardRef(({}, ref) => {
       diabledField.current(false);
     }
   }, [claimMode]);
-
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     const dataParam = queryParams.get("Mkr44Rt2iuy13R");
@@ -608,7 +644,6 @@ const Dashboard = forwardRef(({}, ref) => {
       mutateClaimIdRef.current({});
     }
   }, []);
-
   useEffect(() => {
     const blockNavigation = () => {
       window.history.pushState(null, "", window.location.href);
@@ -624,7 +659,6 @@ const Dashboard = forwardRef(({}, ref) => {
       window.removeEventListener("popstate", blockNavigation);
     };
   }, []);
-
   const handleOnSave = async () => {
     if (claimNoRef.current?.value === "") {
       return alert("Claim No is required");
@@ -641,6 +675,7 @@ const Dashboard = forwardRef(({}, ref) => {
     }
 
     const data = tableRef.current.getData();
+
     const formData = new FormData();
     const __files: any = [];
 
@@ -703,7 +738,6 @@ const Dashboard = forwardRef(({}, ref) => {
             others: files.others,
           });
         }
-        itm.pop();
       }
       __files.push(fileByMeta);
     }
@@ -717,8 +751,27 @@ const Dashboard = forwardRef(({}, ref) => {
       codeCondfirmationAlert({
         isUpdate: true,
         cb: (userCodeConfirmation) => {
-          formData.append("userCodeConfirmation", userCodeConfirmation);
-          mutateUpdate({ formData });
+          setCheckCodeLoading(true);
+          myAxios
+            .post(
+              `/check-code`,
+              { userCodeConfirmation },
+              {
+                headers: {
+                  Authorization: `Bearer ${user?.accessToken}`,
+                },
+              }
+            )
+            .then((res) => {
+              setCheckCodeLoading(false);
+
+              if (res.data.success) {
+                return mutateUpdate({ formData });
+              }
+              wait(100).then(() => {
+                alert(res.data.message);
+              });
+            });
         },
       });
     } else {
@@ -773,7 +826,8 @@ const Dashboard = forwardRef(({}, ref) => {
         isLoadingDelete ||
         isLoadingUpdate ||
         isLoadingSelectedClaimSearch ||
-        isLoadingClaimSheet) && <Loading />}
+        isLoadingClaimSheet ||
+        checkCodeLoading) && <Loading />}
       <PageHelmet title="Dashboard" />
       <PolicyDetailsModal
         ref={policyDetailsModal}
@@ -998,6 +1052,7 @@ const Dashboard = forwardRef(({}, ref) => {
               }}
             >
               <TextInput
+                disableIcon={claimMode === ""}
                 containerClassName="search-policy-input"
                 containerStyle={{
                   width: "550px",
@@ -1012,7 +1067,7 @@ const Dashboard = forwardRef(({}, ref) => {
                   },
                 }}
                 input={{
-                  disabled: true,
+                  disabled: claimMode === "",
                   className: "search-input-up-on-key-down",
                   type: "search",
                   style: { width: "calc(100% - 90px)" },
@@ -1216,6 +1271,7 @@ const Dashboard = forwardRef(({}, ref) => {
             height="280px"
             getSelectedItem={(rowItm: any) => {
               if (rowItm) {
+                setCheckCodeLoading(true);
                 wait(100).then(() => {
                   const tableData = tableRef.current.getData();
                   const encodedData = encodeURIComponent(
@@ -1259,6 +1315,7 @@ const Dashboard = forwardRef(({}, ref) => {
                   navigate(
                     `/${DEPARTMENT}/attactment/update?Mkr44Rt2iuy13R=${encodedData}`
                   );
+                  setCheckCodeLoading(false);
                 });
               }
             }}
@@ -1283,11 +1340,11 @@ const Dashboard = forwardRef(({}, ref) => {
           {claimMode === "" && (
             <Button
               sx={{
-                height: "22px",
+                height: "100%",
                 fontSize: "11px",
+                flex: 1,
               }}
               variant="contained"
-              startIcon={<AddIcon sx={{ width: 15, height: 15 }} />}
               id="entry-header-save-button"
               onClick={() => {
                 setClaiMode("add");
@@ -1300,8 +1357,9 @@ const Dashboard = forwardRef(({}, ref) => {
           {claimMode !== "" && (
             <Button
               sx={{
-                height: "22px",
+                height: "100%",
                 fontSize: "11px",
+                flex: 1,
               }}
               onClick={handleOnSave}
               color="success"
@@ -1313,11 +1371,11 @@ const Dashboard = forwardRef(({}, ref) => {
           {claimMode !== "" && (
             <Button
               sx={{
-                height: "22px",
+                height: "100%",
                 fontSize: "11px",
+                flex: 1,
               }}
               variant="contained"
-              startIcon={<CloseIcon sx={{ width: 15, height: 15 }} />}
               color="warning"
               onClick={() => {
                 Swal.fire({
@@ -1339,14 +1397,14 @@ const Dashboard = forwardRef(({}, ref) => {
               Cancel
             </Button>
           )}
-              {claimMode === "update" && (
+          {claimMode === "update" && (
             <Button
               sx={{
-                height: "22px",
+                height: "100%",
                 fontSize: "11px",
+                flex: 1,
               }}
               variant="contained"
-              startIcon={<AddIcon sx={{ width: 15, height: 15 }} />}
               id="entry-header-save-button"
               onClick={() => {
                 codeCondfirmationAlert({
@@ -1370,7 +1428,6 @@ const Dashboard = forwardRef(({}, ref) => {
     </>
   );
 });
-
 const PolicyDetailsModal = forwardRef(
   ({ handleOnSave, handleOnClose }: any, ref) => {
     const modalRef = useRef<HTMLDivElement>(null);
@@ -2445,7 +2502,6 @@ const ModalGenerateClaimSheet = forwardRef(
     ) : null;
   }
 );
-
 function DisplayPaymentDetails(
   payment: any,
   policyPaymentDetailsRef: React.RefObject<HTMLDivElement | null>
@@ -2780,9 +2836,16 @@ function DisplayPolicyDetails(
   }
 }
 export async function blobToFile(blobUrl: string, filename: string) {
-  const response = await fetch(blobUrl);
-  const blob = await response.blob();
-  return new File([blob], filename, { type: "image/png" });
+  try {
+    const response = await fetch(blobUrl);
+    const blob = await response.blob();
+    const mimeType = blob.type || "image/png"; // Fallback to "image/png" if no MIME type is detected
+    console.log(mimeType);
+    return new File([blob], filename, { type: mimeType });
+  } catch (error) {
+    console.error("Error converting blobUrl to file:", error);
+    throw error; // Optionally re-throw the error if needed
+  }
 }
 export function formatNumber(num: number) {
   return (num || 0).toLocaleString("en-US", {
@@ -2790,7 +2853,6 @@ export function formatNumber(num: number) {
     maximumFractionDigits: 2,
   });
 }
-
 const NestedMenuItem = ({ item, onClick }: any) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 

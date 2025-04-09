@@ -12,11 +12,11 @@
         background: #f7f5f5;
         display: flex;
         align-items: center;
-        column-gap: 10px;
+        column-gap: 5px;
         justify-content: flex-end;
         padding: 5px;
         box-sizing: border-box;
-        
+        z-index: 23;
     }
 
     .search-input{
@@ -60,11 +60,22 @@
     }
     .policy-container .policy-details{
         width: 100% !important;
+        font-size: 11px !important;
     }
 
     .policy-container .policy-payment{
         width: 100% !important;
+        font-size: 11px !important;
+
     }
+    .policy-container .policy-details div{
+        font-size: 10px !important;
+    }
+    .policy-container .policy-payment div{
+        font-size: 10px !important;
+        padding: 5px;
+    }
+
 
     .policy-container .policy-details .policy-details-container{
         flex-direction: column;

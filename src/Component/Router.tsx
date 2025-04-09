@@ -1,11 +1,12 @@
-import { Route, Routes } from "react-router-dom";
+import { Outlet, Route, Routes } from "react-router-dom";
 import { lazy, useContext, useEffect, useRef } from "react";
-import Container from "./Container";
+import Container, { NotFoundContainer } from "./Container";
 import { UserContext } from "../App";
-import NotFound from "./NotFound";
+// import NotFound from "./NotFound";
 import { useMutation } from "@tanstack/react-query";
 import { Loading } from "./Loading";
 import DisplayReport from "./DisplayReport";
+import PageHelmet from "./PageHelmet";
 
 function Router() {
   const { user, myAxios, setUser } = useContext(UserContext);
@@ -17,25 +18,10 @@ function Router() {
   const ListImursement = lazy(() => import("./ListImursement"));
   const ClaimsReport = lazy(() => import("./Report/ClaimsReport"));
   const UpdateAttachment = lazy(() => import("./Attachment/UpdateAttachment"));
+  const NotFound = lazy(() => import("./NotFound"));
 
   const refreshToken = window.localStorage.getItem("refreshToken");
 
-  const { isPending: isLoadingRefreshoken, mutate: mutateRefreshToken } =
-    useMutation({
-      mutationKey: ["user"],
-      mutationFn: async (variables: any) => {
-        return await myAxios.post("/refresh-token", variables, {
-          withCredentials: true,
-        });
-      },
-      onSuccess: async (res) => {
-        if (res.data.accessToken && res.data.refreshToken) {
-          setUser(res.data);
-        } else {
-          setUser(null);
-        }
-      },
-    });
 
   const { isPending, mutate } = useMutation({
     mutationKey: ["user"],
@@ -48,7 +34,12 @@ function Router() {
       });
     },
     onSuccess: async (res) => {
-      mutateRefreshToken({ REFRESH_TOKEN: res.data.refreshToken });
+      if (res.data.accessToken && res.data.refreshToken) {
+        setUser(res.data);
+      } else {
+        setUser(null);
+      }
+
     },
   });
   const mutateRef = useRef(mutate);
@@ -60,15 +51,23 @@ function Router() {
   if (user === null) {
     return (
       <>
-        {(isPending || isLoadingRefreshoken) && <Loading />}
+        {(isPending ) && <Loading />}
         <Routes>
+          <Route path={`/${DEPARTMENT}`}>
+            <Route path="*" element={<NotFoundContainer />}>
+              <Route index element={<NotFound />} />
+            </Route>
+          </Route>
           <Route
             path={`/${DEPARTMENT}/login`}
             element={<Container showheader={false} />}
           >
             <Route index element={<Login />} />
+            <Route path="*" element={<NotFound />}></Route>
           </Route>
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<NotFoundContainer />}>
+            <Route index element={<NotFound />} />
+          </Route>
         </Routes>
       </>
     );
@@ -76,8 +75,14 @@ function Router() {
 
   return (
     <>
-      {(isPending || isLoadingRefreshoken) && <Loading />}
+      {(isPending ) && <Loading />}
       <Routes>
+        <Route path={`/${DEPARTMENT}`}>
+          <Route path="*" element={<NotFoundContainer />}>
+            <Route index element={<NotFound />} />
+          </Route>
+        </Route>
+
         <Route path={`/${DEPARTMENT}/dashboard`} element={<Container />}>
           <Route index element={<Dashboard />} />
           <Route
@@ -88,6 +93,7 @@ function Router() {
             path={`/${DEPARTMENT}/dashboard/reports/claims-report`}
             element={<ClaimsReport />}
           />
+          <Route path="*" element={<NotFound />}></Route>
         </Route>
         <Route
           path={`/${DEPARTMENT}/dashboard/report`}
@@ -106,15 +112,14 @@ function Router() {
             path={`/${DEPARTMENT}/attactment/update/`}
             element={<UpdateAttachment />}
           />
+          <Route path="*" element={<NotFound />}></Route>
         </Route>
-
-        <Route path="*" element={<NotFound />} />
+        <Route path="*" element={<NotFoundContainer />}>
+          <Route index element={<NotFound />} />
+        </Route>
       </Routes>
     </>
   );
 }
 
-const DD = ({ children }: any) => {
-  return <div>{children}</div>;
-};
 export default Router;

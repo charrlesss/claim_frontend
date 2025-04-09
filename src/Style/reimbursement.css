@@ -10,10 +10,12 @@
     background: #f7f5f5;
     display: flex;
     align-items: center;
-    column-gap: 10px;
+    column-gap: 5px;
     justify-content: flex-end;
     padding: 5px;
     box-sizing: border-box;
+    z-index: 23;
+
   }
 
   .action-buttons {

@@ -9,6 +9,7 @@ import Swal from "sweetalert2";
 import MenuIcon from "@mui/icons-material/Menu";
 import { IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import PageHelmet from "./PageHelmet";
 
 function Container({ showheader = true }: any) {
   const navigate = useNavigate();
@@ -63,15 +64,6 @@ function Container({ showheader = true }: any) {
     },
   });
 
-  // Handle menu hover or click event
-  const handleDropdownToggle = (menuItemName: any) => {
-    if (openMenu === menuItemName) {
-      setOpenMenu(null); // Close the menu if already open
-    } else {
-      setOpenMenu(menuItemName); // Open the clicked menu item
-    }
-  };
-
   const handleLogout = () => {
     Swal.fire({
       title: "Are you sure?",
@@ -95,6 +87,12 @@ function Container({ showheader = true }: any) {
     setOpenMenu(menuItem.name);
   };
   const handleClick = (menuItem: any) => {
+    if (!menuItem.path && menuItem.subLinks) {
+      // Toggle submenu display on click
+      setOpenMenu(openMenu === menuItem.name ? null : menuItem.name);
+    }
+  };
+  const handleMobileClick = (menuItem: any, e: any) => {
     if (!menuItem.path && menuItem.subLinks) {
       // Toggle submenu display on click
       setOpenMenu(openMenu === menuItem.name ? null : menuItem.name);
@@ -125,6 +123,8 @@ function Container({ showheader = true }: any) {
 
   return (
     <>
+      <PageHelmet title="Loading..." />
+
       {isLaodingLogout && <Loading />}
       {showheader && (
         <header id="desk-header">
@@ -258,19 +258,34 @@ function Container({ showheader = true }: any) {
                 <CloseIcon />
               </IconButton>
               <nav ref={menuRef} className="menu header-ch">
-                <ul className="main-menu">
+                <ul className="main-menu mobile">
                   {menuData.map((menuItem: any, index: any) => (
                     <li
                       key={index}
                       onMouseEnter={() => handleMouseEnter(menuItem)}
+                      style={{
+                        padding: "5px 0px",
+                        background:
+                          window.location.pathname === menuItem.path
+                            ? "#e5e5e7"
+                            : "transparent",
+                      }}
                     >
                       {/* Conditional rendering for click vs link */}
                       {menuItem.path ? (
                         <Link
                           style={{ fontSize: "14px", fontWeight: "bold" }}
                           to={menuItem.path}
-                          onClick={() => {
+                          onClick={(e) => {
                             setShowSidebar(false);
+                            document
+                              .querySelectorAll(".main-menu.mobile li")
+                              .forEach((li) => {
+                                li.classList.remove("active");
+                              });
+                            e.currentTarget.parentElement?.classList.add(
+                              "active"
+                            );
                           }}
                         >
                           {menuItem.name}
@@ -282,7 +297,7 @@ function Container({ showheader = true }: any) {
                             fontSize: "14px",
                             fontWeight: "bold",
                           }}
-                          onClick={() => handleClick(menuItem)}
+                          onClick={(e) => handleMobileClick(menuItem, e)}
                         >
                           {menuItem.name}
                         </span>
@@ -319,7 +334,7 @@ function Container({ showheader = true }: any) {
                     style={{
                       fontSize: "14px",
                       fontWeight: "bold",
-                      paddingLeft: "10px",
+                      padding: " 5px 10px",
                     }}
                     onClick={() => {
                       handleLogout();
@@ -339,6 +354,18 @@ function Container({ showheader = true }: any) {
     </>
   );
 }
+
+export const NotFoundContainer = () => {
+  return (
+    <>
+      <PageHelmet title="Loading..." />
+
+      <Suspense fallback={<Loading />}>
+        <Outlet />
+      </Suspense>
+    </>
+  );
+};
 
 export default Container;
 

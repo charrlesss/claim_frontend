@@ -745,12 +745,12 @@ const ClaimStatus = ({ titleHeader, linkPdf, linkExcel, hideReport }: any) => {
           display={"account"}
         />
         <div style={{ height: "25px" }}></div>
-
         <Button
           onClick={generateReportPdf}
           color="success"
           variant="contained"
           sx={{ height: "22px", fontSize: "12px", width: "100%" }}
+          className="pdf-button"
         >
           Generate PDF Report
         </Button>
@@ -759,6 +759,7 @@ const ClaimStatus = ({ titleHeader, linkPdf, linkExcel, hideReport }: any) => {
           color="success"
           variant="contained"
           sx={{ height: "22px", fontSize: "12px", width: "100%" }}
+          className="excel-button"
         >
           Generate Excel Report
         </Button>

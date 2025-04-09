@@ -1,4 +1,4 @@
-import { Button, IconButton } from "@mui/material";
+import { Button, IconButton, Tooltip } from "@mui/material";
 import {
   forwardRef,
   useEffect,
@@ -11,6 +11,8 @@ import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import CloseIcon from "@mui/icons-material/Close";
 import "../../Style/uploadfile.css";
+import { red } from "@mui/material/colors";
+import RestoreFromTrashIcon from "@mui/icons-material/RestoreFromTrash";
 
 const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
   const [selected, setSelected] = useState(0);
@@ -24,6 +26,8 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
     reference: string;
   } | null>(null);
 
+  const prevRef = useRef<any>(null);
+  const nextRef = useRef<any>(null);
   const fileRef = useRef([]);
   const [dragActive, setDragActive] = useState(false);
 
@@ -57,8 +61,8 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
     if (e.dataTransfer.files.length > 0) {
       setSelected(0);
       setFile((files: Array<File>) => [
-        ...Array.from(e.dataTransfer.files),
         ...files,
+        ...Array.from(e.dataTransfer.files),
       ]);
     }
   };
@@ -67,12 +71,30 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
     if (e.target.files.length > 0) {
       setSelected(0);
       setFile((files: Array<File>) => [
-        ...Array.from(e.target.files),
         ...files,
+        ...Array.from(e.target.files),
       ]);
     }
   };
-
+  const handleRemoveImage = () => {
+    const confirm = window.confirm(
+      `Are you sure you want to remove ${file[selected].name}`
+    );
+    if (confirm) {
+      if (file.length === 1) {
+        setFile([]);
+        setSelected(0);
+      } else {
+        const newFile = file.filter(
+          (item: any, index: number) => index !== selected
+        );
+        setFile(newFile);
+        if (selected > newFile.length - 1) {
+          setSelected(selected - 1);
+        }
+      }
+    }
+  };
   useEffect(() => {
     window.addEventListener("keydown", (e: any) => {
       if (e.key === "Escape") {
@@ -96,7 +118,6 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
       if (data.files) {
         setFile(data.files);
         fileRef.current = data.files;
-        
       }
       setDocumentSelected(data);
     },
@@ -104,7 +125,7 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
       setFile([]);
       setSelected(0);
       setDocumentSelected(null);
-      fileRef.current = []
+      fileRef.current = [];
     },
     getPrevFile: () => {
       return fileRef.current;
@@ -122,7 +143,7 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
           left: 0,
           right: 0,
           background: "transparent",
-          zIndex: "88",
+          zIndex: "2133",
         }}
         onClick={() => {
           setBlick(true);
@@ -134,8 +155,8 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
       <div
         className="uplaod-container"
         style={{
-          height: blick ? "90.1vh" : "90vh",
-          width: blick ? "70.1%" : "70%",
+          height: blick ? "96vh" : "95vh",
+          width: blick ? "80.1%" : "80%",
           border: "1px solid #64748b",
           position: "absolute",
           top: "50%",
@@ -159,6 +180,35 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
             flexDirection: "column",
           }}
         >
+          <div
+            style={{
+              position: "absolute",
+              bottom: "45px",
+              right: "10px",
+              width: "50px",
+              height: "50px",
+              borderRadius: "50%",
+              cursor: "pointer",
+              zIndex: 213123123,
+            }}
+            onClick={handleRemoveImage}
+          >
+            <Tooltip title="delete Image" sx={{ zIndex: "123213 !important" }}>
+              <IconButton
+                disabled={file.length <= 0}
+                aria-label="delete"
+                size="large"
+                sx={{
+                  background: red[800],
+                  ":hover": {
+                    background: red[900],
+                  },
+                }}
+              >
+                <RestoreFromTrashIcon sx={{ color: "white" }} />
+              </IconButton>
+            </Tooltip>
+          </div>
           <button
             className="btn-check-exit-modal"
             style={{
@@ -241,6 +291,7 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
                 </div>
                 {file.length > 0 && (
                   <img
+                    loading="lazy"
                     src={URL.createObjectURL(file[selected])}
                     alt={file[selected].name}
                     style={{
@@ -257,6 +308,7 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
                 {file.length > 1 && (
                   <>
                     <IconButton
+                      ref={prevRef}
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelected((i) => {
@@ -288,6 +340,7 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
                       />
                     </IconButton>
                     <IconButton
+                      ref={nextRef}
                       sx={{
                         position: "absolute",
                         right: "0",
