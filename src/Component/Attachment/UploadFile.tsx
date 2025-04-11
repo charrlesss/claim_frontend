@@ -10,13 +10,16 @@ import FolderCopyIcon from "@mui/icons-material/FolderCopy";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import CloseIcon from "@mui/icons-material/Close";
-import "../../Style/uploadfile.css";
 import { red } from "@mui/material/colors";
 import RestoreFromTrashIcon from "@mui/icons-material/RestoreFromTrash";
+import { TextInput } from "../UpwardFields";
+import "../../Style/uploadfile.css";
 
 const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
   const [selected, setSelected] = useState(0);
   const [file, setFile] = useState<any>([]);
+  const [remarks, setRemarks] = useState<Array<string>>([]);
+
   const [documentSelected, setDocumentSelected] = useState<{
     id: number;
     label: string;
@@ -26,9 +29,14 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
     reference: string;
   } | null>(null);
 
+  const remarksRef = useRef<HTMLInputElement>(null);
+  const saveRemarkButtonRef = useRef<HTMLButtonElement>(null);
+
   const prevRef = useRef<any>(null);
   const nextRef = useRef<any>(null);
   const fileRef = useRef([]);
+  const remarksContainerRef = useRef([]);
+
   const [dragActive, setDragActive] = useState(false);
 
   const [showModal, setShowModal] = useState(false);
@@ -44,36 +52,49 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
     }, 100);
   };
   const closeDelayRef = useRef<any>(closeDelay);
-
   const handleDragOver = (e: any) => {
     e.preventDefault();
     setDragActive(true);
   };
-
   const handleDragLeave = () => {
     setDragActive(false);
   };
-
   const handleDrop = (e: any) => {
     e.preventDefault();
     setDragActive(false);
 
     if (e.dataTransfer.files.length > 0) {
       setSelected(0);
-      setFile((files: Array<File>) => [
-        ...files,
-        ...Array.from(e.dataTransfer.files),
-      ]);
+
+      const fileSelected = Array.from(e.dataTransfer.files);
+      const newFiles = [...file, ...fileSelected];
+      setFile(newFiles);
+
+      const newRemarks = [
+        ...remarks,
+        ...new Array(fileSelected.length).fill(""),
+      ];
+      setRemarks(newRemarks);
+      if (remarksRef.current) {
+        remarksRef.current.value = newRemarks[0];
+      }
     }
   };
-
   const handleFileSelect = (e: any) => {
     if (e.target.files.length > 0) {
       setSelected(0);
-      setFile((files: Array<File>) => [
-        ...files,
-        ...Array.from(e.target.files),
-      ]);
+      const fileSelected = Array.from(e.target.files);
+      const newFiles = [...file, ...fileSelected];
+      setFile(newFiles);
+      const newRemarks = [
+        ...remarks,
+        ...new Array(fileSelected.length).fill(""),
+      ];
+      setRemarks(newRemarks);
+
+      if (remarksRef.current) {
+        remarksRef.current.value = newRemarks[0];
+      }
     }
   };
   const handleRemoveImage = () => {
@@ -84,13 +105,26 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
       if (file.length === 1) {
         setFile([]);
         setSelected(0);
+        setRemarks([]);
       } else {
         const newFile = file.filter(
           (item: any, index: number) => index !== selected
         );
         setFile(newFile);
+
+        const newRemarks = remarks.filter(
+          (item: any, index: number) => index !== selected
+        );
+        setRemarks(newRemarks);
+
+        if (remarksRef.current) {
+          remarksRef.current.value = newRemarks[selected];
+        }
         if (selected > newFile.length - 1) {
           setSelected(selected - 1);
+          if (remarksRef.current) {
+            remarksRef.current.value = newRemarks[selected - 1];
+          }
         }
       }
     }
@@ -102,7 +136,6 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
       }
     });
   }, []);
-
   useImperativeHandle(ref, () => ({
     showModal: () => {
       setShowModal(true);
@@ -117,7 +150,10 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
     setSelectedDocument: (data: any) => {
       if (data.files) {
         setFile(data.files);
+        setRemarks(data.remarks);
         fileRef.current = data.files;
+        remarksContainerRef.current = data.remarks;
+        localStorage.setItem("remark-container", JSON.stringify(data.remarks));
       }
       setDocumentSelected(data);
     },
@@ -126,6 +162,7 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
       setSelected(0);
       setDocumentSelected(null);
       fileRef.current = [];
+      setRemarks([]);
     },
     getPrevFile: () => {
       return fileRef.current;
@@ -183,7 +220,7 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
           <div
             style={{
               position: "absolute",
-              bottom: "45px",
+              bottom: "75px",
               right: "10px",
               width: "50px",
               height: "50px",
@@ -225,6 +262,9 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
               cursor: "pointer",
             }}
             onClick={(e) => {
+              const remarksString =
+                localStorage.getItem("remark-container") || "[]";
+              const data = JSON.parse(remarksString);
               const state = {
                 id: documentSelected?.id,
                 label: documentSelected?.label,
@@ -239,6 +279,7 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
                     id: documentSelected?.id,
                   };
                 }),
+                remarks: data,
               };
               handleOnClose(e, state);
             }}
@@ -311,12 +352,18 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
                       ref={prevRef}
                       onClick={(e) => {
                         e.stopPropagation();
-                        setSelected((i) => {
-                          if (i <= 0) {
-                            return file.length - 1;
-                          }
-                          return i - 1;
-                        });
+                        let newSelected = 0;
+
+                        if (selected <= 0) {
+                          newSelected = file.length - 1;
+                        } else {
+                          newSelected = selected - 1;
+                        }
+                        if (remarksRef.current) {
+                          remarks[selected] = remarksRef.current.value;
+                          remarksRef.current.value = remarks[newSelected];
+                        }
+                        setSelected(newSelected);
                       }}
                       sx={{
                         position: "absolute",
@@ -350,12 +397,19 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
-                        setSelected((i) => {
-                          if (i >= file.length - 1) {
-                            return 0;
-                          }
-                          return i + 1;
-                        });
+                        let newSelected = 0;
+
+                        if (selected >= file.length - 1) {
+                          newSelected = 0;
+                        } else {
+                          newSelected = selected + 1;
+                        }
+
+                        if (remarksRef.current) {
+                          remarks[selected] = remarksRef.current.value;
+                          remarksRef.current.value = remarks[newSelected];
+                        }
+                        setSelected(newSelected);
                       }}
                       color="success"
                     >
@@ -393,21 +447,70 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
                   </p>
                   <div style={{ height: "20px" }}></div>
                 </div>
-                {file.length > 0 && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "0px",
-                      left: "15px",
-                    }}
-                  >
-                    <p style={{ color: "white" }}>
-                      {selected + 1} / {file.length} {file[selected].name}
-                    </p>
-                  </div>
-                )}
               </div>
             </div>
+          </div>
+          {file.length > 0 && (
+            <div
+              style={{
+                position: "absolute",
+                left: "15px",
+                margin: 0,
+                fontSize: "12px",
+                height: "15px",
+              }}
+            >
+              <p style={{ color: "black", padding: 0, margin: 0 }}>
+                {selected + 1} / {file.length} {file[selected].name}
+              </p>
+            </div>
+          )}
+          <div
+            style={{
+              display: "flex",
+              width: "100%",
+              padding: "0px 20px",
+              boxSizing: "border-box",
+            }}
+          >
+            <TextInput
+              containerStyle={{
+                flex: 1,
+                flexDirection: "column",
+                justifyContent: "flex-start",
+                alignItems: "flex-start",
+                textAlign: "left",
+                rowGap: "5px",
+                marginBottom: "5px",
+              }}
+              label={{
+                title: "",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  flex: 1,
+                  display: "none",
+                },
+              }}
+              input={{
+                disabled: file.length <= 0,
+                type: "text",
+                style: {
+                  width: "calc(100% - 10px)",
+                  height: "25px ",
+                  borderRadius: "0px",
+                },
+                defaultValue: remarks[selected],
+                onKeyDown: (e) => {
+                  if (e.key === "Enter" || e.key === "NumpadEnter") {
+                    e.preventDefault();
+                    saveRemarkButtonRef.current?.click();
+                  }
+                },
+              }}
+              inputRef={remarksRef}
+              offValidation={true}
+            />
           </div>
           <Button
             disabled={file.length <= 0}
@@ -421,7 +524,14 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
               if (file.length <= 0) {
                 return alert("No File Uploaded!");
               }
+
               if (file.length > 0) {
+                const newRemarkList = [...remarks];
+
+                if (remarksRef.current) {
+                  newRemarkList[selected] = remarksRef.current.value;
+                }
+
                 const state = {
                   id: documentSelected?.id,
                   label: documentSelected?.label,
@@ -436,6 +546,7 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
                       id: documentSelected?.id,
                     };
                   }),
+                  remarks: newRemarkList,
                 };
                 handleOnSave(e, state);
                 return;
@@ -446,6 +557,7 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
                   document_id: documentSelected?.document_id,
                   required: documentSelected?.required,
                   files: null,
+                  remarks: [],
                 };
 
                 handleOnSave(e, state);
@@ -472,6 +584,8 @@ const UploadModal = forwardRef(({ handleOnSave, handleOnClose }: any, ref) => {
 export const ZoomModal = forwardRef(({ handleOnClose }: any, ref) => {
   const [selected, setSelected] = useState(0);
   const [file, setFile] = useState<any>([]);
+  const [remarks, setRemarks] = useState<any>([]);
+
   const [documentSelected, setDocumentSelected] = useState<{
     id: number;
     label: string;
@@ -556,6 +670,7 @@ export const ZoomModal = forwardRef(({ handleOnClose }: any, ref) => {
     setSelectedDocument: (data: any) => {
       if (data.files) {
         setFile(data.files);
+        setRemarks(data.remarks);
         fileRef.current = data.files;
       }
       setDocumentSelected(data);
@@ -587,7 +702,7 @@ export const ZoomModal = forwardRef(({ handleOnClose }: any, ref) => {
         style={{
           height: "100vh",
           width: "100vw",
-          border: "1px solid #64748b",
+          border: "none",
           position: "absolute",
           top: "50%",
           left: "50%",
@@ -598,7 +713,7 @@ export const ZoomModal = forwardRef(({ handleOnClose }: any, ref) => {
           zIndex: handleDelayClose ? -100 : 9999,
           opacity: handleDelayClose ? 0 : 1,
           transition: "all 150ms",
-          boxShadow: "3px 6px 32px -7px rgba(0,0,0,0.75)",
+          boxShadow: "none",
           boxSizing: "border-box",
           overflow: "hidden",
         }}
@@ -677,6 +792,18 @@ export const ZoomModal = forwardRef(({ handleOnClose }: any, ref) => {
                 }}
               />
             )}
+            <div
+              style={{
+                height: "30px",
+                position: "absolute",
+                background: "#F1F1F1",
+                padding: "5px 10px",
+                top: "5px",
+                left: "5px",
+              }}
+            >
+              <span>{remarks[selected]}</span>
+            </div>
           </div>
           {file.length > 1 && (
             <>
@@ -741,6 +868,7 @@ export const ZoomModal = forwardRef(({ handleOnClose }: any, ref) => {
             </>
           )}
         </div>
+
         <style>
           {`
           .zoom-container {
@@ -751,6 +879,7 @@ export const ZoomModal = forwardRef(({ handleOnClose }: any, ref) => {
             width: 100%;
             height: 100vh; /* Full-screen view */
             background-color: #f8f8f8;
+            flex-direction:column;
           }
 
           .zoom-image {

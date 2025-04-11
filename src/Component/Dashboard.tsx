@@ -314,7 +314,6 @@ const Dashboard = forwardRef(({}, ref) => {
         );
       },
     });
-
   const {
     isPending: isLoadingSelectedPolicySearch,
     mutate: mutateSelectedPolicySearch,
@@ -390,9 +389,9 @@ const Dashboard = forwardRef(({}, ref) => {
     size: "large",
     link: "/search-policy",
     column: [
-      { key: "PolicyNo", label: "Policy No", width: 100 },
-      { key: "PolicyType", label: "Policy Type.", width: 120 },
-      { key: "IDNo", label: "ID No.", width: 150 },
+      { key: "PolicyNo", label: "Policy No", width: 200 },
+      { key: "PolicyType", label: "Policy Type.", width: 75 },
+      { key: "IDNo", label: "ID No.", width: 100 },
       { key: "Name", label: "Name", width: 300 },
       {
         key: "Department",
@@ -419,10 +418,10 @@ const Dashboard = forwardRef(({}, ref) => {
     size: "large",
     link: "/search-claim",
     column: [
-      { key: "claim_id", label: "Claim ID.", width: 100 },
-      { key: "PolicyNo", label: "Policy No", width: 100 },
-      { key: "PolicyType", label: "Policy Type.", width: 120 },
-      { key: "IDNo", label: "ID No.", width: 150 },
+      { key: "claim_id", label: "Claim ID.", width: 65 },
+      { key: "PolicyNo", label: "Policy No", width: 200 },
+      { key: "PolicyType", label: "Policy Type.", width: 75 },
+      { key: "IDNo", label: "ID No.", width: 100 },
       { key: "Name", label: "Name", width: 300 },
       { key: "ChassisNo", label: "Chassis No", width: 300 },
       {
@@ -444,7 +443,6 @@ const Dashboard = forwardRef(({}, ref) => {
       }
     },
   });
-
   useEffect(() => {
     if (policyDetails) {
       const totalGross = parseFloat(
@@ -684,7 +682,8 @@ const Dashboard = forwardRef(({}, ref) => {
         for (const file of itm.files) {
           const _file = await blobToFile(
             file.link,
-            `${file.filename}-${itm.id}`
+            `${file.filename}-${itm.id}`,
+            itm
           );
           formData.append(`basic`, _file);
         }
@@ -724,7 +723,8 @@ const Dashboard = forwardRef(({}, ref) => {
           for (const file of files.files) {
             const _file = await blobToFile(
               file.link,
-              `${file.filename}-${files.reference}-${files.document_id}-${files.id}`
+              `${file.filename}-${files.reference}-${files.document_id}-${files.id}`,
+              files
             );
             formData.append(`files`, _file);
           }
@@ -736,12 +736,12 @@ const Dashboard = forwardRef(({}, ref) => {
             required: files.required,
             primaryDocuments: files.primaryDocuments,
             others: files.others,
+            remarks: files.remarks,
           });
         }
       }
       __files.push(fileByMeta);
     }
-
     formData.append("filesArray", JSON.stringify(__files));
     formData.append("claimId", claimNoRef.current?.value as string);
     formData.append("policyDetails", JSON.stringify(policyDetails));
@@ -2835,14 +2835,16 @@ function DisplayPolicyDetails(
       `;
   }
 }
-export async function blobToFile(blobUrl: string, filename: string) {
+export async function blobToFile(blobUrl: string, filename: string, itm: any) {
   try {
     const response = await fetch(blobUrl);
     const blob = await response.blob();
     const mimeType = blob.type || "image/png"; // Fallback to "image/png" if no MIME type is detected
-    console.log(mimeType);
     return new File([blob], filename, { type: mimeType });
   } catch (error) {
+    alert(
+      `Cannot Find the files from ${itm.label}!\nPlease reupload your file and save it again thank you!`
+    );
     console.error("Error converting blobUrl to file:", error);
     throw error; // Optionally re-throw the error if needed
   }

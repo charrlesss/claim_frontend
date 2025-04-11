@@ -23,7 +23,7 @@
   .container-attachment .content .content-details .documents{
     display: none !important;
   }
-  .container-attachment .content .content-details .documents-other{
+  .container-attachment .content  .documents-other{
     display: none !important;
   }
 
@@ -34,7 +34,7 @@
   .container-attachment .content .content-details .documents.active{
     display: flex !important;
   }
-  .container-attachment .content .content-details .documents-other.active{
+  .container-attachment .content .documents-other.active{
     display: flex !important;
   }
 

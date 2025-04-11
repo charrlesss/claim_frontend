@@ -26,6 +26,8 @@ import {
 } from "../Lib/confirmationAlert";
 import PageHelmet from "./PageHelmet";
 import "../Style/reimbursement.css";
+import { useNavigate } from "react-router-dom";
+import { DEPARTMENT } from "./Dashboard";
 
 const columns = [
   { key: "refNo", label: "REF#", width: 100 },
@@ -69,8 +71,11 @@ const columns = [
 ];
 
 const ListImursement = forwardRef(({}, ref) => {
+  const navigate = useNavigate();
+
   const tableRef = useRef<any>(null);
   const [imbursementMode, setImbursementMode] = useState("");
+  const [basicDocuments, setBasicDocuments] = useState([]);
 
   const { myAxios, user } = useContext(UserContext);
   const inputSearchRef = useRef<HTMLInputElement>(null);
@@ -98,7 +103,6 @@ const ListImursement = forwardRef(({}, ref) => {
       }),
     onSuccess: (res) => {
       const response = res as any;
-      console.log(response);
       wait(100).then(() => {
         if (refNoRef.current) {
           refNoRef.current.value = response.data.refNo;
@@ -118,7 +122,8 @@ const ListImursement = forwardRef(({}, ref) => {
     onSuccess: (res) => {
       const response = res as any;
       wait(100).then(() => {
-        tableRef.current.setDataFormated(response.data.data);
+        if (tableRef.current)
+          tableRef.current.setDataFormated(response.data.data);
       });
     },
   });
@@ -378,6 +383,60 @@ const ListImursement = forwardRef(({}, ref) => {
     }
   }, [imbursementMode]);
 
+  const navigateRef = useRef(navigate);
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const dataParam = queryParams.get("Mkr44Rt2iuy13R");
+    if (dataParam) {
+      const state = JSON.parse(decodeURIComponent(dataParam));
+
+
+      console.log(state)
+
+      const ref = JSON.parse(state.refsValue);
+
+      if (refNoRef.current) {
+        refNoRef.current.value = ref.refNoRef;
+      }
+      if (checkFromRef.current) {
+        checkFromRef.current.value = ref.checkFromRef;
+      }
+      if (typeclaimRef.current) {
+        typeclaimRef.current.value = ref.typeclaimRef;
+      }
+      if (dateClaimRef.current) {
+        dateClaimRef.current.value = ref.dateClaimRef;
+      }
+      if (amountClaimRef.current) {
+        amountClaimRef.current.value = ref.amountClaimRef;
+      }
+      if (clientsNameRef.current) {
+        clientsNameRef.current.value = ref.clientsNameRef;
+      }
+      if (dateReleaseRef.current) {
+        dateReleaseRef.current.value = ref.dateReleaseRef;
+      }
+      if (dateReturnUpwardRef.current) {
+        dateReturnUpwardRef.current.value = ref.dateReturnUpwardRef;
+      }
+      if (amountImbursementRef.current) {
+        amountImbursementRef.current.value = ref.amountImbursementRef;
+      }
+      if (paymentRef.current) {
+        paymentRef.current.value = ref.paymentRef;
+      }
+      if (payeeRef.current) {
+        payeeRef.current.value = ref.payeeRef;
+      }
+      if (payeeRef.current) {
+        payeeRef.current.value = ref.payeeRef;
+      }
+      setBasicDocuments(JSON.parse(state.basicDocuments));
+      setImbursementMode(JSON.parse(state.imbursementMode));
+      navigateRef.current(`/${DEPARTMENT}/dashboard/reimbursement`);
+    }
+  }, []);
+
   return (
     <>
       {(isLoadingAddImbersement ||
@@ -532,6 +591,41 @@ const ListImursement = forwardRef(({}, ref) => {
                 Cancel
               </Button>
             )}
+            <Button
+              sx={{
+                height: "22px",
+                fontSize: "11px",
+              }}
+              onClick={() => {
+                const encodedData = encodeURIComponent(
+                  JSON.stringify({
+                    refsValue: JSON.stringify({
+                      refNoRef: refNoRef.current?.value,
+                      checkFromRef: checkFromRef.current?.value,
+                      typeclaimRef: typeclaimRef.current?.value,
+                      dateClaimRef: dateClaimRef.current?.value,
+                      amountClaimRef: amountClaimRef.current?.value,
+                      clientsNameRef: clientsNameRef.current?.value,
+                      dateReleaseRef: dateReleaseRef.current?.value,
+                      dateReturnUpwardRef: dateReturnUpwardRef.current?.value,
+                      amountImbursementRef: amountImbursementRef.current?.value,
+                      paymentRef: paymentRef.current?.value,
+                      payeeRef: payeeRef.current?.value,
+                    }),
+                    basicDocuments: JSON.stringify(basicDocuments),
+                    imbursementMode: JSON.stringify(imbursementMode),
+                  })
+                );
+
+                navigate(
+                  `/${DEPARTMENT}/dashboard/reimbursement-basic-documents?Mkr44Rt2iuy13R=${encodedData}`
+                );
+              }}
+              color="success"
+              variant="contained"
+            >
+              Basic Documents
+            </Button>
           </div>
         </div>
         <fieldset
@@ -939,7 +1033,7 @@ const ListImursement = forwardRef(({}, ref) => {
               sx={{
                 height: "100%",
                 fontSize: "11px",
-                flex:1
+                flex: 1,
               }}
               variant="contained"
               id="entry-header-save-button"
@@ -956,7 +1050,7 @@ const ListImursement = forwardRef(({}, ref) => {
               sx={{
                 height: "100%",
                 fontSize: "11px",
-                flex:1
+                flex: 1,
               }}
               onClick={handleOnSave}
               color="success"
@@ -971,7 +1065,7 @@ const ListImursement = forwardRef(({}, ref) => {
               sx={{
                 height: "100%",
                 fontSize: "11px",
-                flex:1
+                flex: 1,
               }}
               variant="contained"
               color="warning"
@@ -1000,7 +1094,7 @@ const ListImursement = forwardRef(({}, ref) => {
               sx={{
                 height: "100%",
                 fontSize: "11px",
-                flex:1
+                flex: 1,
               }}
               variant="contained"
               id="entry-header-save-button"

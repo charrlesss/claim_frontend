@@ -29,6 +29,8 @@ import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { HandleListHover } from "./BasicDocument";
 import PageHelmet from "../PageHelmet";
+import { wait } from "../../Lib/wait";
+import ControlPointIcon from "@mui/icons-material/ControlPoint";
 
 const __CONFIGURATION = [
   {
@@ -41,6 +43,7 @@ const __CONFIGURATION = [
         required: false,
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 11,
@@ -49,6 +52,7 @@ const __CONFIGURATION = [
         document_id: "0001",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
     ],
     id: "0001",
@@ -63,6 +67,7 @@ const __CONFIGURATION = [
         required: false,
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 11,
@@ -71,6 +76,7 @@ const __CONFIGURATION = [
         document_id: "0002",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 12,
@@ -79,6 +85,7 @@ const __CONFIGURATION = [
         document_id: "0002",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 13,
@@ -87,6 +94,7 @@ const __CONFIGURATION = [
         document_id: "0002",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
     ],
     id: "0002",
@@ -101,6 +109,7 @@ const __CONFIGURATION = [
         required: false,
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 11,
@@ -109,6 +118,7 @@ const __CONFIGURATION = [
         document_id: "0003",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 12,
@@ -117,6 +127,7 @@ const __CONFIGURATION = [
         document_id: "0003",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 13,
@@ -125,6 +136,7 @@ const __CONFIGURATION = [
         document_id: "0003",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
     ],
     id: "0003",
@@ -139,6 +151,7 @@ const __CONFIGURATION = [
         required: false,
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 11,
@@ -147,6 +160,7 @@ const __CONFIGURATION = [
         document_id: "0004",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 12,
@@ -155,6 +169,7 @@ const __CONFIGURATION = [
         document_id: "0004",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 13,
@@ -163,6 +178,7 @@ const __CONFIGURATION = [
         document_id: "0004",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 14,
@@ -171,6 +187,7 @@ const __CONFIGURATION = [
         document_id: "0004",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 15,
@@ -179,6 +196,7 @@ const __CONFIGURATION = [
         document_id: "0004",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 16,
@@ -187,6 +205,7 @@ const __CONFIGURATION = [
         document_id: "0004",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
     ],
     id: "0004",
@@ -201,6 +220,7 @@ const __CONFIGURATION = [
         required: false,
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 11,
@@ -209,6 +229,7 @@ const __CONFIGURATION = [
         document_id: "0005",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 12,
@@ -217,6 +238,7 @@ const __CONFIGURATION = [
         document_id: "0005",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 13,
@@ -225,6 +247,7 @@ const __CONFIGURATION = [
         document_id: "0005",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 14,
@@ -233,6 +256,7 @@ const __CONFIGURATION = [
         document_id: "0005",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 15,
@@ -241,6 +265,7 @@ const __CONFIGURATION = [
         document_id: "0005",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
     ],
     id: "0005",
@@ -255,6 +280,7 @@ const __CONFIGURATION = [
         required: false,
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 11,
@@ -263,6 +289,7 @@ const __CONFIGURATION = [
         document_id: "0006",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 12,
@@ -271,6 +298,7 @@ const __CONFIGURATION = [
         document_id: "0006",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
     ],
     id: "0006",
@@ -285,6 +313,7 @@ const __CONFIGURATION = [
         required: false,
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 9,
@@ -293,6 +322,7 @@ const __CONFIGURATION = [
         document_id: "0007",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 10,
@@ -301,6 +331,7 @@ const __CONFIGURATION = [
         document_id: "0007",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 11,
@@ -309,6 +340,7 @@ const __CONFIGURATION = [
         document_id: "0007",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 12,
@@ -317,6 +349,7 @@ const __CONFIGURATION = [
         document_id: "0007",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
     ],
     id: "0007",
@@ -331,6 +364,7 @@ const __CONFIGURATION = [
         required: false,
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 9,
@@ -339,6 +373,7 @@ const __CONFIGURATION = [
         document_id: "0008",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 10,
@@ -347,6 +382,7 @@ const __CONFIGURATION = [
         document_id: "0008",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 11,
@@ -355,6 +391,7 @@ const __CONFIGURATION = [
         document_id: "0008",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 12,
@@ -363,6 +400,7 @@ const __CONFIGURATION = [
         document_id: "0008",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 13,
@@ -371,6 +409,7 @@ const __CONFIGURATION = [
         document_id: "0008",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
     ],
     id: "0008",
@@ -385,6 +424,7 @@ const __CONFIGURATION = [
         required: false,
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 4,
@@ -393,6 +433,7 @@ const __CONFIGURATION = [
         document_id: "00021",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 5,
@@ -401,6 +442,7 @@ const __CONFIGURATION = [
         document_id: "00021",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 6,
@@ -409,6 +451,7 @@ const __CONFIGURATION = [
         document_id: "00021",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
     ],
     id: "00021",
@@ -423,6 +466,7 @@ const __CONFIGURATION = [
         required: false,
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 4,
@@ -431,6 +475,7 @@ const __CONFIGURATION = [
         document_id: "00021",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 5,
@@ -439,6 +484,7 @@ const __CONFIGURATION = [
         document_id: "00021",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 6,
@@ -447,6 +493,7 @@ const __CONFIGURATION = [
         document_id: "00021",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
       {
         id: 7,
@@ -455,6 +502,7 @@ const __CONFIGURATION = [
         document_id: "00021",
         primaryDocuments: true,
         others: false,
+        remarks: [],
       },
     ],
     id: "00021",
@@ -545,7 +593,7 @@ function Attactment() {
       setConfiguration((prevData: any) => ({
         ...prevData,
         documents: prevData.documents.map((doc: any) =>
-          doc.id === itm.id ? { ...doc, files: null } : doc
+          doc.id === itm.id ? { ...doc, files: null, remarks: [] } : doc
         ),
       }));
     }
@@ -562,7 +610,9 @@ function Attactment() {
       }));
     }
   };
-
+  const renameOthers = (itm: any, idx: number) => {
+    addDocumentModalRef.current.showOnUpdateModal(itm.label, idx);
+  };
   const printDocument = (itm: any) => {
     const image = itm.files;
 
@@ -815,24 +865,42 @@ function Attactment() {
       />
       <ModalDocument
         ref={addDocumentModalRef}
-        handleOnSave={(event: any, label: any) => {
-          const newDocuments = configuration.documents;
-          const lastDocument = newDocuments[newDocuments.length - 1];
-          newDocuments.push({
-            id: lastDocument.id + 1,
-            label,
-            files: null,
-            document_id: lastDocument.document_id,
-            others: true,
-            primaryDocuments: false,
-          });
+        handleOnSave={(event: any, label: any, selected: any) => {
+          if (selected !== null) {
+            const newDocuments = configuration.documents;
+            const assuredDocuments = newDocuments.filter(
+              (itm: any) => itm.primaryDocuments
+            );
+            const getOtherSelectedDocument = newDocuments.filter(
+              (itm: any) => itm.others
+            );
+            getOtherSelectedDocument[selected].label = label;
+            const newConfiguration = {
+              ...configuration,
+              documents: [...assuredDocuments, ...getOtherSelectedDocument],
+            };
+            setConfiguration(newConfiguration);
+          } else {
+            const newDocuments = configuration.documents;
+            const lastDocument = newDocuments[newDocuments.length - 1];
 
-          const newConfiguration = {
-            ...configuration,
-            documents: newDocuments,
-          };
+            newDocuments.push({
+              id: lastDocument.id + 1,
+              label,
+              files: null,
+              document_id: lastDocument.document_id,
+              others: true,
+              primaryDocuments: false,
+              remarks: [],
+            });
 
-          setConfiguration(newConfiguration);
+            const newConfiguration = {
+              ...configuration,
+              documents: newDocuments,
+            };
+
+            setConfiguration(newConfiguration);
+          }
           addDocumentModalRef.current.closeDelay();
         }}
         handleOnClose={(event: any, state: any) => {}}
@@ -902,6 +970,27 @@ function Attactment() {
             </Tooltip>
 
             <span className="claim-title-text">{configuration.claimType}</span>
+            <div
+              className={`documents-other ${
+                contentShow === "Documents" ? "active" : ""
+              }`}
+            >
+              <Tooltip title="Add Other Document">
+                <IconButton
+                  aria-label="delete"
+                  size="large"
+                  sx={{
+                    position: "absolute",
+                    right: 5,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                  }}
+                  onClick={handleAddDocument}
+                >
+                  <ControlPointIcon sx={{ color: "#696966" }} />
+                </IconButton>
+              </Tooltip>
+            </div>
           </div>
           <div className="mobile-button">
             <Button
@@ -1472,6 +1561,7 @@ function Attactment() {
                               printDocument={printDocument}
                               downloadDocument={downloadDocument}
                               zoomDocument={zoomDocument}
+                              renameOthers={renameOthers}
                             />
                           );
                         })}
@@ -1503,6 +1593,7 @@ function Attactment() {
                                   printDocument={printDocument}
                                   downloadDocument={downloadDocument}
                                   zoomDocument={zoomDocument}
+                                  renameOthers={renameOthers}
                                 />
                               );
                             })}
@@ -1511,37 +1602,6 @@ function Attactment() {
                     )}
                   </nav>
                 </div>
-              </div>
-              <div
-                className={`documents-other ${
-                  contentShow === "Documents" ? "active" : ""
-                }`}
-                style={{
-                  position: "absolute",
-                  bottom: "10px",
-                  right: "10px",
-                  width: "50px",
-                  height: "50px",
-                  borderRadius: "50%",
-                  cursor: "pointer",
-                  zIndex: 999,
-                }}
-                onClick={handleAddDocument}
-              >
-                <Tooltip title="Add Other Document">
-                  <IconButton
-                    aria-label="delete"
-                    size="large"
-                    sx={{
-                      background: green[800],
-                      ":hover": {
-                        background: green[900],
-                      },
-                    }}
-                  >
-                    <AddIcon sx={{ color: "white" }} />
-                  </IconButton>
-                </Tooltip>
               </div>
             </>
           </div>
@@ -1639,6 +1699,7 @@ export const ModalDocument = forwardRef(
     const modalRef = useRef<HTMLDivElement>(null);
     const isMoving = useRef(false);
     const offset = useRef({ x: 0, y: 0 });
+    const [selectedIndex, setSelectedIndex] = useState<any>(null);
 
     const [showModal, setShowModal] = useState(false);
     const [handleDelayClose, setHandleDelayClose] = useState(false);
@@ -1649,6 +1710,7 @@ export const ModalDocument = forwardRef(
     const closeDelay = () => {
       setHandleDelayClose(true);
       setTimeout(() => {
+        setSelectedIndex(null);
         setShowModal(false);
         setHandleDelayClose(false);
         handleOnClose();
@@ -1661,11 +1723,21 @@ export const ModalDocument = forwardRef(
         setShowModal(true);
       },
       clsoeModal: () => {
+        setSelectedIndex(null);
         setShowModal(false);
       },
       getRefs: () => {
         const refs = {};
         return refs;
+      },
+      showOnUpdateModal: (label: string, index: number) => {
+        setShowModal(true);
+        setSelectedIndex(index);
+        wait(100).then(() => {
+          if (labelRef.current) {
+            labelRef.current.value = label;
+          }
+        });
       },
       closeDelay,
     }));
@@ -1758,7 +1830,7 @@ export const ModalDocument = forwardRef(
             onMouseDown={handleMouseDown}
           >
             <span style={{ fontSize: "13px", fontWeight: "bold" }}>
-              Add Other Documents
+              {selectedIndex ? "Update Other Documents" : "Add Other Documents"}
             </span>
             <button
               className="btn-check-exit-modal"
@@ -1826,7 +1898,7 @@ export const ModalDocument = forwardRef(
               }}
               variant="contained"
               onClick={(e: any) => {
-                handleOnSave(e, labelRef.current?.value);
+                handleOnSave(e, labelRef.current?.value, selectedIndex);
               }}
             >
               SAVE NEW DOCUMENT

@@ -27,21 +27,22 @@ function App() {
     setNewUser(_user);
   };
 
+
   return (
-  <>
-  <PageHelmet title="Loading..." />
-    <div
-      style={{
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <UserContext.Provider value={{ myAxios, user, setUser }}>
-        <Router />
-      </UserContext.Provider>
-    </div>
-  </>
+    <>
+      <PageHelmet title="Loading..." />
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <UserContext.Provider value={{ myAxios, user, setUser }}>
+          <Router />
+        </UserContext.Provider>
+      </div>
+    </>
   );
 }
 

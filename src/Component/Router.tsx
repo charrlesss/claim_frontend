@@ -1,4 +1,4 @@
-import { Outlet, Route, Routes } from "react-router-dom";
+import {  Route, Routes } from "react-router-dom";
 import { lazy, useContext, useEffect, useRef } from "react";
 import Container, { NotFoundContainer } from "./Container";
 import { UserContext } from "../App";
@@ -6,7 +6,6 @@ import { UserContext } from "../App";
 import { useMutation } from "@tanstack/react-query";
 import { Loading } from "./Loading";
 import DisplayReport from "./DisplayReport";
-import PageHelmet from "./PageHelmet";
 
 function Router() {
   const { user, myAxios, setUser } = useContext(UserContext);
@@ -19,9 +18,9 @@ function Router() {
   const ClaimsReport = lazy(() => import("./Report/ClaimsReport"));
   const UpdateAttachment = lazy(() => import("./Attachment/UpdateAttachment"));
   const NotFound = lazy(() => import("./NotFound"));
+  const ReimbursementBasicDocument = lazy(() => import("./ReimbursementBasicDocument"));
 
   const refreshToken = window.localStorage.getItem("refreshToken");
-
 
   const { isPending, mutate } = useMutation({
     mutationKey: ["user"],
@@ -39,7 +38,6 @@ function Router() {
       } else {
         setUser(null);
       }
-
     },
   });
   const mutateRef = useRef(mutate);
@@ -51,7 +49,7 @@ function Router() {
   if (user === null) {
     return (
       <>
-        {(isPending ) && <Loading />}
+        {isPending && <Loading />}
         <Routes>
           <Route path={`/${DEPARTMENT}`}>
             <Route path="*" element={<NotFoundContainer />}>
@@ -75,7 +73,7 @@ function Router() {
 
   return (
     <>
-      {(isPending ) && <Loading />}
+      {isPending && <Loading />}
       <Routes>
         <Route path={`/${DEPARTMENT}`}>
           <Route path="*" element={<NotFoundContainer />}>
@@ -86,8 +84,12 @@ function Router() {
         <Route path={`/${DEPARTMENT}/dashboard`} element={<Container />}>
           <Route index element={<Dashboard />} />
           <Route
-            path={`/${DEPARTMENT}/dashboard/imbursement`}
+            path={`/${DEPARTMENT}/dashboard/reimbursement`}
             element={<ListImursement />}
+          />
+          <Route
+            path={`/${DEPARTMENT}/dashboard/reimbursement-basic-documents`}
+            element={<ReimbursementBasicDocument />}
           />
           <Route
             path={`/${DEPARTMENT}/dashboard/reports/claims-report`}

@@ -25,7 +25,7 @@ function Container({ showheader = true }: any) {
     },
     {
       name: "Reimbursement",
-      path: `/${department.current}/dashboard/imbursement`,
+      path: `/${department.current}/dashboard/reimbursement`,
     },
 
     {

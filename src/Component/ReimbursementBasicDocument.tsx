@@ -13,87 +13,26 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import { useNavigate } from "react-router-dom";
-import { DEPARTMENT } from "../Dashboard";
-import { ModalDocument } from ".";
-import UploadModal, { ZoomModal } from "./UploadFile";
+import { DEPARTMENT } from "./Dashboard";
+
+import UploadModal, { ZoomModal } from "./Attachment/UploadFile";
 import PrintIcon from "@mui/icons-material/Print";
 import DownloadIcon from "@mui/icons-material/Download";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import CropFreeIcon from "@mui/icons-material/CropFree";
 import RotateLeftIcon from "@mui/icons-material/RotateLeft";
-import "../../Style/attachment.css";
-import PageHelmet from "../PageHelmet";
-import { Loading } from "../Loading";
+import "../Style/attachment.css";
+import PageHelmet from "./PageHelmet";
+import { Loading } from "./Loading";
 import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline";
-import ControlPointIcon from '@mui/icons-material/ControlPoint';
+import ControlPointIcon from "@mui/icons-material/ControlPoint";
+import { ModalDocument } from "./Attachment";
 
-const BasicDocument = () => {
+const ReimbursementBasicDocument = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-
-  const [documents, setDocuments] = useState<Array<any>>([
-    {
-      id: 0,
-      label: "Insurance Policy",
-      files: null,
-      remarks: [],
-    },
-    {
-      id: 1,
-      label: "Official Receipt of Premium Payment",
-      files: null,
-      remarks: [],
-    },
-    {
-      id: 2,
-      label: "Policy endorsement (if any)",
-      files: null,
-      remarks: [],
-    },
-    {
-      id: 3,
-      label: "Deed of Sale",
-      files: null,
-      remarks: [],
-    },
-    {
-      id: 4,
-      label: "OR CR",
-      files: null,
-      remarks: [],
-    },
-    {
-      id: 5,
-      label: "Police Report / Affidavit",
-      files: null,
-      remarks: [],
-    },
-    {
-      id: 6,
-      label: "Driver’s Statement to the Police (Salaysay)",
-      files: null,
-      remarks: [],
-    },
-    {
-      id: 7,
-      label: "Driver’s License and O.R",
-      files: null,
-      remarks: [],
-    },
-    {
-      id: 8,
-      label: "Stencils",
-      files: null,
-      remarks: [],
-    },
-    {
-      id: 9,
-      label: "Valid I.D",
-      files: null,
-      remarks: [],
-    },
-  ]);
+  const [documents, setDocuments] = useState<Array<any>>([]);
   const [state, setState] = useState<any>(null);
 
   const addDocumentModalRef = useRef<any>(null);
@@ -162,7 +101,9 @@ const BasicDocument = () => {
     const encodedData = encodeURIComponent(
       JSON.stringify({ ...state, basicDocuments: JSON.stringify(documents) })
     );
-    navigate(`/${DEPARTMENT}/dashboard?Mkr44Rt2iuy13R=${encodedData}`);
+    navigate(
+      `/${DEPARTMENT}/dashboard/reimbursement?Mkr44Rt2iuy13R=${encodedData}`
+    );
   };
   const printDocument = (itm: any) => {
     const image = itm.files;
@@ -172,46 +113,46 @@ const BasicDocument = () => {
       let printContent = "";
       image.forEach((file: any, idx: number) => {
         printContent += `
-        <div class="page">
-          <img src="${file.link}" alt="image-${idx + 1}"  />
-        </div>`;
+          <div class="page">
+            <img src="${file.link}" alt="image-${idx + 1}"  />
+          </div>`;
       });
 
       newWindow.document.open();
       newWindow.document.write(`
-        <html>
-        <head>
-          <title>Print Images</title>
-          <style>
-        @page { 
-            size: A4 portrait; 
-            margin: 0; 
-          }
-          body { margin: 0; padding: 0; }
-          .page { 
-            width: 100vw; 
-            height: 100vh; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            overflow: hidden;
-            page-break-after: always;
-          }
-          img { 
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-          }
-          </style>
-        </head>
-        <body>
-          ${printContent}
-          <script>
-            window.onload = function() { window.print(); window.close(); }
-          </script>
-        </body>
-        </html>
-      `);
+          <html>
+          <head>
+            <title>Print Images</title>
+            <style>
+          @page { 
+              size: A4 portrait; 
+              margin: 0; 
+            }
+            body { margin: 0; padding: 0; }
+            .page { 
+              width: 100vw; 
+              height: 100vh; 
+              display: flex; 
+              justify-content: center; 
+              align-items: center; 
+              overflow: hidden;
+              page-break-after: always;
+            }
+            img { 
+              width: 100%;
+              height: 100%;
+              object-fit: contain;
+            }
+            </style>
+          </head>
+          <body>
+            ${printContent}
+            <script>
+              window.onload = function() { window.print(); window.close(); }
+            </script>
+          </body>
+          </html>
+        `);
       newWindow.document.close();
     }
   };
@@ -281,7 +222,6 @@ const BasicDocument = () => {
       if (basicDocuments.length > 0) {
         setDocuments(basicDocuments);
       }
-
       setState(state);
     }
   }, []);
@@ -349,7 +289,6 @@ const BasicDocument = () => {
           if (selected !== null) {
             const docu = [...documents];
             docu[selected].label = label;
-            console.log(docu);
             setDocuments(docu);
           } else {
             setDocuments((docu: any) => [
@@ -411,7 +350,7 @@ const BasicDocument = () => {
                 onClick={() => {
                   const encodedData = encodeURIComponent(JSON.stringify(state));
                   navigate(
-                    `/${DEPARTMENT}/dashboard?Mkr44Rt2iuy13R=${encodedData}`
+                    `/${DEPARTMENT}/dashboard/reimbursement?Mkr44Rt2iuy13R=${encodedData}`
                   );
                 }}
               >
@@ -463,7 +402,7 @@ const BasicDocument = () => {
                   padding: "5px 10px",
                 }}
               >
-                Basic Requirement (For Assured)
+                Documents
               </p>
 
               <List>
@@ -665,4 +604,4 @@ export const HandleListHover = ({
   );
 };
 
-export default BasicDocument;
+export default ReimbursementBasicDocument;
