@@ -518,6 +518,10 @@ const Dashboard = forwardRef(({}, ref) => {
             label: "Death Claim",
             id: "00022",
           },
+          {
+            label: "Damage Luggage",
+            id: "00028",
+          },
         ]);
       } else {
         setDropDownButton([
@@ -603,6 +607,10 @@ const Dashboard = forwardRef(({}, ref) => {
               {
                 label: "Death Claim",
                 id: "00022",
+              },
+              {
+                label: "Damage Luggage",
+                id: "00028",
               },
             ],
           },

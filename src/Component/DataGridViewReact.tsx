@@ -79,6 +79,11 @@ export const DataGridViewReact = forwardRef(
         return selectedRowIndex;
       },
       setSelectedRow: (value: any) => {
+        if (checkboxRef.current) {
+          if (checkboxRef.current[value]) {
+            (checkboxRef.current[value] as any).checked = true;
+          }
+        }
         return setSelectedRowIndex(value);
       },
 
@@ -121,11 +126,13 @@ export const DataGridViewReact = forwardRef(
       getElementBody: () => tbodyRef.current,
       getParentElement: () => parentElementRef.current,
     }));
+
     const handleResetCheckBox = () => {
       checkboxRef.current.forEach((checkbox: HTMLInputElement, idx: any) => {
         if (checkbox) checkbox.checked = false;
       });
     };
+
     const handleResetCheckBoxByIndex = (_idx: any) => {
       checkboxRef.current.forEach((checkbox: HTMLInputElement, idx: any) => {
         if (_idx === idx) {
@@ -168,6 +175,60 @@ export const DataGridViewReact = forwardRef(
     };
     const handleMouseLeave = () => {
       setHoveredColumn(null); // Reset hovered column index
+    };
+
+    const createRipple = (e: any) => {
+      const tr = e.currentTarget.parentElement;
+      const td = e.currentTarget;
+
+      const rect = tr.getBoundingClientRect();
+      const div = document.createElement("div");
+
+      const totalWidth = column.reduce((totalWidth: any, itm: any) => {
+        totalWidth += itm.width;
+        return totalWidth;
+      }, 0);
+      const adjustLeft = rect.width - totalWidth;
+      console.log(adjustLeft);
+
+      const existing = document.querySelector(".ripple-container-unique");
+
+      if (existing) {
+        existing.remove(); // Remove existing one if found
+      }
+      div.className = "ripple-container-unique";
+      div.style.position = `fixed`;
+      div.style.top = `0px`;
+      div.style.bottom = `0px`;
+      div.style.left = `-${adjustLeft + 10}px`;
+      div.style.width = `${rect.width}px`;
+      td.appendChild(div);
+
+      const ripplerMainContainer = document.createElement("div");
+
+      ripplerMainContainer.style.width = `100%`;
+      ripplerMainContainer.style.height = `100%`;
+      ripplerMainContainer.style.position = `relative`;
+      ripplerMainContainer.style.overflow = `hidden`;
+
+      const ripple = document.createElement("span");
+      ripple.className = "ripple";
+
+      const tdrect = td.getBoundingClientRect();
+      const size = Math.max(tdrect.width, tdrect.height);
+      ripple.style.width = `${size}px`;
+      ripple.style.height = `${size}px`;
+      ripple.style.left = `${
+        e.clientX - (tdrect.left - adjustLeft + 10) - size / 2
+      }px`;
+      ripple.style.top = `${e.clientY - tdrect.top - size / 2}px`;
+
+      ripplerMainContainer.appendChild(ripple);
+      div.appendChild(ripplerMainContainer);
+
+      setTimeout(() => {
+        ripple.remove();
+      }, 600);
     };
 
     return (
@@ -261,26 +322,25 @@ export const DataGridViewReact = forwardRef(
                       >
                         <div
                           key={idx}
-                          className={` ${
-                            hoveredColumn === idx ? `highlight-column` : ""
-                          }`} // Add the class if hovered
-                          style={{ width: colItm.width, height: "20px" }}
+                          style={{
+                            width: colItm.width,
+                            height: "20px",
+                          }}
                         >
                           {colItm.label}
-
-                          <div
-                            className="resize-handle"
-                            onMouseDown={(e) => startResize(idx, e)}
-                            onMouseEnter={(e) => {
-                              e.preventDefault();
-                              handleMouseEnter(idx);
-                            }} // On hover
-                            onMouseLeave={(e) => {
-                              e.preventDefault();
-                              handleMouseLeave();
-                            }} // On mouse leave
-                          />
                         </div>
+                        <div
+                          className="resize-handle"
+                          onMouseDown={(e) => startResize(idx, e)}
+                          onMouseEnter={(e) => {
+                            e.preventDefault();
+                            handleMouseEnter(idx);
+                          }} // On hover
+                          onMouseLeave={(e) => {
+                            e.preventDefault();
+                            handleMouseLeave();
+                          }} // On mouse leave
+                        />
                       </th>
                     );
                   })}
@@ -309,55 +369,12 @@ export const DataGridViewReact = forwardRef(
                       handleResetCheckBoxByIndex={handleResetCheckBoxByIndex}
                       handleRightClick={handleRightClick}
                       showSequence={showSequence}
+                      createRipple={createRipple}
                     />
                   );
                 })}
               </tbody>
             </table>
-            <style>
-              {`
-             #upward-cutom-table tr td{
-               border-right:1px solid #f1f5f9 !important;
-             }
-          
-              #upward-cutom-table tr:nth-child(odd) td {
-                  background-color: #ffffff !important;
-              }
-              #upward-cutom-table tr:nth-child(even) td {
-                  background-color: #f5f5f5 !important;
-              }
-              #upward-cutom-table tr.selected td {
-                  background-color: #0076d7 !important;
-                  color: #ffffff !important;
-                  border-right:1px solid white !important;
-                border-bottom:1px solid white !important;
-
-              }
-              
-               #upward-cutom-table tr.selected td input {
-                  color: #ffffff !important;
-              }
-
-              .resize-handle {
-                    position: absolute;
-                    right: 0;
-                    top: 0;
-                    width: 5px;
-                    height: 100%;
-                    cursor: col-resize;
-                    background-color: transparent;
-                  }
-
-                  .resize-handle:hover {
-                    background-color: #101111;
-                  }
-
-                  .highlight-column {
-                    border-right: 2px solid #007bff !important;
-                  }
-  
-              `}
-            </style>
           </div>
         </div>
       </>
@@ -386,6 +403,7 @@ const RowComponent = forwardRef(
       handleResetCheckBoxByIndex,
       handleRightClick,
       showSequence,
+      createRipple,
     }: any,
     ref
   ) => {
@@ -394,10 +412,15 @@ const RowComponent = forwardRef(
         data-index={rowIdx}
         key={rowIdx}
         className={`row ${
-          selectedRow === rowIdx || selectedRowIndex === rowIdx
+          selectedRow === rowIdx
+            ? "selecting"
+            : selectedRowIndex === rowIdx
             ? "selected"
             : ""
         }`}
+        style={{
+          position: "relative",
+        }}
       >
         <td
           style={{
@@ -407,6 +430,9 @@ const RowComponent = forwardRef(
             background: selectedRow === rowIdx ? "#0076d" : "",
             padding: 0,
             margin: 0,
+          }}
+          onClick={(e) => {
+            createRipple(e);
           }}
         >
           <div
@@ -435,6 +461,93 @@ const RowComponent = forwardRef(
 
         {showSequence && (
           <td
+            className={`td row-${rowIdx} col-${0} `}
+            tabIndex={0}
+            onDoubleClick={(e) => {
+              createRipple(e);
+              if (!isTableSelectable) {
+                return;
+              }
+              handleResetCheckBox();
+              if (selectedRowIndex === rowIdx) {
+                setSelectedRowIndex(null);
+
+                checkboxRef.current[rowIdx].checked = false;
+
+                if (getSelectedItem) {
+                  getSelectedItem(null, null, rowIdx, null);
+                }
+              } else {
+                checkboxRef.current[rowIdx].checked = true;
+
+                setSelectedRowIndex(rowIdx);
+                if (getSelectedItem) {
+                  getSelectedItem(rowItm, null, rowIdx, null);
+                }
+              }
+              setSelectedRow(null);
+            }}
+            onClick={(e) => {
+              setSelectedRow(rowIdx);
+              createRipple(e);
+            }}
+            onKeyDown={(e) => {
+              if (onKeyDown) {
+                onKeyDown(rowItm, rowIdx, e);
+              }
+              if (e.key === "ArrowUp") {
+                setSelectedRow((prev: any) => {
+                  const index = Math.max(prev - 1, -1);
+                  const td = document.querySelector(
+                    `.td.row-${index}`
+                  ) as HTMLTableDataCellElement;
+
+                  if (index < 0) {
+                    if (focusElementOnMaxTop) {
+                      focusElementOnMaxTop();
+                    }
+                    return;
+                  }
+                  if (td) {
+                    td.focus();
+                  }
+                  return index;
+                });
+              } else if (e.key === "ArrowDown") {
+                setSelectedRow((prev: any) => {
+                  const index = Math.min(prev + 1, data.length - 1);
+                  const td = document.querySelector(
+                    `.td.row-${index}`
+                  ) as HTMLTableDataCellElement;
+
+                  if (td) {
+                    td.focus();
+                    if (index <= 15) {
+                      parentElementRef.current.style.overflow = "hidden";
+                      setTimeout(() => {
+                        parentElementRef.current.style.overflow = "auto";
+                      }, 100);
+                      return index;
+                    }
+                  }
+                  return index;
+                });
+              }
+              if (e.code === "Enter" || e.code === "NumpadEnter") {
+                e.preventDefault();
+
+                if (!isTableSelectable) {
+                  return;
+                }
+
+                setSelectedRowIndex(rowIdx);
+
+                if (getSelectedItem) {
+                  getSelectedItem(rowItm, null, rowIdx, null);
+                }
+                setSelectedRow(null);
+              }
+            }}
             style={{
               position: "relative",
               border: "none",
@@ -465,7 +578,8 @@ const RowComponent = forwardRef(
             <td
               className={`td row-${rowIdx} col-${colIdx} `}
               tabIndex={0}
-              onDoubleClick={() => {
+              onDoubleClick={(e) => {
+                createRipple(e);
                 if (!isTableSelectable) {
                   return;
                 }
@@ -488,8 +602,9 @@ const RowComponent = forwardRef(
                 }
                 setSelectedRow(null);
               }}
-              onClick={() => {
+              onClick={(e) => {
                 setSelectedRow(rowIdx);
+                createRipple(e);
               }}
               onKeyDown={(e) => {
                 if (onKeyDown) {
@@ -556,12 +671,14 @@ const RowComponent = forwardRef(
                 cursor: "pointer",
                 height: "20px",
                 userSelect: "none",
+                position: "relative",
               }}
               onContextMenu={(e) => handleRightClick(e, rowIdx)}
             >
               {
                 <input
                   readOnly={true}
+                  type={isValidDateStrict(rowItm[colIdx]) ? "date" : "text"}
                   value={rowItm[colIdx]}
                   style={{
                     width: colItm.width,
@@ -592,6 +709,7 @@ const CheckBoxSelection = forwardRef(
       setSelectedRow,
       checkboxRef,
       handleResetCheckBoxByIndex,
+      createRipple,
     }: any,
     ref
   ) => {
@@ -1192,6 +1310,11 @@ export const DataGridViewMultiSelectionReact = forwardRef(
                         >
                           {
                             <input
+                              type={
+                                isValidDateStrict(rowItm[colIdx])
+                                  ? "date"
+                                  : "text"
+                              }
                               readOnly={true}
                               value={rowItm[colIdx]}
                               style={{
@@ -1597,3 +1720,15 @@ export const useUpwardTableModalSearchSafeMode = ({
     searchInputRef,
   };
 };
+
+function isValidDateStrict(dateString: any) {
+  const regex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!regex.test(dateString)) return false;
+
+  const date = new Date(dateString);
+  return (
+    date instanceof Date &&
+    !isNaN(date as any) &&
+    date.toISOString().slice(0, 10) === dateString
+  );
+}

@@ -1,3 +1,77 @@
+#upward-cutom-table tr td {
+  border-right: 1px solid #f1f5f9 !important;
+}
+
+#upward-cutom-table tr:nth-child(odd) td {
+  background-color: #ffffff !important;
+}
+#upward-cutom-table tr:nth-child(even) td {
+  background-color: #f5f5f5 !important;
+}
+#upward-cutom-table tr.selecting td {
+  background-color: #0076d7 !important;
+  border-right: 1px solid white !important;
+  border-bottom: 1px solid white !important;
+}
+#upward-cutom-table tr.selecting td input {
+  color: #ffffff !important;
+}
+
+#upward-cutom-table tr.selected td {
+  background-color: #d0d0d3 !important;
+  border-right: 1px solid white !important;
+  border-bottom: 1px solid white !important;
+}
+#upward-cutom-table tr.selected td input {
+  color: black !important;
+}
+
+.resize-handle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 5px;
+  height: 100%;
+  cursor: col-resize;
+  background-color: transparent;
+}
+
+.highlight-column {
+  border-right: 2px solid #007bff !important;
+  background-color: red;
+}
+
+.resize-handle:hover {
+  background: 0076d;
+  position: absolute;
+  right: 0;
+  background-color: #007bff;
+  width: 3px;
+  height: 100%;
+
+}
+.ripple-container-unique{
+  position: absolute !important;
+  user-select: none;
+  pointer-events: none;
+  z-index: 99;
+}
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  animation: ripple-animation 0.6s linear;
+  background-color: rgba(0, 0, 0, 0.171);
+  pointer-events: none;
+}
+
+@keyframes ripple-animation {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
 @media (max-width: 768px) {
   #modal-inject {
     box-sizing: border-box;

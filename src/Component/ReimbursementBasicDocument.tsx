@@ -212,16 +212,42 @@ const ReimbursementBasicDocument = () => {
     zoomModalRef.current.showModal();
     zoomModalRef.current.setSelectedDocument(data);
   };
-
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     const dataParam = queryParams.get("Mkr44Rt2iuy13R");
     if (dataParam) {
       const state = JSON.parse(decodeURIComponent(dataParam));
       const basicDocuments = JSON.parse(state.basicDocuments);
-      if (basicDocuments.length > 0) {
-        setDocuments(basicDocuments);
+      const imbursementMode = JSON.parse(state.imbursementMode);
+      const refsValue = JSON.parse(state.refsValue);
+
+      if (imbursementMode === "update") {
+        if (basicDocuments.length > 0) {
+          const newBasicDocuments = basicDocuments.map((itm: any) => {
+            if (itm.files.length > 0) {
+              itm.files = itm.files.map((filename: string) => {
+                return {
+                  link: `${process.env.REACT_APP_IMAGE_URL}reimbursement/${refsValue.refNoRef}/${filename}`,
+                  filename,
+                };
+              });
+            } else {
+              itm.files = null;
+            }
+
+            return itm;
+          });
+          console.log(newBasicDocuments);
+          setDocuments(newBasicDocuments);
+        } else {
+          setDocuments([]);
+        }
+      } else {
+        if (basicDocuments.length > 0) {
+          setDocuments(basicDocuments);
+        }
       }
+
       setState(state);
     }
   }, []);

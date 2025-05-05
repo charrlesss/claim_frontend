@@ -507,6 +507,57 @@ const __CONFIGURATION = [
     ],
     id: "00021",
   },
+  {
+    documents: [
+      {
+        id: 3,
+        label: "Valid ID of Assured",
+        files: null,
+        document_id: "00021",
+        required: false,
+        primaryDocuments: true,
+        others: false,
+        remarks: [],
+      },
+      {
+        id: 4,
+        label: "Picture of Damage Luggage",
+        files: null,
+        document_id: "00021",
+        primaryDocuments: true,
+        others: false,
+        remarks: [],
+      },
+      {
+        id: 5,
+        label: "Affidavit of Incident",
+        files: null,
+        document_id: "00021",
+        primaryDocuments: true,
+        others: false,
+        remarks: [],
+      },
+      {
+        id: 6,
+        label: "Estimate",
+        files: null,
+        document_id: "00021",
+        primaryDocuments: true,
+        others: false,
+        remarks: [],
+      },
+      {
+        id: 7,
+        label: "Property Iregularity Report",
+        files: null,
+        document_id: "00021",
+        primaryDocuments: true,
+        others: false,
+        remarks: [],
+      },
+    ],
+    id: "00028",
+  },
 ];
 
 function Attactment() {

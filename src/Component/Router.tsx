@@ -1,4 +1,4 @@
-import {  Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import { lazy, useContext, useEffect, useRef } from "react";
 import Container, { NotFoundContainer } from "./Container";
 import { UserContext } from "../App";
@@ -18,7 +18,9 @@ function Router() {
   const ClaimsReport = lazy(() => import("./Report/ClaimsReport"));
   const UpdateAttachment = lazy(() => import("./Attachment/UpdateAttachment"));
   const NotFound = lazy(() => import("./NotFound"));
-  const ReimbursementBasicDocument = lazy(() => import("./ReimbursementBasicDocument"));
+  const ReimbursementBasicDocument = lazy(
+    () => import("./ReimbursementBasicDocument")
+  );
 
   const refreshToken = window.localStorage.getItem("refreshToken");
 
@@ -87,10 +89,7 @@ function Router() {
             path={`/${DEPARTMENT}/dashboard/reimbursement`}
             element={<ListImursement />}
           />
-          <Route
-            path={`/${DEPARTMENT}/dashboard/reimbursement-basic-documents`}
-            element={<ReimbursementBasicDocument />}
-          />
+
           <Route
             path={`/${DEPARTMENT}/dashboard/reports/claims-report`}
             element={<ClaimsReport />}
@@ -113,6 +112,10 @@ function Router() {
           <Route
             path={`/${DEPARTMENT}/attactment/update/`}
             element={<UpdateAttachment />}
+          />
+          <Route
+            path={`/${DEPARTMENT}/attactment/reimbursement-basic-documents`}
+            element={<ReimbursementBasicDocument />}
           />
           <Route path="*" element={<NotFound />}></Route>
         </Route>

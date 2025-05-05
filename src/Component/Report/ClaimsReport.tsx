@@ -12,6 +12,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import "../../Style/datepicker.css";
 import "../../Style/report.css";
 import { wait } from "../../Lib/wait";
+import { isMobile } from "react-device-detect";
 
 const buttons = [
   { label: "Approved Settled", id: 0 },
@@ -103,29 +104,26 @@ export default function ClaimsReport() {
                 >
                   {buttons.map((itm, idx) => {
                     return (
-                      <>
-                        <button
-                          key={idx}
-                          style={{
-                            fontSize: "12px",
-                            border: "none",
-                            background:
-                              buttonSelected === itm.id
-                                ? "#0076d7"
-                                : "transparent",
-                            color:
-                              buttonSelected === itm.id ? "white" : "black",
-                            width: "100%",
-                            textAlign: "left",
-                            cursor: "pointer",
-                          }}
-                          onClick={() => {
-                            setButtonSelected(itm.id);
-                          }}
-                        >
-                          {itm.label}
-                        </button>
-                      </>
+                      <button
+                        key={idx}
+                        style={{
+                          fontSize: "12px",
+                          border: "none",
+                          background:
+                            buttonSelected === itm.id
+                              ? "#0076d7"
+                              : "transparent",
+                          color: buttonSelected === itm.id ? "white" : "black",
+                          width: "100%",
+                          textAlign: "left",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => {
+                          setButtonSelected(itm.id);
+                        }}
+                      >
+                        {itm.label}
+                      </button>
                     );
                   })}
                 </div>
@@ -223,12 +221,23 @@ const ClaimStatus = ({ titleHeader, linkPdf, linkExcel, hideReport }: any) => {
       onSuccess: (response, variable) => {
         const pdfBlob = new Blob([response.data], { type: "application/pdf" });
         const pdfUrl = URL.createObjectURL(pdfBlob);
-        window.open(
-          `/${
-            process.env.REACT_APP_DEPARTMENT
-          }/dashboard/report?pdf=${encodeURIComponent(pdfUrl)}`,
-          "_blank"
-        );
+        if (isMobile) {
+          // MOBILE: download directly
+          const link = document.createElement("a");
+          link.href = pdfUrl;
+          link.download = "report.pdf";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          return;
+        } else {
+          window.open(
+            `/${
+              process.env.REACT_APP_DEPARTMENT
+            }/dashboard/report?pdf=${encodeURIComponent(pdfUrl)}`,
+            "_blank"
+          );
+        }
       },
     });
   const { isPending: isLoadingReportExcel, mutate: mutateReportExcel } =

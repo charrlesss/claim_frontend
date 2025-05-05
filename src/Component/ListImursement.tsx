@@ -31,40 +31,37 @@ import { DEPARTMENT } from "./Dashboard";
 
 const columns = [
   { key: "refNo", label: "REF#", width: 100 },
+  { key: "policy_no", label: "Policy No", width: 100 },
   { key: "check_from", label: "CHECK FROM", width: 100 },
-  { key: "client_name", label: "CLIENT'S NAME", width: 250 },
   { key: "type_claim", label: "TYPE OF CLAIM", width: 150 },
-  { key: "amount_claim", label: "AMOUNT OF CLAIM", width: 200 },
   { key: "date_claim", label: "DATE OF CLAIM", width: 130 },
-  { key: "payment", label: "PAYMENT ", width: 100 },
-  { key: "amount_imbursement", label: "AMOUNT OF IMBURSEMENT", width: 170 },
+  { key: "unit_insured", label: "UNIT INSURED", width: 250 },
+  { key: "client_name", label: "CLIENT'S NAME", width: 250 },
+  { key: "amount_claim", label: "AMOUNT OF CLAIM", width: 200 },
   {
     key: "date_release",
-    label: "DATE RELEASE OF IMBURSEMENT",
+    label: "DISBURSEMENT DATE AT RELEASE:",
     width: 250,
   },
+  {
+    key: "date_return_upward",
+    label: "REIMBURSEMENT RETURN DATE'S ",
+    width: 300,
+  },
+  { key: "amount_imbursement", label: "AMOUNT OF IMBURSEMENT", width: 170 },
+  { key: "payment", label: "PAYMENT ", width: 100 },
   {
     key: "payee",
     label: "PAYEE",
     width: 250,
   },
   {
-    key: "date_return_upward",
-    label: "DATE OF RETURN OF IMBURSEMENT TO UPWARD",
-    width: 300,
+    key: "remarks",
+    label: "REMARKS",
+    width: 250,
   },
   {
-    key: "date_release_sub",
-    label: "",
-    hide: true,
-  },
-  {
-    key: "date_claim_sub",
-    label: "",
-    hide: true,
-  },
-  {
-    key: "date_return_upward_sub",
+    key: "basicDocuments",
     label: "",
     hide: true,
   },
@@ -81,10 +78,12 @@ const ListImursement = forwardRef(({}, ref) => {
   const inputSearchRef = useRef<HTMLInputElement>(null);
 
   const refNoRef = useRef<HTMLInputElement>(null);
+  const policyNoRef = useRef<HTMLInputElement>(null);
   const checkFromRef = useRef<HTMLSelectElement>(null);
   const typeclaimRef = useRef<HTMLSelectElement>(null);
   const dateClaimRef = useRef<HTMLInputElement>(null);
   const amountClaimRef = useRef<HTMLInputElement>(null);
+  const unitInsuredRef = useRef<HTMLTextAreaElement>(null);
   const clientsNameRef = useRef<HTMLTextAreaElement>(null);
 
   const dateReleaseRef = useRef<HTMLInputElement>(null);
@@ -92,6 +91,7 @@ const ListImursement = forwardRef(({}, ref) => {
   const amountImbursementRef = useRef<HTMLInputElement>(null);
   const paymentRef = useRef<HTMLSelectElement>(null);
   const payeeRef = useRef<HTMLTextAreaElement>(null);
+  const remarksRef = useRef<HTMLTextAreaElement>(null);
 
   const { isPending: isLoadingRefNo, mutate: mutateRefNo } = useMutation({
     mutationKey: ["get-imbersement-id"],
@@ -122,6 +122,7 @@ const ListImursement = forwardRef(({}, ref) => {
     onSuccess: (res) => {
       const response = res as any;
       wait(100).then(() => {
+        console.log(response.data.data)
         if (tableRef.current)
           tableRef.current.setDataFormated(response.data.data);
       });
@@ -134,9 +135,22 @@ const ListImursement = forwardRef(({}, ref) => {
     useMutation({
       mutationKey: ["add-imbersement"],
       mutationFn: async (variable: any) => {
-        return await myAxios.post(`/add-imbersement`, variable, {
+        return await myAxios.post(`/add-imbersement`, variable.formData, {
           headers: {
             Authorization: `Bearer ${user?.accessToken}`,
+            "Content-Type": "multipart/form-data",
+          },
+          onUploadProgress(progressEvent: any) {
+            const percentCompleted = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            const percentElement = document.getElementById(
+              "loading-percentage"
+            ) as HTMLSpanElement;
+            if (percentElement) {
+              percentElement.innerHTML = `${percentCompleted}%`;
+            }
+            console.log(`Upload Progress: ${percentCompleted}%`);
           },
         });
       },
@@ -171,9 +185,22 @@ const ListImursement = forwardRef(({}, ref) => {
   } = useMutation({
     mutationKey: ["update-imbersement"],
     mutationFn: async (variable: any) => {
-      return await myAxios.post(`/update-imbersement`, variable, {
+      return await myAxios.post(`/update-imbersement`, variable.formData, {
         headers: {
           Authorization: `Bearer ${user?.accessToken}`,
+          "Content-Type": "multipart/form-data",
+        },
+        onUploadProgress(progressEvent: any) {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          const percentElement = document.getElementById(
+            "loading-percentage"
+          ) as HTMLSpanElement;
+          if (percentElement) {
+            percentElement.innerHTML = `${percentCompleted}%`;
+          }
+          console.log(`Upload Progress: ${percentCompleted}%`);
         },
       });
     },
@@ -239,7 +266,6 @@ const ListImursement = forwardRef(({}, ref) => {
   });
 
   useEffect(() => {
-    mutateRefNoRef.current({});
     mutateSearchRef.current({ search: "" });
   }, []);
 
@@ -260,23 +286,48 @@ const ListImursement = forwardRef(({}, ref) => {
   }, []);
 
   const handleOnSave = () => {
+    const formData = new FormData();
+    formData.append(
+      "metadata",
+      JSON.stringify({
+        refNo: refNoRef.current?.value,
+        check_from: checkFromRef.current?.value,
+        client_name: clientsNameRef.current?.value,
+        type_claim: typeclaimRef.current?.value,
+        amount_claim: amountClaimRef.current?.value,
+        date_claim: dateClaimRef.current?.value,
+        payment: paymentRef.current?.value,
+        amount_imbursement: amountImbursementRef.current?.value,
+        date_release: dateReleaseRef.current?.value,
+        payee: payeeRef.current?.value,
+        date_return_upward: dateReturnUpwardRef.current?.value,
+        remarks: remarksRef.current?.value,
+        unit_insured: unitInsuredRef.current?.value,
+        policy_no: policyNoRef.current?.value,
+      })
+    );
+    formData.append("basicDocuments", JSON.stringify(basicDocuments));
+
+    basicDocuments.forEach(async (itm: any) => {
+      if (itm.files) {
+        for (const file of itm.files) {
+          const _file = await blobToFile(
+            file.link,
+            `${file.filename}-${itm.id}`,
+            itm
+          );
+          formData.append(`basic`, _file);
+        }
+      }
+    });
+
     if (imbursementMode === "update") {
       codeCondfirmationAlert({
         isUpdate: true,
         cb: (userCodeConfirmation) => {
+          formData.append("userCodeConfirmation", userCodeConfirmation);
           mutateUpdateImbersement({
-            refNo: refNoRef.current?.value,
-            check_from: checkFromRef.current?.value,
-            client_name: clientsNameRef.current?.value,
-            type_claim: typeclaimRef.current?.value,
-            amount_claim: amountClaimRef.current?.value,
-            date_claim: dateClaimRef.current?.value,
-            payment: paymentRef.current?.value,
-            amount_imbursement: amountImbursementRef.current?.value,
-            date_release: dateReleaseRef.current?.value,
-            payee: payeeRef.current?.value,
-            date_return_upward: dateReturnUpwardRef.current?.value,
-            userCodeConfirmation,
+            formData,
           });
         },
       });
@@ -284,17 +335,7 @@ const ListImursement = forwardRef(({}, ref) => {
       saveCondfirmationAlert({
         isConfirm: () => {
           mutateAddImbersement({
-            refNo: refNoRef.current?.value,
-            check_from: checkFromRef.current?.value,
-            client_name: clientsNameRef.current?.value,
-            type_claim: typeclaimRef.current?.value,
-            amount_claim: amountClaimRef.current?.value,
-            date_claim: dateClaimRef.current?.value,
-            payment: paymentRef.current?.value,
-            amount_imbursement: amountImbursementRef.current?.value,
-            date_release: dateReleaseRef.current?.value,
-            payee: payeeRef.current?.value,
-            date_return_upward: dateReturnUpwardRef.current?.value,
+            formData,
           });
         },
       });
@@ -332,8 +373,19 @@ const ListImursement = forwardRef(({}, ref) => {
     if (payeeRef.current) {
       payeeRef.current.value = "";
     }
+
+    if (remarksRef.current) {
+      remarksRef.current.value = "";
+    }
+    if (unitInsuredRef.current) {
+      unitInsuredRef.current.value = "";
+    }
+    if (policyNoRef.current) {
+      policyNoRef.current.value = "";
+    }
     mutateRefNoRef.current({});
   };
+
   const disabledField = useRef((disabled: boolean) => {
     if (checkFromRef.current) {
       checkFromRef.current.disabled = disabled;
@@ -365,6 +417,16 @@ const ListImursement = forwardRef(({}, ref) => {
     if (payeeRef.current) {
       payeeRef.current.disabled = disabled;
     }
+
+    if (remarksRef.current) {
+      remarksRef.current.disabled = disabled;
+    }
+    if (policyNoRef.current) {
+      policyNoRef.current.disabled = disabled;
+    }
+    if (unitInsuredRef.current) {
+      unitInsuredRef.current.disabled = disabled;
+    }
   });
 
   const resetAll = () => {
@@ -387,14 +449,10 @@ const ListImursement = forwardRef(({}, ref) => {
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     const dataParam = queryParams.get("Mkr44Rt2iuy13R");
+
     if (dataParam) {
       const state = JSON.parse(decodeURIComponent(dataParam));
-
-
-      console.log(state)
-
       const ref = JSON.parse(state.refsValue);
-
       if (refNoRef.current) {
         refNoRef.current.value = ref.refNoRef;
       }
@@ -428,14 +486,24 @@ const ListImursement = forwardRef(({}, ref) => {
       if (payeeRef.current) {
         payeeRef.current.value = ref.payeeRef;
       }
-      if (payeeRef.current) {
-        payeeRef.current.value = ref.payeeRef;
+      if (remarksRef.current) {
+        remarksRef.current.value = ref.remarksRef;
+      }
+      if (unitInsuredRef.current) {
+        unitInsuredRef.current.value = ref.unitInsuredRef;
+      }
+      if (policyNoRef.current) {
+        policyNoRef.current.value = ref.policyNoRef;
       }
       setBasicDocuments(JSON.parse(state.basicDocuments));
       setImbursementMode(JSON.parse(state.imbursementMode));
       navigateRef.current(`/${DEPARTMENT}/dashboard/reimbursement`);
+      wait(200).then(() => {
+        tableRef.current.setSelectedRow(state.selectedRow);
+        tableRef.current._setSelectedRow(state.selectedRow);
+      });
     }
-  }, []);
+  }, [imbursementMode]);
 
   return (
     <>
@@ -518,6 +586,9 @@ const ListImursement = forwardRef(({}, ref) => {
                 id="entry-header-save-button"
                 onClick={() => {
                   setImbursementMode("add");
+                  mutateRefNoRef.current({});
+                  setBasicDocuments([])
+
                 }}
                 color="primary"
               >
@@ -592,6 +663,7 @@ const ListImursement = forwardRef(({}, ref) => {
               </Button>
             )}
             <Button
+              disabled={imbursementMode === ""}
               sx={{
                 height: "22px",
                 fontSize: "11px",
@@ -611,14 +683,18 @@ const ListImursement = forwardRef(({}, ref) => {
                       amountImbursementRef: amountImbursementRef.current?.value,
                       paymentRef: paymentRef.current?.value,
                       payeeRef: payeeRef.current?.value,
+                      policyNoRef: policyNoRef.current?.value,
+                      unitInsuredRef: unitInsuredRef.current?.value,
+                      remarksRef: remarksRef.current?.value,
                     }),
                     basicDocuments: JSON.stringify(basicDocuments),
                     imbursementMode: JSON.stringify(imbursementMode),
+                    selectedRow: tableRef.current.getSelectedRow(),
                   })
                 );
 
                 navigate(
-                  `/${DEPARTMENT}/dashboard/reimbursement-basic-documents?Mkr44Rt2iuy13R=${encodedData}`
+                  `/${DEPARTMENT}/attactment/reimbursement-basic-documents?Mkr44Rt2iuy13R=${encodedData}`
                 );
               }}
               color="success"
@@ -670,7 +746,7 @@ const ListImursement = forwardRef(({}, ref) => {
                 onKeyDown: (e) => {
                   if (e.code === "NumpadEnter" || e.code === "Enter") {
                     mutateRefNoRef.current({});
-                    checkFromRef.current?.focus();
+                    policyNoRef.current?.focus();
                   }
                 },
               }}
@@ -680,6 +756,36 @@ const ListImursement = forwardRef(({}, ref) => {
                 mutateRefNoRef.current({});
               }}
             />
+            <TextInput
+              containerClassName="container-field"
+              containerStyle={{
+                width: "350px",
+                marginBottom: "5px",
+              }}
+              label={{
+                title: "Policy  No. : ",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "180px",
+                },
+              }}
+              input={{
+                type: "text",
+                style: {
+                  width: "calc(100% - 182px)",
+                  height: "22px !important",
+                },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    mutateRefNoRef.current({});
+                    checkFromRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={policyNoRef}
+            />
+
             <SelectInput
               containerClassName="container-field"
               containerStyle={{
@@ -732,7 +838,7 @@ const ListImursement = forwardRef(({}, ref) => {
                 onKeyDown: (e) => {
                   if (e.code === "NumpadEnter" || e.code === "Enter") {
                     e.preventDefault();
-                    amountClaimRef.current?.focus();
+                    dateClaimRef.current?.focus();
                   }
                 },
               }}
@@ -767,12 +873,58 @@ const ListImursement = forwardRef(({}, ref) => {
                 defaultValue: format(new Date(), "yyyy-MM-dd"),
                 onKeyDown: (e) => {
                   if (e.code === "NumpadEnter" || e.code === "Enter") {
-                    amountClaimRef.current?.focus();
+                    unitInsuredRef.current?.focus();
                   }
                 },
               }}
               inputRef={dateClaimRef}
             />
+            <TextAreaInput
+              containerClassName="clientname-input container-field"
+              containerStyle={{ width: "500px", marginBottom: "5px" }}
+              label={{
+                title: "Unit Insured : ",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "180px",
+                },
+              }}
+              textarea={{
+                disabled: true,
+                style: { width: "calc(100% - 180px)" },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    clientsNameRef.current?.focus();
+                  }
+                },
+              }}
+              _inputRef={unitInsuredRef}
+            />
+            <TextAreaInput
+              containerClassName="clientname-input container-field"
+              containerStyle={{ width: "500px", marginBottom: "5px" }}
+              label={{
+                title: "Client's Name : ",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "180px",
+                },
+              }}
+              textarea={{
+                disabled: true,
+                style: { width: "calc(100% - 180px)" },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    amountClaimRef.current?.focus();
+                  }
+                },
+              }}
+              _inputRef={clientsNameRef}
+            />
+          </div>
+          <div>
             <TextFormatedInput
               containerClassName="container-field"
               containerStyle={{
@@ -794,36 +946,12 @@ const ListImursement = forwardRef(({}, ref) => {
                 style: { width: "calc(100% - 182px)" },
                 onKeyDown: (e) => {
                   if (e.code === "NumpadEnter" || e.code === "Enter") {
-                    clientsNameRef.current?.focus();
+                    dateReleaseRef.current?.focus();
                   }
                 },
               }}
               inputRef={amountClaimRef}
             />
-            <TextAreaInput
-              containerClassName="clientname-input container-field"
-              containerStyle={{ width: "500px", marginBottom: "5px" }}
-              label={{
-                title: "Client's Name : ",
-                style: {
-                  fontSize: "12px",
-                  fontWeight: "bold",
-                  width: "180px",
-                },
-              }}
-              textarea={{
-                disabled: true,
-                style: { width: "calc(100% - 180px)" },
-                onKeyDown: (e) => {
-                  if (e.code === "NumpadEnter" || e.code === "Enter") {
-                    dateReleaseRef.current?.focus();
-                  }
-                },
-              }}
-              _inputRef={clientsNameRef}
-            />
-          </div>
-          <div>
             <TextInput
               containerClassName="container-field"
               containerStyle={{
@@ -831,7 +959,7 @@ const ListImursement = forwardRef(({}, ref) => {
                 marginBottom: "5px",
               }}
               label={{
-                title: "Date of Release  : ",
+                title: "Disbursement Date at Release  : ",
                 style: {
                   fontSize: "12px",
                   fontWeight: "bold",
@@ -858,7 +986,7 @@ const ListImursement = forwardRef(({}, ref) => {
                 marginBottom: "5px",
               }}
               label={{
-                title: "Date of Return to UPWARD: ",
+                title: "Reimbursement Return Dates : ",
                 style: {
                   fontSize: "12px",
                   fontWeight: "bold",
@@ -885,7 +1013,7 @@ const ListImursement = forwardRef(({}, ref) => {
                 marginBottom: "5px",
               }}
               label={{
-                title: "Amount of Imbursement : ",
+                title: "Disbursement Amount : ",
                 style: {
                   fontSize: "12px",
                   fontWeight: "bold",
@@ -951,15 +1079,38 @@ const ListImursement = forwardRef(({}, ref) => {
                 style: { width: "calc(100% - 180px)" },
                 onKeyDown: (e) => {
                   if (e.code === "NumpadEnter" || e.code === "Enter") {
-                    //  refDate.current?.focus()
+                     remarksRef.current?.focus()
                   }
                 },
               }}
               _inputRef={payeeRef}
             />
+            <TextAreaInput
+              containerClassName="clientname-input container-field"
+              containerStyle={{ width: "500px", marginBottom: "5px" }}
+              label={{
+                title: "Remarks : ",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "180px",
+                },
+              }}
+              textarea={{
+                disabled: true,
+                style: { width: "calc(100% - 180px)" },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    //  refDate.current?.focus()
+                  }
+                },
+              }}
+              _inputRef={remarksRef}
+            />
           </div>
         </fieldset>
         <DataGridViewReact
+          showSequence={true}
           containerStyle={{
             flex: 1,
             height: "auto",
@@ -968,49 +1119,59 @@ const ListImursement = forwardRef(({}, ref) => {
           ref={tableRef}
           columns={columns}
           height="280px"
-          getSelectedItem={(rowItm: any) => {
+          getSelectedItem={(rowItm: any ) => {
             if (rowItm) {
               setImbursementMode("update");
               wait(100).then(() => {
                 if (refNoRef.current) {
                   refNoRef.current.value = rowItm[0];
                 }
-                if (checkFromRef.current) {
-                  checkFromRef.current.value = rowItm[1];
+                if (policyNoRef.current) {
+                  policyNoRef.current.value = rowItm[1];
                 }
-                if (clientsNameRef.current) {
-                  clientsNameRef.current.value = rowItm[2];
+                if (checkFromRef.current) {
+                  checkFromRef.current.value = rowItm[2];
                 }
                 if (typeclaimRef.current) {
                   typeclaimRef.current.value = rowItm[3];
                 }
+                if (dateClaimRef.current) {
+                  dateClaimRef.current.value = rowItm[4];
+                }
+                if (unitInsuredRef.current) {
+                  unitInsuredRef.current.value = rowItm[5];
+                }
+                if (clientsNameRef.current) {
+                  clientsNameRef.current.value = rowItm[6];
+                }
                 if (amountClaimRef.current) {
-                  amountClaimRef.current.value = rowItm[4];
-                }
-
-                if (paymentRef.current) {
-                  paymentRef.current.value = rowItm[6];
-                }
-                if (amountImbursementRef.current) {
-                  amountImbursementRef.current.value = rowItm[7];
-                }
-
-                if (payeeRef.current) {
-                  payeeRef.current.value = rowItm[9];
+                  amountClaimRef.current.value = rowItm[7];
                 }
                 if (dateReleaseRef.current) {
-                  dateReleaseRef.current.value = rowItm[11];
-                }
-                if (dateClaimRef.current) {
-                  dateClaimRef.current.value = rowItm[12];
+                  dateReleaseRef.current.value = rowItm[8];
                 }
                 if (dateReturnUpwardRef.current) {
-                  dateReturnUpwardRef.current.value = rowItm[13];
+                  dateReturnUpwardRef.current.value = rowItm[9];
                 }
+                if (amountImbursementRef.current) {
+                  amountImbursementRef.current.value = rowItm[10];
+                }
+                if (paymentRef.current) {
+                  paymentRef.current.value = rowItm[11];
+                }
+                if (payeeRef.current) {
+                  payeeRef.current.value = rowItm[12];
+                }
+
+                if (remarksRef.current) {
+                  remarksRef.current.value = rowItm[13];
+                }
+                setBasicDocuments(JSON.parse(rowItm[rowItm.length - 1]));
               });
             } else {
               setImbursementMode("");
               resetFields();
+              setBasicDocuments([])
             }
           }}
           onKeyDown={(rowItm: any, rowIdx: any, e: any) => {
@@ -1039,6 +1200,7 @@ const ListImursement = forwardRef(({}, ref) => {
               id="entry-header-save-button"
               onClick={() => {
                 setImbursementMode("add");
+                mutateRefNoRef.current({});
               }}
               color="primary"
             >
@@ -1059,7 +1221,6 @@ const ListImursement = forwardRef(({}, ref) => {
               Save
             </Button>
           )}
-
           {imbursementMode !== "" && (
             <Button
               sx={{
@@ -1120,10 +1281,19 @@ const ListImursement = forwardRef(({}, ref) => {
   );
 });
 
-async function blobToFile(blobUrl: string, filename: string) {
-  const response = await fetch(blobUrl);
-  const blob = await response.blob();
-  return new File([blob], filename, { type: blob.type });
+async function blobToFile(blobUrl: string, filename: string, itm: any) {
+  try {
+    const response = await fetch(blobUrl);
+    const blob = await response.blob();
+    const mimeType = blob.type || "image/png"; // Fallback to "image/png" if no MIME type is detected
+    return new File([blob], filename, { type: mimeType });
+  } catch (error) {
+    alert(
+      `Cannot Find the files from ${itm.label}!\nPlease reupload your file and save it again thank you!`
+    );
+    console.error("Error converting blobUrl to file:", error);
+    throw error; // Optionally re-throw the error if needed
+  }
 }
 
 export default ListImursement;
