@@ -79,13 +79,9 @@ export const DataGridViewReact = forwardRef(
         return selectedRowIndex;
       },
       setSelectedRow: (value: any) => {
-        if (checkboxRef.current) {
-          if (checkboxRef.current[value]) {
-            (checkboxRef.current[value] as any).checked = true;
-          }
-        }
-        return setSelectedRowIndex(value);
+        setSelectedRowIndex(value);
       },
+      getCheckBoxRef: checkboxRef,
 
       resetCheckBox: () => {
         return handleResetCheckBox();
@@ -748,7 +744,6 @@ const CheckBoxSelection = forwardRef(
     );
   }
 );
-
 const ActionModal = forwardRef(
   ({ handleOnSave, handleOnClose, hasSelectedRow, Component }: any, ref) => {
     const [showModal, setShowModal] = useState(false);
@@ -1405,6 +1400,7 @@ export const DataGridViewMultiSelectionReact = forwardRef(
 
 let _dataCache: any = [];
 let _searchInputValueCache = "";
+
 export const useUpwardTableModalSearchSafeMode = ({
   column,
   link,
@@ -1720,7 +1716,6 @@ export const useUpwardTableModalSearchSafeMode = ({
     searchInputRef,
   };
 };
-
 function isValidDateStrict(dateString: any) {
   const regex = /^\d{4}-\d{2}-\d{2}$/;
   if (!regex.test(dateString)) return false;

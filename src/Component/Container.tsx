@@ -20,8 +20,45 @@ function Container({ showheader = true }: any) {
   const department = useRef(process.env.REACT_APP_DEPARTMENT);
   const menuData = [
     {
+      name: "Reference",
+      subLinks: [
+        {
+          name: "Policy Account",
+          path: `/${department.current}/dashboard/reference/policy-account`,
+        },
+        {
+          name: "Sub Account",
+          path: `/${department.current}/dashboard/reference/sub-account`,
+        },
+        {
+          name: "ID Entry",
+          path: `/${department.current}/dashboard/reference/id-entry`,
+        },
+        {
+          name: "Subline",
+          path: `/${department.current}/dashboard/reference/subline`,
+        },
+        {
+          name: "Rates",
+          path: `/${department.current}/dashboard/reference/rates`,
+        },
+        {
+          name: "CTPL",
+          path: `/${department.current}/dashboard/reference/ctpl`,
+        },
+        {
+          name: "Mortgagee",
+          path: `/${department.current}/dashboard/reference/mortgagee`,
+        },
+      ],
+    },
+    {
       name: "Claim",
       path: `/${department.current}/dashboard`,
+    },
+    {
+      name: "Policy",
+      path: `/${department.current}/dashboard/task/production/policy/`,
     },
     {
       name: "Reimbursement",

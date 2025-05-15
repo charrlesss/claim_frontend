@@ -1,7 +1,7 @@
 import { Button } from "@mui/material";
 
 import { useContext, useEffect, useId, useRef, useState } from "react";
-import { format, lastDayOfMonth, lastDayOfYear, addYears } from "date-fns";
+import { format, lastDayOfMonth, lastDayOfYear, addYears, set } from "date-fns";
 import { useMutation } from "@tanstack/react-query";
 import { UserContext } from "../../App";
 import { Loading } from "../Loading";
@@ -158,6 +158,14 @@ export default function ClaimsReport() {
                 titleHeader={`CANCEL CLAIM REPORT`}
                 linkPdf={`/report/cancel-pdf`}
                 linkExcel={`/report/cancel-excel`}
+                hideReport={true}
+              />
+            )}
+            {buttonSelected === 4 && (
+              <ReimbursementReport
+                titleHeader={`LIST OF REIMBURSEMENT`}
+                linkPdf={`/report/reimbursement-pdf`}
+                linkExcel={`/report/reimbursement-excel`}
                 hideReport={true}
               />
             )}
@@ -777,6 +785,282 @@ const ClaimStatus = ({ titleHeader, linkPdf, linkExcel, hideReport }: any) => {
   );
 };
 
+const ReimbursementReport = ({
+  titleHeader,
+  linkPdf,
+  linkExcel,
+  hideReport,
+}: any) => {
+  const { user, myAxios } = useContext(UserContext);
+  const [title, setTitle] = useState(
+    generateTitle({
+      department: "UCSMI",
+      dateFrom: new Date(),
+      dateTo: lastDayOfMonth(new Date()),
+    })
+  );
+
+  const titleRef = useRef<HTMLTextAreaElement>(null);
+  const departmentRef = useRef<HTMLSelectElement>(null);
+  const dateFromRef = useRef<HTMLInputElement>(null);
+  const dateToRef = useRef<HTMLInputElement>(null);
+
+  const { isPending: isLoadingReportPDF, mutate: mutateReportPDF } =
+    useMutation({
+      mutationKey: ["pdf-api"],
+      mutationFn: async (variables: any) =>
+        await myAxios.post(linkPdf, variables, {
+          responseType: "arraybuffer",
+          headers: {
+            Authorization: `Bearer ${user?.accessToken}`,
+          },
+        }),
+      onSuccess: (response, variable) => {
+        const pdfBlob = new Blob([response.data], { type: "application/pdf" });
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        if (isMobile) {
+          // MOBILE: download directly
+          const link = document.createElement("a");
+          link.href = pdfUrl;
+          link.download = "report.pdf";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          return;
+        } else {
+          window.open(
+            `/${
+              process.env.REACT_APP_DEPARTMENT
+            }/dashboard/report?pdf=${encodeURIComponent(pdfUrl)}`,
+            "_blank"
+          );
+        }
+      },
+    });
+  const { isPending: isLoadingReportExcel, mutate: mutateReportExcel } =
+    useMutation({
+      mutationKey: ["excel-api"],
+      mutationFn: async (variables: any) =>
+        await myAxios.post(linkExcel, variables, {
+          responseType: "arraybuffer",
+          headers: {
+            Authorization: `Bearer ${user?.accessToken}`,
+          },
+        }),
+      onSuccess: (response, variable) => {
+        const pdfBlob = new Blob([response.data], { type: "application/pdf" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(pdfBlob);
+        link.download = "report.xls"; // Set the desired file name
+        link.click(); // Simulate a click to start the download
+      },
+    });
+
+  function generateTitle({ dateFrom, dateTo, department }: any) {
+    const _department =
+      department === "UCSMI"
+        ? "UPWARD CONSULTANCY SERVICES AND MANAGEMENT INC."
+        : department === "UMIS"
+        ? "UPWARD MANAGEMENT INSURANCE SERVICE"
+        : "";
+    return `${titleHeader}\n${_department}\nFROM ${format(
+      new Date(dateFrom),
+      "MM/01/yyyy"
+    )} TO ${format(new Date(dateTo), "MM/dd/yyyy")}
+    `;
+  }
+
+  function generateReportPdf() {
+    let dateFrom = new Date(dateFromRef.current?.value as any);
+    let dateTo = new Date(dateToRef.current?.value as any);
+
+    mutateReportPDF({
+      title: titleRef.current?.value,
+      department: departmentRef.current?.value,
+      dateFrom,
+      dateTo,
+    });
+  }
+  function generateReportExcel() {
+    let dateFrom = new Date(dateFromRef.current?.value as any);
+    let dateTo = new Date(dateToRef.current?.value as any);
+
+    mutateReportExcel({
+      title: titleRef.current?.value,
+      department: departmentRef.current?.value,
+      dateFrom,
+      dateTo,
+    });
+  }
+
+  return (
+    <>
+      {(isLoadingReportPDF || isLoadingReportExcel) && <Loading />}
+      <div
+        className="report-fields"
+        style={{
+          display: "flex",
+          flex: 1,
+          flexDirection: "column",
+          padding: "5px",
+          rowGap: "7px",
+          boxSizing: "border-box",
+        }}
+      >
+        <TextAreaInput
+          containerStyle={{
+            marginBottom: "10px",
+          }}
+          label={{
+            title: "Title : ",
+            style: {
+              fontSize: "12px",
+              fontWeight: "bold",
+              width: "100px",
+              display: "none",
+            },
+          }}
+          textarea={{
+            rows: 3,
+            style: { flex: 1 },
+            value: title,
+            onChange: (e) => {
+              setTitle(e.currentTarget.value);
+            },
+          }}
+          _inputRef={titleRef}
+        />
+        <SelectInput
+          label={{
+            title: "Department : ",
+            style: {
+              fontSize: "12px",
+              fontWeight: "bold",
+              width: "100px",
+            },
+          }}
+          selectRef={departmentRef}
+          select={{
+            style: { flex: 1, height: "22px" },
+            defaultValue: "UCSMI",
+            onKeyDown: (e) => {
+              if (e.code === "NumpadEnter" || e.code === "Enter") {
+                e.preventDefault();
+                dateFromRef.current?.focus();
+              }
+            },
+            onChange: (e) => {
+              setTitle(
+                generateTitle({
+                  department: e.currentTarget.value,
+                  dateFrom: new Date(dateFromRef.current?.value as any),
+                  dateTo: new Date(dateToRef.current?.value as any),
+                })
+              );
+            },
+          }}
+          datasource={[{ key: "UCSMI" }, { key: "UMIS" }]}
+          values={"key"}
+          display={"key"}
+        />
+        <TextInput
+          label={{
+            title: "Date From:",
+            style: {
+              fontSize: "12px",
+              fontWeight: "bold",
+              width: "100px",
+            },
+          }}
+          input={{
+            type: "date",
+            style: {
+              flex: 1,
+              height: "22px !important",
+            },
+            defaultValue: format(new Date(), "yyyy-MM-dd"),
+            onKeyDown: (e) => {
+              if (e.key === "Enter" || e.key === "NumpadEnter") {
+                e.preventDefault();
+              }
+            },
+            onBlur: (e) => {
+              const dateFrom = new Date(e.currentTarget.value);
+              const dateTo = new Date(dateToRef.current?.value as any);
+
+              setTitle(
+                generateTitle({
+                  department: departmentRef.current?.value,
+                  dateFrom,
+                  dateTo,
+                })
+              );
+            },
+          }}
+          inputRef={dateFromRef}
+        />
+        <TextInput
+          label={{
+            title: "Date To:",
+            style: {
+              fontSize: "12px",
+              fontWeight: "bold",
+              width: "100px",
+            },
+          }}
+          input={{
+            type: "date",
+            style: {
+              flex: 1,
+              height: "22px !important",
+            },
+            defaultValue: format(new Date(), "yyyy-MM-dd"),
+            onKeyDown: (e) => {
+              if (e.key === "Enter" || e.key === "NumpadEnter") {
+                e.preventDefault();
+
+                // searchCollectionCreditOpenModal(e.currentTarget.value);
+              }
+            },
+            onBlur: (e) => {
+              const dateFrom = new Date(dateFromRef.current?.value as any);
+              const dateTo = new Date(e.currentTarget.value);
+
+              setTitle(
+                generateTitle({
+                  department: departmentRef.current?.value,
+                  dateFrom,
+                  dateTo,
+                })
+              );
+            },
+          }}
+          inputRef={dateToRef}
+        />
+
+        <div style={{ height: "25px" }}></div>
+        <Button
+          onClick={generateReportPdf}
+          color="success"
+          variant="contained"
+          sx={{ height: "22px", fontSize: "12px", width: "100%" }}
+          className="pdf-button"
+        >
+          Generate PDF Report
+        </Button>
+        <Button
+          onClick={generateReportExcel}
+          color="success"
+          variant="contained"
+          sx={{ height: "22px", fontSize: "12px", width: "100%" }}
+          className="excel-button"
+        >
+          Generate Excel Report
+        </Button>
+      </div>
+    </>
+  );
+};
 const MyDatePicker = ({
   input,
   label,

@@ -1107,7 +1107,7 @@ const Dashboard = forwardRef(({}, ref) => {
                   rowGap: "5px",
                 }}
               >
-                <Button
+                {/* <Button
                   sx={{
                     height: "22px",
                     fontSize: "11px",
@@ -1120,7 +1120,7 @@ const Dashboard = forwardRef(({}, ref) => {
                   variant="contained"
                 >
                   Add Policy Details
-                </Button>
+                </Button> */}
                 <DropdownMenu
                   ref={formRef}
                   onClick={handleClick}

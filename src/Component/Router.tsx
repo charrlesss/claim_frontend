@@ -6,6 +6,14 @@ import { UserContext } from "../App";
 import { useMutation } from "@tanstack/react-query";
 import { Loading } from "./Loading";
 import DisplayReport from "./DisplayReport";
+import Policy from "./Production/Policies/Policy";
+import CTPL from "./Reference/CTPL";
+import Rates from "./Reference/Rates";
+import Subline from "./Reference/Subline";
+import Mortgagee from "./Reference/Mortgagee";
+import IDEntry from "./Reference/Entry/IDEntry";
+import SubAccount from "./Reference/SubAccount";
+import PolicyAccount from "./Reference/PolicyAccount";
 
 function Router() {
   const { user, myAxios, setUser } = useContext(UserContext);
@@ -18,6 +26,29 @@ function Router() {
   const ClaimsReport = lazy(() => import("./Report/ClaimsReport"));
   const UpdateAttachment = lazy(() => import("./Attachment/UpdateAttachment"));
   const NotFound = lazy(() => import("./NotFound"));
+
+  const VehiclePolicy = lazy(
+    () => import("./Production/Policies/PolicyComponent/Vehicle/VehiclePolicy")
+  );
+  const FirePolicy = lazy(
+    () => import("./Production/Policies/PolicyComponent/Fire/FirePolicy")
+  );
+  const MarinePolicy = lazy(
+    () => import("./Production/Policies/PolicyComponent/Marine/MarinePolicy")
+  );
+  const BondsPolicy = lazy(
+    () => import("./Production/Policies/PolicyComponent/Bonds/BondsPolicy")
+  );
+  const MSPRPolicy = lazy(
+    () => import("./Production/Policies/PolicyComponent/MSPR/MSPRPolicy")
+  );
+  const PAPolicy = lazy(
+    () => import("./Production/Policies/PolicyComponent/PA/PAPolicy")
+  );
+  const CGLPolicy = lazy(
+    () => import("./Production/Policies/PolicyComponent/CGL/CGLPolicy")
+  );
+
   const ReimbursementBasicDocument = lazy(
     () => import("./ReimbursementBasicDocument")
   );
@@ -86,10 +117,66 @@ function Router() {
         <Route path={`/${DEPARTMENT}/dashboard`} element={<Container />}>
           <Route index element={<Dashboard />} />
           <Route
+            key={`/${DEPARTMENT}/dashboard/task/production/policy`}
+            path={`/${DEPARTMENT}/dashboard/task/production/policy`}
+            element={<Policy />}
+          >
+            <Route
+              path={`/${DEPARTMENT}/dashboard/task/production/policy`}
+              element={<VehiclePolicy />}
+            />
+            <Route path="fire" element={<FirePolicy />} />
+            <Route path="marine" element={<MarinePolicy />} />
+            <Route path="bonds" element={<BondsPolicy />} />
+            <Route path="mspr" element={<MSPRPolicy />} />
+            <Route path="pa" element={<PAPolicy />} />
+            <Route path="cgl" element={<CGLPolicy />} />
+          </Route>
+       
+          <Route
+            key={`/${DEPARTMENT}/dashboard/reference/policy-account`}
+            path={`/${DEPARTMENT}/dashboard/reference/policy-account`}
+            element={<PolicyAccount />}
+          />
+          <Route
+            key={`/${DEPARTMENT}/dashboard/reference/sub-account`}
+            path={`/${DEPARTMENT}/dashboard/reference/sub-account`}
+            element={<SubAccount />}
+          />
+          <Route
+            key={`/${DEPARTMENT}/dashboard/reference/id-entry`}
+            path={`/${DEPARTMENT}/dashboard/reference/id-entry`}
+            element={<IDEntry />}
+          />
+          <Route
+            key={`/${DEPARTMENT}/dashboard/reference/mortgagee`}
+            path={`/${DEPARTMENT}/dashboard/reference/mortgagee`}
+            element={<Mortgagee />}
+          />
+          <Route
+            key={`/${DEPARTMENT}/dashboard/reference/subline`}
+            path={`/${DEPARTMENT}/dashboard/reference/subline`}
+            element={<Subline />}
+          />
+          <Route
+            key={`/${DEPARTMENT}/dashboard/reference/rates`}
+            path={`/${DEPARTMENT}/dashboard/reference/rates`}
+            element={<Rates />}
+          />
+          <Route
+            key={`/${DEPARTMENT}/dashboard/reference/ctpl`}
+            path={`/${DEPARTMENT}/dashboard/reference/ctpl`}
+            element={<CTPL />}
+          />
+       
+          <Route
+            path={`/${DEPARTMENT}/dashboard/policy`}
+            element={<Policy />}
+          />
+          <Route
             path={`/${DEPARTMENT}/dashboard/reimbursement`}
             element={<ListImursement />}
           />
-
           <Route
             path={`/${DEPARTMENT}/dashboard/reports/claims-report`}
             element={<ClaimsReport />}

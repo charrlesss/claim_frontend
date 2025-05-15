@@ -32,7 +32,36 @@ import { ModalDocument } from "./Attachment";
 const ReimbursementBasicDocument = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [documents, setDocuments] = useState<Array<any>>([]);
+  const [documents, setDocuments] = useState<Array<any>>([
+    {
+      id: 0,
+      label: "Evaluation",
+      files: null,
+      others: true,
+      remarks: [],
+    },
+    {
+      id: 1,
+      label: "Letter of Authority",
+      files: null,
+      others: true,
+      remarks: [],
+    },
+    {
+      id: 2,
+      label: "Claim Check/ Claim Voucher/ Deposit Slip",
+      files: null,
+      others: true,
+      remarks: [],
+    },
+    {
+      id: 3,
+      label: "Release of Claim",
+      files: null,
+      others: true,
+      remarks: [],
+    },
+  ]);
   const [state, setState] = useState<any>(null);
 
   const addDocumentModalRef = useRef<any>(null);
@@ -224,7 +253,7 @@ const ReimbursementBasicDocument = () => {
       if (imbursementMode === "update") {
         if (basicDocuments.length > 0) {
           const newBasicDocuments = basicDocuments.map((itm: any) => {
-            if (itm.files.length > 0) {
+            if (itm.files && itm.files.length > 0) {
               itm.files = itm.files.map((filename: string) => {
                 return {
                   link: `${process.env.REACT_APP_IMAGE_URL}reimbursement/${refsValue.refNoRef}/${filename}`,
