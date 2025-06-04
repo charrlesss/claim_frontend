@@ -1,5 +1,5 @@
 import Swal from "sweetalert2";
-import { addYears, constructNow, format } from "date-fns";
+import { addYears, format } from "date-fns";
 import styled from "@emotion/styled";
 import {
   useContext,
@@ -12,7 +12,6 @@ import {
 import { Button, IconButton } from "@mui/material";
 import { blue, grey } from "@mui/material/colors";
 import CalculateIcon from "@mui/icons-material/Calculate";
-import AccountBoxIcon from "@mui/icons-material/AccountBox";
 import SearchIcon from "@mui/icons-material/Search";
 import SaveAsIcon from "@mui/icons-material/SaveAs";
 import AddBoxIcon from "@mui/icons-material/AddBox";
@@ -36,14 +35,16 @@ import {
 } from "../../../../../Lib/confirmationAlert";
 import { Loading } from "../../../../Loading";
 import { wait } from "../../../../../Lib/wait";
+import { DepartmentContext } from "../../../../Container";
 
 export default function VehiclePolicy() {
+  const { departmentState } = useContext(DepartmentContext);
+
   const { user, myAxios } = useContext(UserContext);
   const [policy, setPolicy] = useState(
     window.localStorage.getItem("__policy__")
   );
   const _policy = useRef<any>(null);
-
 
   useEffect(() => {
     window.localStorage.setItem("__policy__", policy as string);
@@ -71,6 +72,7 @@ export default function VehiclePolicy() {
           policy={policy}
           setPolicy={setPolicy}
           _policy={_policy}
+          departmentState={departmentState === false ? "UMIS" : "UCSMI"}
         />
       ) : (
         <TPLPolicy
@@ -79,13 +81,21 @@ export default function VehiclePolicy() {
           policy={policy}
           setPolicy={setPolicy}
           _policy={_policy}
+          departmentState={departmentState === false ? "UMIS" : "UCSMI"}
         />
       )}
     </div>
   );
 }
 
-function COMPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
+function COMPolicy({
+  user,
+  myAxios,
+  policy,
+  setPolicy,
+  _policy,
+  departmentState,
+}: any) {
   const [width, setWidth] = useState(window.innerWidth);
 
   const [mode, setMode] = useState("");
@@ -100,10 +110,10 @@ function COMPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
   const subAccountRef_ = useRef<any>(null);
   function handleSave() {
     if (policyType === "TEMP") {
-      return temporaryPolicyRef.current.handleOnSave(mode);
+      return temporaryPolicyRef.current.handleOnSave(mode, departmentState);
     } else {
       if (policyType === "REG") {
-        return regularPolicyRef.current.handleOnSave(mode);
+        return regularPolicyRef.current.handleOnSave(mode, departmentState);
       } else {
       }
     }
@@ -127,6 +137,7 @@ function COMPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
       });
     },
   });
+
   const {
     UpwardTableModalSearch: PolicySearchUpwardTableModalSearch,
     openModal: policySearchOpenModal,
@@ -245,6 +256,7 @@ function COMPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
 
   return (
     <>
+      {isLoading && <Loading />}
       <PolicySearchUpwardTableModalSearch />
       <PolicySearchTempUpwardTableModalSearch />
       <div
@@ -1192,7 +1204,6 @@ const COMRegular = forwardRef(
         },
         onSuccess(response) {
           wait(100).then(() => {
-            console.log(response.data?.data);
             if (
               _policyPremiumRef.current &&
               _policyPremiumRef.current.getRefs
@@ -1598,7 +1609,6 @@ const COMRegular = forwardRef(
         });
       },
       onSuccess(response) {
-        console.log(response);
         if (response.data.success) {
           _policyInformationRef.current.resetRefs();
           _policyTypeDetailsRef.current.resetRefs();
@@ -1632,7 +1642,7 @@ const COMRegular = forwardRef(
     });
 
     useImperativeHandle(ref, () => ({
-      handleOnSave: (mode: string) => {
+      handleOnSave: (mode: string, department: string) => {
         if (
           _policyInformationRef.current.requiredField() ||
           _policyTypeDetailsRef.current.requiredField() ||
@@ -1653,6 +1663,7 @@ const COMRegular = forwardRef(
                 form_action: policyType,
                 subAccountRef: subAccountRef.current?.value,
                 userCodeConfirmation,
+                department,
               };
               mutatateUpdate(data);
             },
@@ -1667,6 +1678,7 @@ const COMRegular = forwardRef(
                 policy: window.localStorage.getItem("__policy__"),
                 form_action: policyType,
                 subAccountRef: subAccountRef.current?.value,
+                department,
               };
               mutatateSave(data);
             },
@@ -2281,8 +2293,6 @@ const COMTemporary = forwardRef(
             return alert("Unable to load data!");
           }
           if (dt.length > 0) {
-            console.log(dt);
-
             if (subAccountRef.current) {
               subAccountRef.current.value = dt[0].SubAcct;
             }
@@ -2584,7 +2594,7 @@ const COMTemporary = forwardRef(
       },
     });
     useImperativeHandle(ref, () => ({
-      handleOnSave: (mode: string) => {
+      handleOnSave: (mode: string, department: string) => {
         if (
           _policyInformationRef.current.requiredField() ||
           _policyTypeDetailsRef.current.requiredField() ||
@@ -2594,7 +2604,6 @@ const COMTemporary = forwardRef(
         }
 
         if (mode === "edit") {
-          console.log(_policyInformationRef.current.getRefsValue());
           codeCondfirmationAlert({
             isUpdate: true,
             cb: (userCodeConfirmation) => {
@@ -2606,6 +2615,7 @@ const COMTemporary = forwardRef(
                 form_action: policyType,
                 subAccountRef: subAccountRef.current?.value,
                 userCodeConfirmation,
+                department,
               };
               mutatateUpdate(data);
             },
@@ -2620,6 +2630,7 @@ const COMTemporary = forwardRef(
                 policy: window.localStorage.getItem("__policy__"),
                 form_action: policyType,
                 subAccountRef: subAccountRef.current?.value,
+                department,
               };
               mutatateSave(data);
             },
@@ -2919,7 +2930,14 @@ const COMTemporary = forwardRef(
     );
   }
 );
-function TPLPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
+function TPLPolicy({
+  user,
+  myAxios,
+  policy,
+  setPolicy,
+  _policy,
+  departmentState,
+}: any) {
   const [mode, setMode] = useState("");
   const [selectedPage, setSelectedPage] = useState(0);
   const [policyType, setPolicyType] = useState(
@@ -2930,7 +2948,7 @@ function TPLPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
   const subAccountRef = useRef<HTMLSelectElement>(null);
   const subAccountRef_ = useRef<any>(null);
   function handleSave() {
-    regularPolicyRef.current.handleOnSave(mode);
+    regularPolicyRef.current.handleOnSave(mode, departmentState);
   }
   const { isPending: isLoading } = useMutation({
     mutationKey: ["sub-account"],
@@ -2979,54 +2997,9 @@ function TPLPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
       }
     },
   });
-  const {
-    UpwardTableModalSearch: PolicyNoUpwardTableModalSearch,
-    openModal: policyNoOpenModal,
-    closeModal: policyNoCloseModal,
-  } = useUpwardTableModalSearchSafeMode({
-    link: "/task/production/get-tpl-id",
-    column: [
-      { key: "Source_No", label: "Source No.", width: 200 },
-      { key: "Cost", label: "Cost", width: 150 },
-    ],
-    getSelectedItem: async (rowItm: any, _: any, rowIdx: any, __: any) => {
-      if (rowItm) {
-        if (
-          regularPolicyRef.current
-            .getRefs()
-            ._policyInformationRef.current.getRefs().policyNoRef.current
-        ) {
-          regularPolicyRef.current
-            .getRefs()
-            ._policyInformationRef.current.getRefs().policyNoRef.current.value =
-            rowItm[0];
-        }
-
-        if (
-          regularPolicyRef.current
-            .getRefs()
-            ._policyInformationRef.current.getRefs().rateCostRef.current
-        ) {
-          regularPolicyRef.current
-            .getRefs()
-            ._policyInformationRef.current.getRefs().rateCostRef.current.value =
-            rowItm[1];
-        }
-
-        policyNoCloseModal();
-        wait(100).then(() => {
-          regularPolicyRef.current
-            .getRefs()
-            ._policyInformationRef.current.getRefs()
-            .corNoRef.current?.focus();
-        });
-      }
-    },
-  });
 
   return (
     <>
-      <PolicyNoUpwardTableModalSearch />
       <PolicySearchUpwardTableModalSearch />
       <div
         className="header"
@@ -3555,9 +3528,6 @@ function TPLPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
         ref={regularPolicyRef}
         selectedPage={selectedPage}
         policyType={policyType}
-        searchPolicyNo={(input: string) => {
-          policyNoOpenModal(input);
-        }}
         mode={mode}
         policy={policy}
       />
@@ -4240,67 +4210,31 @@ const PolicyInformation = forwardRef((props: any, ref) => {
             values={"Account"}
             display={"Account"}
           />
-          {policy === "COM" ? (
-            <TextInput
-              containerClassName="custom-input"
-              containerStyle={{
-                width: "90%",
-              }}
-              label={{
-                title: "Policy No: ",
-                style: {
-                  fontSize: "12px",
-                  fontWeight: "bold",
-                  width: "150px",
-                },
-              }}
-              input={{
-                disabled: props.disabled,
-                type: "text",
-                style: { width: "calc(100% - 150px) " },
-                onKeyDown: (e) => {
-                  if (e.code === "NumpadEnter" || e.code === "Enter") {
-                    corNoRef.current?.focus();
-                  }
-                },
-              }}
-              inputRef={policyNoRef}
-            />
-          ) : (
-            <TextInput
-              containerClassName="custom-input"
-              containerStyle={{
-                width: "90%",
-              }}
-              label={{
-                title: "Policy No:",
-                style: {
-                  fontSize: "12px",
-                  fontWeight: "bold",
-                  width: "150px",
-                },
-              }}
-              input={{
-                disabled: props.disabled,
-                readOnly: true,
-                type: "text",
-                style: { width: "calc(100% - 150px) " },
-                onKeyDown: (e) => {
-                  if (e.code === "NumpadEnter" || e.code === "Enter") {
-                    props.searchPolicyNo(e.currentTarget.value);
-                  }
-                },
-              }}
-              inputRef={policyNoRef}
-              icon={<SearchIcon sx={{ fontSize: "18px" }} />}
-              onIconClick={(e) => {
-                e.preventDefault();
-                if (policyNoRef.current) {
-                  props.searchPolicyNo(policyNoRef.current.value);
+          <TextInput
+            containerClassName="custom-input"
+            containerStyle={{
+              width: "90%",
+            }}
+            label={{
+              title: "Policy No: ",
+              style: {
+                fontSize: "12px",
+                fontWeight: "bold",
+                width: "150px",
+              },
+            }}
+            input={{
+              disabled: props.disabled,
+              type: "text",
+              style: { width: "calc(100% - 150px) " },
+              onKeyDown: (e) => {
+                if (e.code === "NumpadEnter" || e.code === "Enter") {
+                  corNoRef.current?.focus();
                 }
-              }}
-            />
-          )}
+              },
+            }}
+            inputRef={policyNoRef}
+          />
 
           <TextInput
             containerClassName="custom-input"

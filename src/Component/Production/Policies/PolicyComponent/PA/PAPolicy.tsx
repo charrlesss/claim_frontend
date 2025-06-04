@@ -34,8 +34,11 @@ import {
 import { Loading } from "../../../../Loading";
 import { formatNumber } from "../../../../Dashboard";
 import { wait } from "../../../../../Lib/wait";
+import { DepartmentContext } from "../../../../Container";
 
 export default function PAPolicy() {
+  const { departmentState } = useContext(DepartmentContext);
+
   const { myAxios, user } = useContext(UserContext);
   const [mode, setMode] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
@@ -44,10 +47,10 @@ export default function PAPolicy() {
   const subAccountRef = useRef<HTMLSelectElement>(null);
   const subAccountRef_ = useRef<any>(null);
 
-  const { isPending: isLoadingAccount, mutate:mutateAccount } = useMutation({
+  const { isPending: isLoadingAccount, mutate: mutateAccount } = useMutation({
     mutationKey: ["account"],
-    mutationFn: (variables:any) => {
-      return myAxios.post("/task/production/pa/get-account",variables, {
+    mutationFn: (variables: any) => {
+      return myAxios.post("/task/production/pa/get-account", variables, {
         headers: {
           Authorization: `Bearer ${user?.accessToken}`,
         },
@@ -62,25 +65,26 @@ export default function PAPolicy() {
     },
   });
 
-  const { isPending: isLoadingSubAccount ,mutate:mutateSubAccount} = useMutation({
-    mutationKey: ["sub-account"],
-    mutationFn: (variables:any) => {
-      return myAxios.post("/task/production/sub-account",variables, {
-        headers: {
-          Authorization: `Bearer ${user?.accessToken}`,
-        },
-      });
-    },
-    onSuccess(response) {
-      wait(100).then(() => {
-        if (subAccountRef_.current)
-          subAccountRef_.current.setDataSource(response.data?.data);
-        wait(100).then(() => {
-          if (subAccountRef.current) subAccountRef.current.value = "HO";
+  const { isPending: isLoadingSubAccount, mutate: mutateSubAccount } =
+    useMutation({
+      mutationKey: ["sub-account"],
+      mutationFn: (variables: any) => {
+        return myAxios.post("/task/production/sub-account", variables, {
+          headers: {
+            Authorization: `Bearer ${user?.accessToken}`,
+          },
         });
-      });
-    },
-  });
+      },
+      onSuccess(response) {
+        wait(100).then(() => {
+          if (subAccountRef_.current)
+            subAccountRef_.current.setDataSource(response.data?.data);
+          wait(100).then(() => {
+            if (subAccountRef.current) subAccountRef.current.value = "HO";
+          });
+        });
+      },
+    });
 
   const { mutate: mutateAddUpdate, isPending: loadingAddUpdate } = useMutation({
     mutationKey: ["add-update"],
@@ -394,6 +398,7 @@ export default function PAPolicy() {
             ..._policyInformationRef.current.getRefsValue(),
             subAccountRef: subAccountRef.current?.value,
             userCodeConfirmation,
+            department: departmentState === false ? "UMIS" : "UCSMI",
           };
           mutateAddUpdate(data);
         },
@@ -404,6 +409,7 @@ export default function PAPolicy() {
           const data = {
             ..._policyInformationRef.current.getRefsValue(),
             subAccountRef: subAccountRef.current?.value,
+            department: departmentState === false ? "UMIS" : "UCSMI",
           };
           mutateAddUpdate(data);
         },
@@ -411,16 +417,13 @@ export default function PAPolicy() {
     }
   }
 
+  const mutateAccountRef = useRef(mutateAccount);
+  const mutateSubAccountRef = useRef(mutateSubAccount);
 
-    const mutateAccountRef = useRef(mutateAccount);
-    const mutateSubAccountRef = useRef(mutateSubAccount);
-    
-    useEffect(() => {
-      mutateSubAccountRef.current({});
-      mutateAccountRef.current({});
-    }, []);
-  
-
+  useEffect(() => {
+    mutateSubAccountRef.current({});
+    mutateAccountRef.current({});
+  }, []);
 
   return (
     <>

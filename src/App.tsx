@@ -2,7 +2,6 @@ import Router from "./Component/Router";
 import "../src/Style/App.css";
 import { createContext, useEffect, useRef, useState } from "react";
 import axios, { AxiosInstance } from "axios";
-import PageHelmet from "./Component/PageHelmet";
 
 interface UserContextType {
   user: any;
@@ -29,7 +28,6 @@ function App() {
 
   return (
     <>
-      <PageHelmet title="Loading..." />
       <div
         style={{
           flex: 1,

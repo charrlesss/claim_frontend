@@ -35,8 +35,11 @@ import {
 } from "../../../../UpwardFields";
 import { Loading } from "../../../../Loading";
 import { wait } from "../../../../../Lib/wait";
+import { DepartmentContext } from "../../../../Container";
 
 export default function FirePolicy() {
+  const { departmentState } = useContext(DepartmentContext);
+
   const [width, setWidth] = useState(window.innerWidth);
   const { myAxios, user } = useContext(UserContext);
   const [mode, setMode] = useState("");
@@ -216,7 +219,9 @@ export default function FirePolicy() {
             _policyInformationRef.current.getRefs().agentCommisionRef.current
           ) {
             _policyInformationRef.current.getRefs().agentCommisionRef.current.value =
-              formatNumber(parseFloat(selected.AgentCom.toString().replace(/,/g,'')));
+              formatNumber(
+                parseFloat(selected.AgentCom.toString().replace(/,/g, ""))
+              );
           }
           if (_policyInformationRef.current.getRefs().saleOfficerRef.current) {
             _policyInformationRef.current.getRefs().saleOfficerRef.current.value =
@@ -489,6 +494,7 @@ export default function FirePolicy() {
             ..._policyPremiumRef.current.getRefsValue(),
             subAccountRef: subAccountRef.current?.value,
             userCodeConfirmation,
+            department: departmentState === false ? "UMIS" : "UCSMI",
           };
           mutateAddUpdate(data);
         },
@@ -500,6 +506,7 @@ export default function FirePolicy() {
             ..._policyInformationRef.current.getRefsValue(),
             ..._policyPremiumRef.current.getRefsValue(),
             subAccountRef: subAccountRef.current?.value,
+            department: departmentState === false ? "UMIS" : "UCSMI",
           };
           mutateAddUpdate(data);
         },

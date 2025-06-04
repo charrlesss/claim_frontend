@@ -1,9 +1,12 @@
-import { Box, Chip, Divider } from "@mui/material";
+import { Chip,  } from "@mui/material";
 import { blue } from "@mui/material/colors";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import "../../../Style/monbileview/production/production.css";
+import { useContext } from "react";
+import { DepartmentContext } from "../../Container";
 
 export default function Policy() {
+
   return (
     <div
       className="main"

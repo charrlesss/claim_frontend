@@ -35,8 +35,11 @@ import {
   TextInput,
 } from "../../../../UpwardFields";
 import { wait } from "../../../../../Lib/wait";
+import { DepartmentContext } from "../../../../Container";
 
 export default function MSPRPolicy() {
+  const { departmentState } = useContext(DepartmentContext);
+
   const [width, setWidth] = useState(window.innerWidth);
   const { myAxios, user } = useContext(UserContext);
   const [mode, setMode] = useState("");
@@ -484,6 +487,7 @@ export default function MSPRPolicy() {
             ..._policyPremiumRef.current.getRefsValue(),
             subAccountRef: subAccountRef.current?.value,
             userCodeConfirmation,
+            department: departmentState === false ? "UMIS" : "UCSMI",
           };
           mutateAddUpdate(data);
         },
@@ -495,6 +499,7 @@ export default function MSPRPolicy() {
             ..._policyInformationRef.current.getRefsValue(),
             ..._policyPremiumRef.current.getRefsValue(),
             subAccountRef: subAccountRef.current?.value,
+            department: departmentState === false ? "UMIS" : "UCSMI",
           };
           mutateAddUpdate(data);
         },

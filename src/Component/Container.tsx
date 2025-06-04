@@ -1,4 +1,11 @@
-import { Suspense, useContext, useEffect, useRef, useState } from "react";
+import {
+  Suspense,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  createContext,
+} from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Loading } from "./Loading";
 import { AccountCircle } from "@mui/icons-material";
@@ -9,13 +16,26 @@ import Swal from "sweetalert2";
 import MenuIcon from "@mui/icons-material/Menu";
 import { IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import PageHelmet from "./PageHelmet";
+import { ToggleSlider } from "react-toggle-slider";
 
+export const DepartmentContext = createContext({ departmentState: false });
+
+// const DepartmentContext = createC
+const departmentPath = [
+  "/CLAIMS/dashboard/task/production/policy/",
+  "/CLAIMS/dashboard/task/production/policy/fire",
+  "/CLAIMS/dashboard/task/production/policy/marine",
+  "/CLAIMS/dashboard/task/production/policy/bonds",
+  "/CLAIMS/dashboard/task/production/policy/mspr",
+  "/CLAIMS/dashboard/task/production/policy/pa",
+  "/CLAIMS/dashboard/task/production/policy/cgl",
+];
 function Container({ showheader = true }: any) {
+  const [departmentState, setDepartmentState] = useState(false);
+
   const navigate = useNavigate();
 
   const [showSidebar, setShowSidebar] = useState(false);
-
   const { myAxios, user, setUser } = useContext(UserContext);
   const department = useRef(process.env.REACT_APP_DEPARTMENT);
   const menuData = [
@@ -160,8 +180,6 @@ function Container({ showheader = true }: any) {
 
   return (
     <>
-      <PageHelmet title="Loading..." />
-
       {isLaodingLogout && <Loading />}
       {showheader && (
         <header id="desk-header">
@@ -221,6 +239,22 @@ function Container({ showheader = true }: any) {
               columnGap: "10px",
             }}
           >
+            {departmentPath.includes(window.location.pathname) && (
+              <div
+                style={{
+                  display: "flex",
+                  columnGap: "4px",
+                  alignItems: "center",
+                }}
+              >
+                <div>{departmentState ? "UCSMI" : "UMIS"}</div>
+                <ToggleSlider
+                  barHeight={20}
+                  barWidth={40}
+                  onToggle={(state) => setDepartmentState(state)}
+                />
+              </div>
+            )}
             <div className="profile-sub-menu">
               <span>{department.current}</span>
             </div>
@@ -258,7 +292,9 @@ function Container({ showheader = true }: any) {
                 </ul>
               )}
             </div>
-            <Clock />
+            <div style={{ width: "100px" }}>
+              <Clock />
+            </div>
           </div>
         </header>
       )}
@@ -272,7 +308,38 @@ function Container({ showheader = true }: any) {
             >
               <MenuIcon />
             </IconButton>
-            <Clock />
+            <div
+              style={{
+                display: "flex",
+                columnGap: "10px",
+                alignItems: "center",
+              }}
+            >
+              {departmentPath.includes(window.location.pathname) && (
+                <div
+                  style={{
+                    display: "flex",
+                    columnGap: "7px",
+                    alignItems: "center",
+                  }}
+                >
+                  <div>{departmentState ? "UCSMI" : "UMIS"}</div>
+                  <ToggleSlider
+                    barHeight={20}
+                    barWidth={40}
+                    onToggle={(state) => setDepartmentState(state)}
+                  />
+                </div>
+              )}
+              <div
+                style={{
+                  width: "80px",
+                  textAlign: "right",
+                }}
+              >
+                <Clock />
+              </div>
+            </div>
           </header>
           {showSidebar && (
             <div
@@ -385,9 +452,11 @@ function Container({ showheader = true }: any) {
           )}
         </>
       )}
-      <Suspense fallback={<Loading />}>
-        <Outlet />
-      </Suspense>
+      <DepartmentContext.Provider value={{ departmentState }}>
+        <Suspense fallback={<Loading />}>
+          <Outlet />
+        </Suspense>
+      </DepartmentContext.Provider>
     </>
   );
 }
@@ -395,8 +464,6 @@ function Container({ showheader = true }: any) {
 export const NotFoundContainer = () => {
   return (
     <>
-      <PageHelmet title="Loading..." />
-
       <Suspense fallback={<Loading />}>
         <Outlet />
       </Suspense>

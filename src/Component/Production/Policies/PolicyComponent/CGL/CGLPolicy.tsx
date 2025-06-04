@@ -33,8 +33,11 @@ import {
 } from "../../../../UpwardFields";
 import { formatNumber } from "../../../../Dashboard";
 import { wait } from "../../../../../Lib/wait";
+import { DepartmentContext } from "../../../../Container";
 
 export default function CGLPolicy() {
+  const { departmentState } = useContext(DepartmentContext);
+
   const { myAxios, user } = useContext(UserContext);
   const [mode, setMode] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
@@ -403,6 +406,7 @@ export default function CGLPolicy() {
             ..._policyInformationRef.current.getRefsValue(),
             subAccountRef: subAccountRef.current?.value,
             userCodeConfirmation,
+            department: departmentState === false ? "UMIS" : "UCSMI",
           };
           mutateAddUpdate(data);
         },
@@ -413,6 +417,7 @@ export default function CGLPolicy() {
           const data = {
             ..._policyInformationRef.current.getRefsValue(),
             subAccountRef: subAccountRef.current?.value,
+            department: departmentState === false ? "UMIS" : "UCSMI",
           };
           mutateAddUpdate(data);
         },

@@ -20,10 +20,7 @@ const buttons = [
   { label: "Denied Claims", id: 2 },
   { label: "Cancel Claim", id: 3 },
   { label: "Reimbursement", id: 4 },
-  // { label: "Denied Due To Balance ", id: 4 },
-  // { label: "CNC", id: 5 },
-  // { label: "For Recovery", id: 6 },
-  // { label: "Claims Reported To ALPHA", id: 7 },
+
 ];
 
 export default function ClaimsReport() {
@@ -135,6 +132,7 @@ export default function ClaimsReport() {
                 linkPdf={`/report/approved-settled-pdf`}
                 linkExcel={`/report/approved-settled-excel`}
                 hideReport={false}
+                reportHeader={"APPROVED/SETTLED CLAIM REPORT"}
               />
             )}
             {buttonSelected === 1 && (
@@ -143,6 +141,7 @@ export default function ClaimsReport() {
                 linkPdf={`/report/ongoing-pdf`}
                 linkExcel={`/report/ongoing-excel`}
                 hideReport={true}
+                reportHeader={"ONGOING CLAIM REPORT"}
               />
             )}
             {buttonSelected === 2 && (
@@ -151,6 +150,7 @@ export default function ClaimsReport() {
                 linkPdf={`/report/denied-pdf`}
                 linkExcel={`/report/denied-excel`}
                 hideReport={true}
+                reportHeader={"DENIED CLAIM REPORT"}
               />
             )}
             {buttonSelected === 3 && (
@@ -159,6 +159,7 @@ export default function ClaimsReport() {
                 linkPdf={`/report/cancel-pdf`}
                 linkExcel={`/report/cancel-excel`}
                 hideReport={true}
+                reportHeader={"CANCEL CLAIM REPORT"}
               />
             )}
             {buttonSelected === 4 && (
@@ -167,6 +168,7 @@ export default function ClaimsReport() {
                 linkPdf={`/report/reimbursement-pdf`}
                 linkExcel={`/report/reimbursement-excel`}
                 hideReport={true}
+                reportHeader={'Reimbursement CLAIM REPORT'}
               />
             )}
           </div>
@@ -176,7 +178,13 @@ export default function ClaimsReport() {
   );
 }
 
-const ClaimStatus = ({ titleHeader, linkPdf, linkExcel, hideReport }: any) => {
+const ClaimStatus = ({
+  titleHeader,
+  linkPdf,
+  linkExcel,
+  hideReport,
+  reportHeader,
+}: any) => {
   const { user, myAxios } = useContext(UserContext);
   const [title, setTitle] = useState(
     generateTitle({
@@ -242,7 +250,12 @@ const ClaimStatus = ({ titleHeader, linkPdf, linkExcel, hideReport }: any) => {
           window.open(
             `/${
               process.env.REACT_APP_DEPARTMENT
-            }/dashboard/report?pdf=${encodeURIComponent(pdfUrl)}`,
+            }/dashboard/report?params=${encodeURIComponent(
+              JSON.stringify({
+                pdfUrl,
+                reportHeader,
+              })
+            )}`,
             "_blank"
           );
         }
@@ -790,6 +803,7 @@ const ReimbursementReport = ({
   linkPdf,
   linkExcel,
   hideReport,
+  reportHeader
 }: any) => {
   const { user, myAxios } = useContext(UserContext);
   const [title, setTitle] = useState(
@@ -831,7 +845,12 @@ const ReimbursementReport = ({
           window.open(
             `/${
               process.env.REACT_APP_DEPARTMENT
-            }/dashboard/report?pdf=${encodeURIComponent(pdfUrl)}`,
+            }/dashboard/report?params=${encodeURIComponent(
+              JSON.stringify({
+                pdfUrl,
+                reportHeader,
+              })
+            )}`,
             "_blank"
           );
         }

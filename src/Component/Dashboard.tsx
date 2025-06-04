@@ -33,7 +33,6 @@ import "../Style/DragDropFileUpload.css";
 import { format } from "date-fns";
 import PageHelmet from "./PageHelmet";
 import "../Style/dashboard.css";
-import { brown } from "@mui/material/colors";
 
 const columns = [
   { key: "reference", label: "REF#", width: 100 },
@@ -68,7 +67,6 @@ const columns = [
   { key: "files", label: "", width: 0, hide: true },
 ];
 export const DEPARTMENT = process.env.REACT_APP_DEPARTMENT;
-
 const Dashboard = forwardRef(({}, ref) => {
   const [checkCodeLoading, setCheckCodeLoading] = useState(false);
   const [dropDownButton, setDropDownButton] = useState<Array<any>>([]);
@@ -107,6 +105,33 @@ const Dashboard = forwardRef(({}, ref) => {
     if (policySearchRef.current) {
       policySearchRef.current.disabled = disabled;
     }
+  });
+
+  const { isPending: isLoadingDocument, mutate: mutateDocument } = useMutation({
+    mutationKey: ["document-pdf"],
+    mutationFn: async (variable: any) =>
+      await myAxios.post(`/get-document`, variable, {
+        responseType: "arraybuffer",
+        headers: {
+          Authorization: `Bearer ${user?.accessToken}`,
+        },
+      }),
+    onSuccess: (response) => {
+      const pdfBlob = new Blob([response.data], { type: "application/pdf" });
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      const reportHeader = "wqeqw";
+      window.open(
+        `/${
+          process.env.REACT_APP_DEPARTMENT
+        }/dashboard/report?params=${encodeURIComponent(
+          JSON.stringify({
+            pdfUrl,
+            reportHeader,
+          })
+        )}`,
+        "_blank"
+      );
+    },
   });
 
   const { isPending: isLoadingClaimId, mutate: mutateClaimId } = useMutation({
@@ -445,6 +470,7 @@ const Dashboard = forwardRef(({}, ref) => {
   });
   useEffect(() => {
     if (policyDetails) {
+      console.log(policyDetails);
       const totalGross = parseFloat(
         policyDetails.payment.totalGross[0].TotalDue
       );
@@ -700,6 +726,29 @@ const Dashboard = forwardRef(({}, ref) => {
 
     for (const itm of data) {
       const fileByMeta: any = [];
+      console.log(
+      {
+          reference: itm[0],
+          claim_type: itm[1],
+          date_report: itm[2],
+          date_accident: itm[3],
+          claimStatus: itm[4],
+          date_receive: itm[5],
+          amount_claim: itm[6],
+          amount_approved: itm[7],
+          amount_participation: itm[8],
+          amount_net: itm[9],
+          name_ttpd: itm[10],
+          remarks: itm[11],
+          date_report_not_formated: itm[14],
+          date_accident_not_formated: itm[15],
+          date_receive_not_formated: itm[16],
+          date_approved_not_formated: itm[13],
+          status: itm[17],
+          documentId: itm[18],
+          claimId: claimNoRef.current?.value,
+        }
+      );
       formData.append(
         "metadata",
         JSON.stringify({
@@ -826,7 +875,8 @@ const Dashboard = forwardRef(({}, ref) => {
 
   return (
     <>
-      {(isLoadingSave ||
+      {(isLoadingDocument ||
+        isLoadingSave ||
         isLoadingSave ||
         isLoadingClaimId ||
         isLoadingSelectedPolicySearch ||
@@ -895,7 +945,7 @@ const Dashboard = forwardRef(({}, ref) => {
                   datagridview.focus();
                 }
               },
-              style: { width: "500px" },
+              style: { width: "500px", height: "18px !important" },
             }}
             icon={<SearchIcon sx={{ fontSize: "18px" }} />}
             onIconClick={(e) => {
@@ -1078,7 +1128,10 @@ const Dashboard = forwardRef(({}, ref) => {
                   disabled: claimMode === "",
                   className: "search-input-up-on-key-down",
                   type: "search",
-                  style: { width: "calc(100% - 90px)" },
+                  style: {
+                    width: "calc(100% - 90px)",
+                    height: "18px !important",
+                  },
                   onKeyDown: (e) => {
                     if (e.key === "Enter" || e.key === "NumpadEnter") {
                       e.preventDefault();
@@ -1174,6 +1227,25 @@ const Dashboard = forwardRef(({}, ref) => {
                 >
                   Claim Sheet
                 </Button>
+                <Button
+                  sx={{
+                    height: "22px",
+                    fontSize: "11px",
+                  }}
+                  disabled={
+                    policyDetails === null ||
+                    tableRef.current?.getData().length <= 0
+                  }
+                  onClick={() => {
+                    mutateDocument({
+                      claimNo: claimNoRef.current?.value,
+                    });
+                  }}
+                  color="success"
+                  variant="contained"
+                >
+                  Documents
+                </Button>
               </div>
             </div>
           </div>
@@ -1266,6 +1338,9 @@ const Dashboard = forwardRef(({}, ref) => {
           style={{
             width: "99%",
             boxSizing: "border-box",
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
           }}
         >
           <DataGridViewReact
