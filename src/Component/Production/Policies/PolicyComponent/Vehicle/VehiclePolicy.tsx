@@ -35,11 +35,9 @@ import {
 } from "../../../../../Lib/confirmationAlert";
 import { Loading } from "../../../../Loading";
 import { wait } from "../../../../../Lib/wait";
-import { DepartmentContext } from "../../../../Container";
+import { isMobile } from "react-device-detect";
 
 export default function VehiclePolicy() {
-  const { departmentState } = useContext(DepartmentContext);
-
   const { user, myAxios } = useContext(UserContext);
   const [policy, setPolicy] = useState(
     window.localStorage.getItem("__policy__")
@@ -72,7 +70,6 @@ export default function VehiclePolicy() {
           policy={policy}
           setPolicy={setPolicy}
           _policy={_policy}
-          departmentState={departmentState === false ? "UMIS" : "UCSMI"}
         />
       ) : (
         <TPLPolicy
@@ -81,21 +78,13 @@ export default function VehiclePolicy() {
           policy={policy}
           setPolicy={setPolicy}
           _policy={_policy}
-          departmentState={departmentState === false ? "UMIS" : "UCSMI"}
         />
       )}
     </div>
   );
 }
 
-function COMPolicy({
-  user,
-  myAxios,
-  policy,
-  setPolicy,
-  _policy,
-  departmentState,
-}: any) {
+function COMPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
   const [width, setWidth] = useState(window.innerWidth);
 
   const [mode, setMode] = useState("");
@@ -104,16 +93,17 @@ function COMPolicy({
     window.localStorage.getItem("__policy_type__")
   );
   const searchRef = useRef<HTMLInputElement>(null);
+  const departmentRef = useRef<HTMLSelectElement>(null);
   const regularPolicyRef = useRef<any>(null);
   const temporaryPolicyRef = useRef<any>(null);
   const subAccountRef = useRef<HTMLSelectElement>(null);
   const subAccountRef_ = useRef<any>(null);
   function handleSave() {
     if (policyType === "TEMP") {
-      return temporaryPolicyRef.current.handleOnSave(mode, departmentState);
+      return temporaryPolicyRef.current.handleOnSave(mode);
     } else {
       if (policyType === "REG") {
-        return regularPolicyRef.current.handleOnSave(mode, departmentState);
+        return regularPolicyRef.current.handleOnSave(mode);
       } else {
       }
     }
@@ -277,41 +267,78 @@ function COMPolicy({
           }}
         >
           <div className="search-container-mobile-buttons">
-            <SelectInput
-              containerClassName="custom-input adjust-label"
-              ref={_policy}
-              label={{
-                title: "Policy: ",
-                style: {
-                  fontSize: "12px",
-                  fontWeight: "bold",
-                  width: "50px",
-                  display: "none",
-                },
+            <div
+              style={{
+                width: "100%",
+                height: "auto",
+                display: "flex",
+                alignItems: "center",
+                columnGap: "5px",
               }}
-              select={{
-                style: { width: "70px", height: "20px" },
-                value: policy,
-                onKeyDown: (e) => {
-                  if (e.code === "NumpadEnter" || e.code === "Enter") {
-                    e.preventDefault();
-                  }
-                },
-                onChange: (e) => {
-                  setPolicy(e.currentTarget.value);
-                },
-              }}
-              datasource={[
-                {
-                  key: "COM",
-                },
-                {
-                  key: "TPL",
-                },
-              ]}
-              values={"key"}
-              display={"key"}
-            />
+            >
+              <SelectInput
+                containerClassName="custom-input adjust-label"
+                ref={_policy}
+                label={{
+                  title: "Policy: ",
+                  style: {
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    width: "50px",
+                    display: "none",
+                  },
+                }}
+                select={{
+                  style: { flex: 1, height: "20px" },
+                  value: policy,
+                  onKeyDown: (e) => {
+                    if (e.code === "NumpadEnter" || e.code === "Enter") {
+                      e.preventDefault();
+                    }
+                  },
+                  onChange: (e) => {
+                    setPolicy(e.currentTarget.value);
+                  },
+                }}
+                datasource={[
+                  {
+                    key: "COM",
+                  },
+                  {
+                    key: "TPL",
+                  },
+                ]}
+                values={"key"}
+                display={"key"}
+              />
+              <SelectInput
+                containerClassName="custom-input adjust-label"
+                selectRef={departmentRef}
+                label={{
+                  title: "Policy: ",
+                  style: {
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    width: "50px",
+                    display: "none",
+                  },
+                }}
+                select={{
+                  style: { flex: 1, height: "20px" },
+                  defaultValue: "UMIS",
+                }}
+                datasource={[
+                  {
+                    key: "UMIS",
+                  },
+                  {
+                    key: "UCSMI",
+                  },
+                ]}
+                values={"key"}
+                display={"key"}
+              />
+            </div>
             <div
               style={{
                 display: "flex",
@@ -525,6 +552,33 @@ function COMPolicy({
               }
             }}
             inputRef={searchRef}
+          />
+          <SelectInput
+            containerClassName="custom-input adjust-label"
+            selectRef={departmentRef}
+            label={{
+              title: "Policy: ",
+              style: {
+                fontSize: "12px",
+                fontWeight: "bold",
+                width: "50px",
+                display: "none",
+              },
+            }}
+            select={{
+              style: { width: "70px", height: "20px" },
+              defaultValue: "UMIS",
+            }}
+            datasource={[
+              {
+                key: "UMIS",
+              },
+              {
+                key: "UCSMI",
+              },
+            ]}
+            values={"key"}
+            display={"key"}
           />
         </div>
         <div
@@ -910,6 +964,7 @@ function COMPolicy({
           policyType={policyType}
           mode={mode}
           policy={policy}
+          departmentRef={departmentRef}
         />
       ) : (
         <COMTemporary
@@ -920,9 +975,9 @@ function COMPolicy({
           policyType={policyType}
           mode={mode}
           policy={policy}
+          departmentRef={departmentRef}
         />
       )}
-
       <div
         className="button-action-mobile"
         style={{
@@ -1064,6 +1119,7 @@ const COMRegular = forwardRef(
       searchPolicyNo,
       mode,
       policy,
+      departmentRef,
     }: any,
     ref
   ) => {
@@ -1265,6 +1321,10 @@ const COMRegular = forwardRef(
 
           if (policy === "COM" && dtVP.length <= 0) {
             return alert("Unable to load data!");
+          }
+
+          if (departmentRef.current) {
+            departmentRef.current.value = dt[0].Department;
           }
 
           if (dtVP1.length > 0) {
@@ -1576,6 +1636,9 @@ const COMRegular = forwardRef(
           if (subAccountRef.current) {
             subAccountRef.current.value = "HO";
           }
+          if (departmentRef.current) {
+            departmentRef.current.value = "UMIS";
+          }
           setMode("");
           return Swal.fire({
             position: "center",
@@ -1621,6 +1684,9 @@ const COMRegular = forwardRef(
           if (subAccountRef.current) {
             subAccountRef.current.value = "HO";
           }
+          if (departmentRef.current) {
+            departmentRef.current.value = "UMIS";
+          }
           setMode("");
 
           return Swal.fire({
@@ -1642,7 +1708,7 @@ const COMRegular = forwardRef(
     });
 
     useImperativeHandle(ref, () => ({
-      handleOnSave: (mode: string, department: string) => {
+      handleOnSave: (mode: string) => {
         if (
           _policyInformationRef.current.requiredField() ||
           _policyTypeDetailsRef.current.requiredField() ||
@@ -1663,7 +1729,7 @@ const COMRegular = forwardRef(
                 form_action: policyType,
                 subAccountRef: subAccountRef.current?.value,
                 userCodeConfirmation,
-                department,
+                department: departmentRef.current?.value,
               };
               mutatateUpdate(data);
             },
@@ -1678,7 +1744,7 @@ const COMRegular = forwardRef(
                 policy: window.localStorage.getItem("__policy__"),
                 form_action: policyType,
                 subAccountRef: subAccountRef.current?.value,
-                department,
+                department: departmentRef.current?.value,
               };
               mutatateSave(data);
             },
@@ -1698,6 +1764,9 @@ const COMRegular = forwardRef(
         _policyPremiumRef.current.resetRefs();
         if (subAccountRef.current) {
           subAccountRef.current.value = "HO";
+        }
+        if (departmentRef.current) {
+          departmentRef.current.value = "UMIS";
         }
         setMode("");
       },
@@ -1987,7 +2056,17 @@ const COMRegular = forwardRef(
   }
 );
 const COMTemporary = forwardRef(
-  ({ selectedPage, policyType, subAccountRef, setMode, policy }: any, ref) => {
+  (
+    {
+      selectedPage,
+      policyType,
+      subAccountRef,
+      setMode,
+      policy,
+      departmentRef,
+    }: any,
+    ref
+  ) => {
     const { user, myAxios } = useContext(UserContext);
     const _policyInformationRef = useRef<any>(null);
     const _policyTypeDetailsRef = useRef<any>(null);
@@ -2197,6 +2276,10 @@ const COMTemporary = forwardRef(
           if (subAccountRef.current) {
             subAccountRef.current.value = "HO";
           }
+
+          if (departmentRef.current) {
+            departmentRef.current.value = "UMIS";
+          }
           setMode("");
           mutateTempID();
           return Swal.fire({
@@ -2248,6 +2331,9 @@ const COMTemporary = forwardRef(
           if (subAccountRef.current) {
             subAccountRef.current.value = "HO";
           }
+          if (departmentRef.current) {
+            departmentRef.current.value = "UMIS";
+          }
           setMode("");
           mutateTempID();
 
@@ -2291,6 +2377,10 @@ const COMTemporary = forwardRef(
 
           if (dt.length <= 0 || dtVP.length <= 0) {
             return alert("Unable to load data!");
+          }
+
+          if (departmentRef.current) {
+            departmentRef.current.value = dt[0].Department;
           }
           if (dt.length > 0) {
             if (subAccountRef.current) {
@@ -2594,7 +2684,7 @@ const COMTemporary = forwardRef(
       },
     });
     useImperativeHandle(ref, () => ({
-      handleOnSave: (mode: string, department: string) => {
+      handleOnSave: (mode: string) => {
         if (
           _policyInformationRef.current.requiredField() ||
           _policyTypeDetailsRef.current.requiredField() ||
@@ -2615,7 +2705,7 @@ const COMTemporary = forwardRef(
                 form_action: policyType,
                 subAccountRef: subAccountRef.current?.value,
                 userCodeConfirmation,
-                department,
+                department: departmentRef.current?.value,
               };
               mutatateUpdate(data);
             },
@@ -2630,7 +2720,7 @@ const COMTemporary = forwardRef(
                 policy: window.localStorage.getItem("__policy__"),
                 form_action: policyType,
                 subAccountRef: subAccountRef.current?.value,
-                department,
+                department: departmentRef.current?.value,
               };
               mutatateSave(data);
             },
@@ -2651,6 +2741,9 @@ const COMTemporary = forwardRef(
         _policyPremiumRef.current.resetRefs();
         if (subAccountRef.current) {
           subAccountRef.current.value = "HO";
+        }
+        if (departmentRef.current) {
+          departmentRef.current.value = "UMIS";
         }
         setMode("");
       },
@@ -2930,30 +3023,26 @@ const COMTemporary = forwardRef(
     );
   }
 );
-function TPLPolicy({
-  user,
-  myAxios,
-  policy,
-  setPolicy,
-  _policy,
-  departmentState,
-}: any) {
+function TPLPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
+  const [width, setWidth] = useState(window.innerWidth);
+
   const [mode, setMode] = useState("");
   const [selectedPage, setSelectedPage] = useState(0);
   const [policyType, setPolicyType] = useState(
     window.localStorage.getItem("__policy_type__")
   );
   const searchRef = useRef<HTMLInputElement>(null);
+  const departmentRef = useRef<HTMLSelectElement>(null);
   const regularPolicyRef = useRef<any>(null);
   const subAccountRef = useRef<HTMLSelectElement>(null);
   const subAccountRef_ = useRef<any>(null);
   function handleSave() {
-    regularPolicyRef.current.handleOnSave(mode, departmentState);
+    regularPolicyRef.current.handleOnSave(mode);
   }
-  const { isPending: isLoading } = useMutation({
+  const { isPending: isLoading, mutate: mutateSubAcct } = useMutation({
     mutationKey: ["sub-account"],
-    mutationFn: () => {
-      return myAxios.get("/task/production/sub-account", {
+    mutationFn: (variables: any) => {
+      return myAxios.post("/task/production/sub-account", variables, {
         headers: {
           Authorization: `Bearer ${user?.accessToken}`,
         },
@@ -2961,7 +3050,8 @@ function TPLPolicy({
     },
     onSuccess(response: any) {
       wait(100).then(() => {
-        subAccountRef_.current.setDataSource(response.data?.data);
+        if (subAccountRef_.current)
+          subAccountRef_.current.setDataSource(response.data?.data);
         wait(100).then(() => {
           if (subAccountRef.current) subAccountRef.current.value = "HO";
         });
@@ -2998,8 +3088,30 @@ function TPLPolicy({
     },
   });
 
+  const mutateSubAcctRef = useRef(mutateSubAcct);
+  useEffect(() => {
+    mutateSubAcctRef.current({});
+  }, []);
+  useEffect(() => {
+    const handleResize = () => {
+      setWidth(window.innerWidth);
+
+      setTimeout(() => {
+        mutateSubAcctRef.current({});
+      }, 500);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    // Cleanup on unmount
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   return (
     <>
+      {isLoading && <Loading />}
       <PolicySearchUpwardTableModalSearch />
       <div
         className="header"
@@ -3019,39 +3131,76 @@ function TPLPolicy({
           }}
         >
           <div className="search-container-mobile-buttons">
-            <SelectInput
-              ref={_policy}
-              label={{
-                title: "Policy: ",
-                style: {
-                  fontSize: "12px",
-                  fontWeight: "bold",
-                  width: "50px",
-                },
+            <div
+              style={{
+                width: "100%",
+                height: "auto",
+                display: "flex",
+                alignItems: "center",
+                columnGap: "5px",
               }}
-              select={{
-                style: { width: "70px", height: "20px" },
-                value: policy,
-                onKeyDown: (e) => {
-                  if (e.code === "NumpadEnter" || e.code === "Enter") {
-                    e.preventDefault();
-                  }
-                },
-                onChange: (e) => {
-                  setPolicy(e.currentTarget.value);
-                },
-              }}
-              datasource={[
-                {
-                  key: "COM",
-                },
-                {
-                  key: "TPL",
-                },
-              ]}
-              values={"key"}
-              display={"key"}
-            />
+            >
+              <SelectInput
+                ref={_policy}
+                label={{
+                  title: "Policy: ",
+                  style: {
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    width: "50px",
+                  },
+                }}
+                select={{
+                  style: { width: "70px", height: "20px" },
+                  value: policy,
+                  onKeyDown: (e) => {
+                    if (e.code === "NumpadEnter" || e.code === "Enter") {
+                      e.preventDefault();
+                    }
+                  },
+                  onChange: (e) => {
+                    setPolicy(e.currentTarget.value);
+                  },
+                }}
+                datasource={[
+                  {
+                    key: "COM",
+                  },
+                  {
+                    key: "TPL",
+                  },
+                ]}
+                values={"key"}
+                display={"key"}
+              />
+              <SelectInput
+                containerClassName="custom-input adjust-label"
+                label={{
+                  title: "Policy: ",
+                  style: {
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    width: "50px",
+                    display: "none",
+                  },
+                }}
+                selectRef={departmentRef}
+                select={{
+                  style: { flex: 1, height: "20px" },
+                  defaultValue: "UMIS",
+                }}
+                datasource={[
+                  {
+                    key: "UMIS",
+                  },
+                  {
+                    key: "UCSMI",
+                  },
+                ]}
+                values={"key"}
+                display={"key"}
+              />
+            </div>
             <div
               style={{
                 display: "flex",
@@ -3234,6 +3383,33 @@ function TPLPolicy({
             }}
             inputRef={searchRef}
           />
+          <SelectInput
+            containerClassName="custom-input adjust-label"
+            selectRef={departmentRef}
+            label={{
+              title: "Policy: ",
+              style: {
+                fontSize: "12px",
+                fontWeight: "bold",
+                width: "50px",
+                display: "none",
+              },
+            }}
+            select={{
+              style: { width: "70px", height: "20px" },
+              defaultValue: "UMIS",
+            }}
+            datasource={[
+              {
+                key: "UMIS",
+              },
+              {
+                key: "UCSMI",
+              },
+            ]}
+            values={"key"}
+            display={"key"}
+          />
         </div>
         <div
           className="button-action-desktop"
@@ -3412,9 +3588,7 @@ function TPLPolicy({
           >
             Policy Premium
           </Button>
-          {isLoading ? (
-            <div>Loading..</div>
-          ) : (
+          {width > 768 && (
             <SelectInput
               ref={subAccountRef_}
               label={{
@@ -3440,61 +3614,59 @@ function TPLPolicy({
             />
           )}
         </div>
-        <div
-          className="mobile-choices-buttons"
-          style={{ display: "flex", columnGap: "2px" }}
-        >
-          <Button
-            sx={{
-              height: "23px",
-              fontSize: "11px",
-              background: selectedPage === 0 ? blue[700] : grey[700],
-              "&:hover": {
-                background: selectedPage === 0 ? blue[800] : grey[800],
-              },
-            }}
-            variant="contained"
-            onClick={() => {
-              setSelectedPage(0);
-            }}
+        {width < 768 && (
+          <div
+            className="mobile-choices-buttons"
+            style={{ display: "flex", columnGap: "2px" }}
           >
-            Information
-          </Button>
-          <Button
-            sx={{
-              height: "23px",
-              fontSize: "11px",
-              background: selectedPage === 1 ? blue[700] : grey[700],
-              "&:hover": {
-                background: selectedPage === 1 ? blue[800] : grey[800],
-              },
-            }}
-            onClick={() => {
-              setSelectedPage(1);
-            }}
-            variant="contained"
-          >
-            Details
-          </Button>
-          <Button
-            sx={{
-              height: "23px",
-              fontSize: "11px",
-              background: selectedPage === 2 ? blue[700] : grey[700],
-              "&:hover": {
-                background: selectedPage === 2 ? blue[800] : grey[800],
-              },
-            }}
-            onClick={() => {
-              setSelectedPage(2);
-            }}
-            variant="contained"
-          >
-            Premium
-          </Button>
-          {isLoading ? (
-            <div>Loading..</div>
-          ) : (
+            <Button
+              sx={{
+                height: "23px",
+                fontSize: "11px",
+                background: selectedPage === 0 ? blue[700] : grey[700],
+                "&:hover": {
+                  background: selectedPage === 0 ? blue[800] : grey[800],
+                },
+              }}
+              variant="contained"
+              onClick={() => {
+                setSelectedPage(0);
+              }}
+            >
+              Information
+            </Button>
+            <Button
+              sx={{
+                height: "23px",
+                fontSize: "11px",
+                background: selectedPage === 1 ? blue[700] : grey[700],
+                "&:hover": {
+                  background: selectedPage === 1 ? blue[800] : grey[800],
+                },
+              }}
+              onClick={() => {
+                setSelectedPage(1);
+              }}
+              variant="contained"
+            >
+              Details
+            </Button>
+            <Button
+              sx={{
+                height: "23px",
+                fontSize: "11px",
+                background: selectedPage === 2 ? blue[700] : grey[700],
+                "&:hover": {
+                  background: selectedPage === 2 ? blue[800] : grey[800],
+                },
+              }}
+              onClick={() => {
+                setSelectedPage(2);
+              }}
+              variant="contained"
+            >
+              Premium
+            </Button>
             <SelectInput
               ref={subAccountRef_}
               label={{
@@ -3519,8 +3691,8 @@ function TPLPolicy({
               values={"Acronym"}
               display={"Acronym"}
             />
-          )}
-        </div>
+          </div>
+        )}
       </div>
       <COMRegular
         setMode={setMode}
@@ -3530,8 +3702,8 @@ function TPLPolicy({
         policyType={policyType}
         mode={mode}
         policy={policy}
+        departmentRef={departmentRef}
       />
-
       <div
         className="button-action-mobile"
         style={{

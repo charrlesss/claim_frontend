@@ -2,17 +2,16 @@ import { Chip,  } from "@mui/material";
 import { blue } from "@mui/material/colors";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import "../../../Style/monbileview/production/production.css";
-import { useContext } from "react";
-import { DepartmentContext } from "../../Container";
 
 export default function Policy() {
-
   return (
     <div
       className="main"
       style={{
         flex: 1,
         padding: "5px",
+
+
         msFlexDirection: "column",
         background: "#F1F1F1",
         position: "relative",
@@ -23,13 +22,11 @@ export default function Policy() {
     </div>
   );
 }
-
 const chipStyle = {
   "& .MuiChip-label": {
     pointerEvents: "none",
   },
 };
-
 const chips = [
   {
     label: "Vehicle Policy",
@@ -60,7 +57,6 @@ const chips = [
     link: `/${process.env.REACT_APP_DEPARTMENT}/dashboard/task/production/policy/cgl`,
   },
 ];
-
 function ChipsButton() {
   const location = useLocation();
   const navigate = useNavigate();

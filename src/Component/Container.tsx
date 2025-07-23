@@ -18,7 +18,6 @@ import { IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { ToggleSlider } from "react-toggle-slider";
 
-export const DepartmentContext = createContext({ departmentState: false });
 
 // const DepartmentContext = createC
 const departmentPath = [
@@ -31,7 +30,6 @@ const departmentPath = [
   "/CLAIMS/dashboard/task/production/policy/cgl",
 ];
 function Container({ showheader = true }: any) {
-  const [departmentState, setDepartmentState] = useState(false);
 
   const navigate = useNavigate();
 
@@ -239,22 +237,7 @@ function Container({ showheader = true }: any) {
               columnGap: "10px",
             }}
           >
-            {departmentPath.includes(window.location.pathname) && (
-              <div
-                style={{
-                  display: "flex",
-                  columnGap: "4px",
-                  alignItems: "center",
-                }}
-              >
-                <div>{departmentState ? "UCSMI" : "UMIS"}</div>
-                <ToggleSlider
-                  barHeight={20}
-                  barWidth={40}
-                  onToggle={(state) => setDepartmentState(state)}
-                />
-              </div>
-            )}
+   
             <div className="profile-sub-menu">
               <span>{department.current}</span>
             </div>
@@ -315,22 +298,7 @@ function Container({ showheader = true }: any) {
                 alignItems: "center",
               }}
             >
-              {departmentPath.includes(window.location.pathname) && (
-                <div
-                  style={{
-                    display: "flex",
-                    columnGap: "7px",
-                    alignItems: "center",
-                  }}
-                >
-                  <div>{departmentState ? "UCSMI" : "UMIS"}</div>
-                  <ToggleSlider
-                    barHeight={20}
-                    barWidth={40}
-                    onToggle={(state) => setDepartmentState(state)}
-                  />
-                </div>
-              )}
+       
               <div
                 style={{
                   width: "80px",
@@ -452,11 +420,9 @@ function Container({ showheader = true }: any) {
           )}
         </>
       )}
-      <DepartmentContext.Provider value={{ departmentState }}>
         <Suspense fallback={<Loading />}>
           <Outlet />
         </Suspense>
-      </DepartmentContext.Provider>
     </>
   );
 }

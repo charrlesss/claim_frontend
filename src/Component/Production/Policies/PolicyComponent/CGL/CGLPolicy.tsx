@@ -33,17 +33,16 @@ import {
 } from "../../../../UpwardFields";
 import { formatNumber } from "../../../../Dashboard";
 import { wait } from "../../../../../Lib/wait";
-import { DepartmentContext } from "../../../../Container";
 
 export default function CGLPolicy() {
-  const { departmentState } = useContext(DepartmentContext);
-
   const { myAxios, user } = useContext(UserContext);
   const [mode, setMode] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
   const _policyInformationRef = useRef<any>(null);
   const subAccountRef = useRef<HTMLSelectElement>(null);
   const subAccountRef_ = useRef<any>(null);
+
+  const departmentRef = useRef<HTMLSelectElement>(null);
 
   const { isPending: isLoadingAccount, mutate: mutateAccount } = useMutation({
     mutationKey: ["account"],
@@ -106,6 +105,9 @@ export default function CGLPolicy() {
       if (res.data.success) {
         setMode("");
         _policyInformationRef.current.resetRefs();
+        if (departmentRef.current) {
+          departmentRef.current.value = "UMIS";
+        }
 
         return Swal.fire({
           position: "center",
@@ -142,7 +144,10 @@ export default function CGLPolicy() {
       onSuccess: async (res) => {
         if (res.data.success) {
           const selected = res.data.data[0];
-          console.log(selected);
+
+          if (departmentRef.current) {
+            departmentRef.current.value = selected.Department;
+          }
           // client
           if (_policyInformationRef.current.getRefs().clientIDRef.current) {
             _policyInformationRef.current.getRefs().clientIDRef.current.value =
@@ -406,8 +411,9 @@ export default function CGLPolicy() {
             ..._policyInformationRef.current.getRefsValue(),
             subAccountRef: subAccountRef.current?.value,
             userCodeConfirmation,
-            department: departmentState === false ? "UMIS" : "UCSMI",
+            department: departmentRef.current?.value,
           };
+
           mutateAddUpdate(data);
         },
       });
@@ -417,7 +423,7 @@ export default function CGLPolicy() {
           const data = {
             ..._policyInformationRef.current.getRefsValue(),
             subAccountRef: subAccountRef.current?.value,
-            department: departmentState === false ? "UMIS" : "UCSMI",
+            department: departmentRef.current?.value,
           };
           mutateAddUpdate(data);
         },
@@ -490,6 +496,33 @@ export default function CGLPolicy() {
             }}
             inputRef={searchRef}
           />
+          <SelectInput
+            containerClassName="custom-input adjust-label"
+            selectRef={departmentRef}
+            label={{
+              title: "Policy: ",
+              style: {
+                fontSize: "12px",
+                fontWeight: "bold",
+                width: "50px",
+                display: "none",
+              },
+            }}
+            select={{
+              style: { flex: 1, height: "20px" },
+              defaultValue: "UMIS",
+            }}
+            datasource={[
+              {
+                key: "UMIS",
+              },
+              {
+                key: "UCSMI",
+              },
+            ]}
+            values={"key"}
+            display={"key"}
+          />
           <div
             className="button-action-desktop"
             style={{
@@ -552,6 +585,9 @@ export default function CGLPolicy() {
                   if (result.isConfirmed) {
                     setMode("");
                     _policyInformationRef.current.resetRefs();
+                    if (departmentRef.current) {
+                      departmentRef.current.value = "UMIS";
+                    }
                   }
                 });
               }}
@@ -663,6 +699,9 @@ export default function CGLPolicy() {
               if (result.isConfirmed) {
                 setMode("");
                 _policyInformationRef.current.resetRefs();
+                if (departmentRef.current) {
+                  departmentRef.current.value = "UMIS";
+                }
               }
             });
           }}

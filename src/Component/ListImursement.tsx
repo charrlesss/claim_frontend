@@ -2,7 +2,7 @@ import { forwardRef, useContext, useEffect, useRef, useState } from "react";
 import { wait } from "../Lib/wait";
 import {
   DataGridViewReact,
-  useUpwardTableModalSearchSafeMode,
+  DataGridViewReactUpgraded,
 } from "./DataGridViewReact";
 import { Loading } from "./Loading";
 import {
@@ -49,7 +49,7 @@ const columns = [
     label: "REIMBURSEMENT RETURN DATE'S ",
     width: 300,
   },
-  { key: "amount_imbursement", label: "AMOUNT OF IMBURSEMENT", width: 170 },
+  { key: "amount_imbursement", label: "AMOUNT OF IMBURSEMENT", width: 200 },
   { key: "amount_approved", label: "AMOUNT APPROVED", width: 170 },
   { key: "payment", label: "PAYMENT ", width: 100 },
   {
@@ -70,6 +70,7 @@ const columns = [
 ];
 
 const ListImursement = forwardRef(({}, ref) => {
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const tableRef = useRef<any>(null);
@@ -85,16 +86,16 @@ const ListImursement = forwardRef(({}, ref) => {
   const typeclaimRef = useRef<HTMLSelectElement>(null);
   const dateClaimRef = useRef<HTMLInputElement>(null);
   const amountClaimRef = useRef<HTMLInputElement>(null);
-  const unitInsuredRef = useRef<HTMLTextAreaElement>(null);
-  const clientsNameRef = useRef<HTMLTextAreaElement>(null);
-  const tplNameRef = useRef<HTMLTextAreaElement>(null);
+  const unitInsuredRef = useRef<HTMLInputElement>(null);
+  const clientsNameRef = useRef<HTMLInputElement>(null);
+  const tplNameRef = useRef<HTMLInputElement>(null);
 
   const dateReleaseRef = useRef<HTMLInputElement>(null);
   const dateReturnUpwardRef = useRef<HTMLInputElement>(null);
   const amountImbursementRef = useRef<HTMLInputElement>(null);
   const amountApprovedRef = useRef<HTMLInputElement>(null);
   const paymentRef = useRef<HTMLSelectElement>(null);
-  const payeeRef = useRef<HTMLTextAreaElement>(null);
+  const payeeRef = useRef<HTMLInputElement>(null);
   const remarksRef = useRef<HTMLTextAreaElement>(null);
 
   const { isPending: isLoadingRefNo, mutate: mutateRefNo } = useMutation({
@@ -126,9 +127,7 @@ const ListImursement = forwardRef(({}, ref) => {
     onSuccess: (res) => {
       const response = res as any;
       wait(100).then(() => {
-        console.log(response.data.data);
-        if (tableRef.current)
-          tableRef.current.setDataFormated(response.data.data);
+        if (tableRef.current) tableRef.current.setData(response.data.data);
       });
     },
   });
@@ -163,7 +162,7 @@ const ListImursement = forwardRef(({}, ref) => {
 
         if (response.data.success) {
           wait(100).then(() => {
-            tableRef.current.setDataFormated(response.data.data);
+            tableRef.current.setData(response.data.data);
           });
           resetAll();
           return Swal.fire({
@@ -213,7 +212,7 @@ const ListImursement = forwardRef(({}, ref) => {
 
       if (response.data.success) {
         wait(100).then(() => {
-          tableRef.current.setDataFormated(response.data.data);
+          tableRef.current.setData(response.data.data);
         });
         resetAll();
         return Swal.fire({
@@ -249,7 +248,7 @@ const ListImursement = forwardRef(({}, ref) => {
       const response = res as any;
       if (response.data.success) {
         wait(100).then(() => {
-          tableRef.current.setDataFormated(response.data.data);
+          tableRef.current.setData(response.data.data);
         });
         resetAll();
         return Swal.fire({
@@ -486,8 +485,7 @@ const ListImursement = forwardRef(({}, ref) => {
   const resetAll = () => {
     resetFields();
     mutateRefNoRef.current({});
-    tableRef.current.resetCheckBox();
-    tableRef.current?.setSelectedRow(null);
+    tableRef.current.setSelectedRow(null);
     setImbursementMode("");
   };
 
@@ -562,11 +560,11 @@ const ListImursement = forwardRef(({}, ref) => {
       navigateRef.current(`/${DEPARTMENT}/dashboard/reimbursement`);
       wait(500).then(() => {
         tableRef.current.setSelectedRow(state.selectedRow);
-        tableRef.current._setSelectedRow(state.selectedRow);
-        if (tableRef.current.getCheckBoxRef.current[state.selectedRow]) {
-          tableRef.current.getCheckBoxRef.current[state.selectedRow].checked =
-            true;
-        }
+        // tableRef.current._setSelectedRow(state.selectedRow);
+        // if (tableRef.current.getCheckBoxRef.current[state.selectedRow]) {
+        //   tableRef.current.getCheckBoxRef.current[state.selectedRow].checked =
+        //     true;
+        // }
       });
     }
   }, [imbursementMode]);
@@ -577,7 +575,8 @@ const ListImursement = forwardRef(({}, ref) => {
         isLoadingUpdateImbersement ||
         isLoadingDeleteImbersement ||
         isLoadingSearch ||
-        isLoadingRefNo) && <Loading />}
+        isLoadingRefNo ||
+        loading) && <Loading />}
       <PageHelmet title="Reimbursement" />
 
       <div
@@ -775,24 +774,19 @@ const ListImursement = forwardRef(({}, ref) => {
           className="fields-reimbursement"
           style={{
             display: "flex",
-            gap: "10px",
             border: "1px solid #cbd5e1",
             borderRadius: "5px",
             width: "100%",
             position: "relative",
             boxSizing: "border-box",
-            columnGap: "100px",
+            columnGap: "50px",
           }}
         >
-          <div
-            style={{
-              rowGap: "5px",
-            }}
-          >
+          <div>
             <TextInput
               containerClassName="container-field"
               containerStyle={{
-                width: "350px",
+                width: "250px",
                 marginBottom: "5px",
               }}
               label={{
@@ -800,14 +794,14 @@ const ListImursement = forwardRef(({}, ref) => {
                 style: {
                   fontSize: "12px",
                   fontWeight: "bold",
-                  width: "180px",
+                  width: "100px",
                 },
               }}
               input={{
                 readOnly: true,
                 type: "text",
                 style: {
-                  width: "calc(100% - 182px)",
+                  width: "calc(100% - 110px)",
                   height: "22px !important",
                 },
                 onKeyDown: (e) => {
@@ -826,7 +820,7 @@ const ListImursement = forwardRef(({}, ref) => {
             <TextInput
               containerClassName="container-field"
               containerStyle={{
-                width: "350px",
+                width: "250px",
                 marginBottom: "5px",
               }}
               label={{
@@ -834,13 +828,13 @@ const ListImursement = forwardRef(({}, ref) => {
                 style: {
                   fontSize: "12px",
                   fontWeight: "bold",
-                  width: "180px",
+                  width: "100px",
                 },
               }}
               input={{
                 type: "text",
                 style: {
-                  width: "calc(100% - 182px)",
+                  width: "calc(100% - 110px)",
                   height: "22px !important",
                 },
                 onKeyDown: (e) => {
@@ -852,11 +846,10 @@ const ListImursement = forwardRef(({}, ref) => {
               }}
               inputRef={policyNoRef}
             />
-
             <SelectInput
               containerClassName="container-field"
               containerStyle={{
-                width: "350px",
+                width: "250px",
                 marginBottom: "5px",
               }}
               label={{
@@ -864,13 +857,13 @@ const ListImursement = forwardRef(({}, ref) => {
                 style: {
                   fontSize: "12px",
                   fontWeight: "bold",
-                  width: "175px",
+                  width: "100px",
                 },
               }}
               selectRef={checkFromRef}
               select={{
                 disabled: true,
-                style: { width: "calc(100% - 175px)", height: "22px" },
+                style: { width: "calc(100% - 100px)", height: "22px" },
                 defaultValue: "UCSMI",
                 onKeyDown: (e) => {
                   if (e.code === "NumpadEnter" || e.code === "Enter") {
@@ -886,7 +879,7 @@ const ListImursement = forwardRef(({}, ref) => {
             <SelectInput
               containerClassName="container-field"
               containerStyle={{
-                width: "350px",
+                width: "250px",
                 marginBottom: "5px",
               }}
               label={{
@@ -894,13 +887,13 @@ const ListImursement = forwardRef(({}, ref) => {
                 style: {
                   fontSize: "12px",
                   fontWeight: "bold",
-                  width: "175px",
+                  width: "100px",
                 },
               }}
               selectRef={typeclaimRef}
               select={{
                 disabled: true,
-                style: { width: "calc(100% - 175px)", height: "22px" },
+                style: { width: "calc(100% - 100px)", height: "22px" },
                 defaultValue: "UCSMI",
                 onKeyDown: (e) => {
                   if (e.code === "NumpadEnter" || e.code === "Enter") {
@@ -923,7 +916,7 @@ const ListImursement = forwardRef(({}, ref) => {
             <TextInput
               containerClassName="container-field"
               containerStyle={{
-                width: "350px",
+                width: "250px",
                 marginBottom: "5px",
               }}
               label={{
@@ -931,13 +924,13 @@ const ListImursement = forwardRef(({}, ref) => {
                 style: {
                   fontSize: "12px",
                   fontWeight: "bold",
-                  width: "180px",
+                  width: "100px",
                 },
               }}
               input={{
                 disabled: true,
                 type: "date",
-                style: { width: "calc(100% - 182px)" },
+                style: { width: "calc(100% - 110px)" },
                 defaultValue: format(new Date(), "yyyy-MM-dd"),
                 onKeyDown: (e) => {
                   if (e.code === "NumpadEnter" || e.code === "Enter") {
@@ -947,79 +940,10 @@ const ListImursement = forwardRef(({}, ref) => {
               }}
               inputRef={dateClaimRef}
             />
-            <TextAreaInput
-              containerClassName="clientname-input container-field"
-              containerStyle={{ width: "500px", marginBottom: "5px" }}
-              label={{
-                title: "Unit Insured : ",
-                style: {
-                  fontSize: "12px",
-                  fontWeight: "bold",
-                  width: "180px",
-                },
-              }}
-              textarea={{
-                rows: 2,
-                disabled: true,
-                style: { width: "calc(100% - 180px)", height: "30px" },
-                onKeyDown: (e) => {
-                  if (e.code === "NumpadEnter" || e.code === "Enter") {
-                    clientsNameRef.current?.focus();
-                  }
-                },
-              }}
-              _inputRef={unitInsuredRef}
-            />
-            <TextAreaInput
-              containerClassName="clientname-input container-field"
-              containerStyle={{ width: "500px", marginBottom: "5px" }}
-              label={{
-                title: "Client's Name : ",
-                style: {
-                  fontSize: "12px",
-                  fontWeight: "bold",
-                  width: "180px",
-                },
-              }}
-              textarea={{
-                disabled: true,
-                style: { width: "calc(100% - 180px)", height: "30px" },
-                onKeyDown: (e) => {
-                  if (e.code === "NumpadEnter" || e.code === "Enter") {
-                    tplNameRef.current?.focus();
-                  }
-                },
-              }}
-              _inputRef={clientsNameRef}
-            />
-            <TextAreaInput
-              containerClassName="clientname-input container-field"
-              containerStyle={{ width: "500px", marginBottom: "5px" }}
-              label={{
-                title: "Third Party : ",
-                style: {
-                  fontSize: "12px",
-                  fontWeight: "bold",
-                  width: "180px",
-                },
-              }}
-              textarea={{
-                disabled: true,
-                style: { width: "calc(100% - 180px)", height: "30px" },
-                onKeyDown: (e) => {
-                  if (e.code === "NumpadEnter" || e.code === "Enter") {
-                    amountClaimRef.current?.focus();
-                  }
-                },
-              }}
-              _inputRef={tplNameRef}
-            />
-          </div>
-          <div>
             <TextFormatedInput
               containerClassName="container-field"
               containerStyle={{
-                width: "350px",
+                width: "250px",
                 marginBottom: "5px",
               }}
               label={{
@@ -1027,14 +951,14 @@ const ListImursement = forwardRef(({}, ref) => {
                 style: {
                   fontSize: "12px",
                   fontWeight: "bold",
-                  width: "180px",
+                  width: "100px",
                 },
               }}
               input={{
                 disabled: true,
                 type: "text",
                 defaultValue: "0.00",
-                style: { width: "calc(100% - 182px)" },
+                style: { width: "calc(100% - 110px)" },
                 onKeyDown: (e) => {
                   if (e.code === "NumpadEnter" || e.code === "Enter") {
                     dateReleaseRef.current?.focus();
@@ -1043,6 +967,8 @@ const ListImursement = forwardRef(({}, ref) => {
               }}
               inputRef={amountClaimRef}
             />
+          </div>
+          <div>
             <TextInput
               containerClassName="container-field"
               containerStyle={{
@@ -1182,27 +1108,120 @@ const ListImursement = forwardRef(({}, ref) => {
               values={"key"}
               display={"key"}
             />
-            <TextAreaInput
-              containerClassName="clientname-input container-field"
-              containerStyle={{ width: "500px", marginBottom: "5px" }}
+          </div>
+          <div>
+            <TextInput
+              containerClassName="container-field"
+              containerStyle={{
+                width: "500px",
+                marginBottom: "5px",
+              }}
               label={{
                 title: "Payee : ",
                 style: {
                   fontSize: "12px",
                   fontWeight: "bold",
-                  width: "180px",
+                  width: "100px",
                 },
               }}
-              textarea={{
-                disabled: true,
-                style: { width: "calc(100% - 180px)" },
+              input={{
+                type: "text",
+                style: {
+                  width: "calc(100% - 110px)",
+                  height: "22px !important",
+                },
                 onKeyDown: (e) => {
                   if (e.code === "NumpadEnter" || e.code === "Enter") {
-                    remarksRef.current?.focus();
+                    unitInsuredRef.current?.focus();
                   }
                 },
               }}
-              _inputRef={payeeRef}
+              inputRef={payeeRef}
+            />
+            <TextInput
+              containerClassName="container-field"
+              containerStyle={{
+                width: "500px",
+                marginBottom: "5px",
+              }}
+              label={{
+                title: "Unit Insured : ",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "text",
+                style: {
+                  width: "calc(100% - 110px)",
+                  height: "22px !important",
+                },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    clientsNameRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={unitInsuredRef}
+            />
+            <TextInput
+              containerClassName="container-field"
+              containerStyle={{
+                width: "500px",
+                marginBottom: "5px",
+              }}
+              label={{
+                title: "Client's Name : ",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "text",
+                style: {
+                  width: "calc(100% - 110px)",
+                  height: "22px !important",
+                },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    tplNameRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={clientsNameRef}
+            />
+
+            <TextInput
+              containerClassName="container-field"
+              containerStyle={{
+                width: "500px",
+                marginBottom: "5px",
+              }}
+              label={{
+                title: "Third Party : ",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "100px",
+                },
+              }}
+              input={{
+                type: "text",
+                style: {
+                  width: "calc(100% - 110px)",
+                  height: "22px !important",
+                },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    tplNameRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={tplNameRef}
             />
             <TextAreaInput
               containerClassName="clientname-input container-field"
@@ -1212,12 +1231,12 @@ const ListImursement = forwardRef(({}, ref) => {
                 style: {
                   fontSize: "12px",
                   fontWeight: "bold",
-                  width: "180px",
+                  width: "100px",
                 },
               }}
               textarea={{
                 disabled: true,
-                style: { width: "calc(100% - 180px)" },
+                style: { width: "calc(100% - 100px)" },
                 onKeyDown: (e) => {
                   if (e.code === "NumpadEnter" || e.code === "Enter") {
                     //  refDate.current?.focus()
@@ -1228,88 +1247,106 @@ const ListImursement = forwardRef(({}, ref) => {
             />
           </div>
         </fieldset>
-        <DataGridViewReact
-          showSequence={true}
-          containerStyle={{
+        <div
+          style={{
+            marginTop: "10px",
+            width: "100%",
+            position: "relative",
             flex: 1,
-            height: "auto",
-            minHeight: "200px",
+            display: "flex",
           }}
-          ref={tableRef}
-          columns={columns}
-          height="280px"
-          getSelectedItem={(rowItm: any) => {
-            if (rowItm) {
-              setImbursementMode("update");
-              wait(100).then(() => {
-                if (refNoRef.current) {
-                  refNoRef.current.value = rowItm[0];
-                }
-                if (policyNoRef.current) {
-                  policyNoRef.current.value = rowItm[1];
-                }
-                if (checkFromRef.current) {
-                  checkFromRef.current.value = rowItm[2];
-                }
-                if (typeclaimRef.current) {
-                  typeclaimRef.current.value = rowItm[3];
-                }
-                if (dateClaimRef.current) {
-                  dateClaimRef.current.value = rowItm[4];
-                }
-                if (unitInsuredRef.current) {
-                  unitInsuredRef.current.value = rowItm[5];
-                }
-                if (clientsNameRef.current) {
-                  clientsNameRef.current.value = rowItm[6];
-                }
-                if (tplNameRef.current) {
-                  tplNameRef.current.value = rowItm[7];
-                }
-                if (amountClaimRef.current) {
-                  amountClaimRef.current.value = rowItm[8];
-                }
-                if (dateReleaseRef.current) {
-                  dateReleaseRef.current.value = rowItm[9];
-                }
-                if (dateReturnUpwardRef.current) {
-                  dateReturnUpwardRef.current.value = rowItm[10];
-                }
-                if (amountImbursementRef.current) {
-                  amountImbursementRef.current.value = rowItm[11];
-                }
-                if (amountApprovedRef.current) {
-                  amountApprovedRef.current.value = rowItm[12];
-                }
-                if (paymentRef.current) {
-                  paymentRef.current.value = rowItm[13];
-                }
-                if (payeeRef.current) {
-                  payeeRef.current.value = rowItm[14];
-                }
+        >
+          <DataGridViewReactUpgraded
+            ref={tableRef}
+            adjustVisibleRowCount={335}
+            columns={columns}
+            handleSelectionChange={(rowItm: any) => {
+              if (rowItm) {
+                setLoading(true);
+                setImbursementMode("update");
+                wait(100).then(() => {
+                  if (refNoRef.current) {
+                    refNoRef.current.value = rowItm.refNo;
+                  }
+                  if (policyNoRef.current) {
+                    policyNoRef.current.value = rowItm.policy_no;
+                  }
+                  if (checkFromRef.current) {
+                    checkFromRef.current.value = rowItm.check_from;
+                  }
+                  if (typeclaimRef.current) {
+                    typeclaimRef.current.value = rowItm.type_claim;
+                  }
+                  if (dateClaimRef.current) {
+                    dateClaimRef.current.value = rowItm.date_claim;
+                  }
+                  if (unitInsuredRef.current) {
+                    unitInsuredRef.current.value = rowItm.unit_insured;
+                  }
+                  if (clientsNameRef.current) {
+                    clientsNameRef.current.value = rowItm.client_name;
+                  }
+                  if (tplNameRef.current) {
+                    tplNameRef.current.value = rowItm.tpl_name;
+                  }
+                  if (amountClaimRef.current) {
+                    amountClaimRef.current.value = rowItm.amount_claim;
+                  }
+                  if (dateReleaseRef.current) {
+                    dateReleaseRef.current.value = rowItm.date_release;
+                  }
+                  if (dateReturnUpwardRef.current) {
+                    dateReturnUpwardRef.current.value =
+                      rowItm.date_return_upward;
+                  }
+                  if (amountImbursementRef.current) {
+                    amountImbursementRef.current.value =
+                      rowItm.amount_imbursement;
+                  }
+                  if (amountApprovedRef.current) {
+                    amountApprovedRef.current.value = rowItm.amount_approved;
+                  }
+                  if (paymentRef.current) {
+                    paymentRef.current.value = rowItm.payment;
+                  }
+                  if (payeeRef.current) {
+                    payeeRef.current.value = rowItm.payee;
+                  }
+                  if (remarksRef.current) {
+                    remarksRef.current.value = rowItm.remarks;
+                  }
 
-                if (remarksRef.current) {
-                  remarksRef.current.value = rowItm[15];
-                }
-                setBasicDocuments(JSON.parse(rowItm[rowItm.length - 1]));
-              });
-            } else {
-              setImbursementMode("");
-              resetFields();
-              setBasicDocuments([]);
-            }
-          }}
-          onKeyDown={(rowItm: any, rowIdx: any, e: any) => {
-            if (e.code === "Delete" || e.code === "Backspace") {
-              const isConfim = window.confirm(
-                `Are you sure you want to delete?`
-              );
-              if (isConfim) {
-                return;
+                  const selectBasicDocuments = JSON.parse(
+                    rowItm.basicDocuments
+                  );
+
+                  const newBasicDocuments = selectBasicDocuments.map(
+                    (itm: any) => {
+                      if (itm.files && itm.files.length > 0) {
+                        itm.files = itm.files.map((filename: string) => {
+                          return {
+                            link: `${process.env.REACT_APP_IMAGE_URL}reimbursement/${refNoRef.current?.value}/${filename}`,
+                            filename,
+                          };
+                        });
+                      } else {
+                        itm.files = null;
+                      }
+
+                      return itm;
+                    }
+                  );
+                  setBasicDocuments(newBasicDocuments);
+                });
+                setLoading(false);
+              } else {
+                setImbursementMode("");
+                resetFields();
+                setBasicDocuments([]);
               }
-            }
-          }}
-        />
+            }}
+          />
+        </div>
         <div
           className="mobile-actions-button"
           style={{ display: "none", columnGap: "10px" }}

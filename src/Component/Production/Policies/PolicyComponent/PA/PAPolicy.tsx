@@ -34,16 +34,13 @@ import {
 import { Loading } from "../../../../Loading";
 import { formatNumber } from "../../../../Dashboard";
 import { wait } from "../../../../../Lib/wait";
-import { DepartmentContext } from "../../../../Container";
 
 export default function PAPolicy() {
-  const { departmentState } = useContext(DepartmentContext);
-
   const { myAxios, user } = useContext(UserContext);
   const [mode, setMode] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
   const _policyInformationRef = useRef<any>(null);
-  const _policyPremiumRef = useRef<any>(null);
+  const departmentRef = useRef<HTMLSelectElement>(null);
   const subAccountRef = useRef<HTMLSelectElement>(null);
   const subAccountRef_ = useRef<any>(null);
 
@@ -110,6 +107,9 @@ export default function PAPolicy() {
       if (res.data.success) {
         setMode("");
         _policyInformationRef.current.resetRefs();
+        if (departmentRef.current) {
+          departmentRef.current.value = "UMIS";
+        }
 
         return Swal.fire({
           position: "center",
@@ -148,6 +148,10 @@ export default function PAPolicy() {
         if (res.data.success) {
           const selected = res.data.data[0];
           console.log(selected);
+
+          if (departmentRef.current) {
+            departmentRef.current.value = selected.Department;
+          }
           // client
           if (_policyInformationRef.current.getRefs().clientIDRef.current) {
             _policyInformationRef.current.getRefs().clientIDRef.current.value =
@@ -398,8 +402,9 @@ export default function PAPolicy() {
             ..._policyInformationRef.current.getRefsValue(),
             subAccountRef: subAccountRef.current?.value,
             userCodeConfirmation,
-            department: departmentState === false ? "UMIS" : "UCSMI",
+            department: departmentRef.current?.value,
           };
+          console.log(data);
           mutateAddUpdate(data);
         },
       });
@@ -409,7 +414,7 @@ export default function PAPolicy() {
           const data = {
             ..._policyInformationRef.current.getRefsValue(),
             subAccountRef: subAccountRef.current?.value,
-            department: departmentState === false ? "UMIS" : "UCSMI",
+            department: departmentRef.current?.value,
           };
           mutateAddUpdate(data);
         },
@@ -482,6 +487,33 @@ export default function PAPolicy() {
             }}
             inputRef={searchRef}
           />
+          <SelectInput
+            containerClassName="custom-input adjust-label"
+            selectRef={departmentRef}
+            label={{
+              title: "Policy: ",
+              style: {
+                fontSize: "12px",
+                fontWeight: "bold",
+                width: "50px",
+                display: "none",
+              },
+            }}
+            select={{
+              style: { flex: 1, height: "20px" },
+              defaultValue: "UMIS",
+            }}
+            datasource={[
+              {
+                key: "UMIS",
+              },
+              {
+                key: "UCSMI",
+              },
+            ]}
+            values={"key"}
+            display={"key"}
+          />
           <div
             className="button-action-desktop"
             style={{
@@ -544,6 +576,9 @@ export default function PAPolicy() {
                   if (result.isConfirmed) {
                     setMode("");
                     _policyInformationRef.current.resetRefs();
+                    if (departmentRef.current) {
+                      departmentRef.current.value = "UMIS";
+                    }
                   }
                 });
               }}
@@ -654,6 +689,9 @@ export default function PAPolicy() {
               if (result.isConfirmed) {
                 setMode("");
                 _policyInformationRef.current.resetRefs();
+                if (departmentRef.current) {
+                  departmentRef.current.value = "UMIS";
+                }
               }
             });
           }}

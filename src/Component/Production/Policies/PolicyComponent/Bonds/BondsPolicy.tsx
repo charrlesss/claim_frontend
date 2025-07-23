@@ -32,17 +32,15 @@ import {
   TextInput,
 } from "../../../../UpwardFields";
 import { Loading } from "../../../../Loading";
-import { DepartmentContext } from "../../../../Container";
 
 export default function BondsPolicy() {
-  const { departmentState } = useContext(DepartmentContext);
-
   const [width, setWidth] = useState(window.innerWidth);
   const { myAxios, user } = useContext(UserContext);
   const [mode, setMode] = useState("");
   const [selectedPage, setSelectedPage] = useState(0);
 
   const searchRef = useRef<HTMLInputElement>(null);
+  const departmentRef = useRef<HTMLSelectElement>(null);
   const _policyInformationRef = useRef<any>(null);
   const _policyPremiumRef = useRef<any>(null);
   const subAccountRef = useRef<HTMLSelectElement>(null);
@@ -141,6 +139,9 @@ export default function BondsPolicy() {
         setMode("");
         _policyInformationRef.current.resetRefs();
         _policyPremiumRef.current.resetRefs();
+        if (departmentRef.current) {
+          departmentRef.current.value = "UMIS";
+        }
 
         return Swal.fire({
           position: "center",
@@ -177,7 +178,9 @@ export default function BondsPolicy() {
       onSuccess: async (res) => {
         if (res.data.success) {
           const selected = res.data.data[0];
-          console.log(selected);
+          if (departmentRef.current) {
+            departmentRef.current.value = selected.Department;
+          }
           // client
           if (_policyInformationRef.current.getRefs().clientIDRef.current) {
             _policyInformationRef.current.getRefs().clientIDRef.current.value =
@@ -515,7 +518,7 @@ export default function BondsPolicy() {
             ..._policyPremiumRef.current.getRefsValue(),
             subAccountRef: subAccountRef.current?.value,
             userCodeConfirmation,
-            department: departmentState === false ? "UMIS" : "UCSMI",
+            department: departmentRef.current?.value,
           };
           mutateAddUpdate(data);
         },
@@ -527,7 +530,7 @@ export default function BondsPolicy() {
             ..._policyInformationRef.current.getRefsValue(),
             ..._policyPremiumRef.current.getRefsValue(),
             subAccountRef: subAccountRef.current?.value,
-            department: departmentState === false ? "UMIS" : "UCSMI",
+            department: departmentRef.current?.value,
           };
           mutateAddUpdate(data);
         },
@@ -619,6 +622,33 @@ export default function BondsPolicy() {
             }}
             inputRef={searchRef}
           />
+          <SelectInput
+            containerClassName="custom-input adjust-label"
+            selectRef={departmentRef}
+            label={{
+              title: "Policy: ",
+              style: {
+                fontSize: "12px",
+                fontWeight: "bold",
+                width: "50px",
+                display: "none",
+              },
+            }}
+            select={{
+              style: { flex: 1, height: "20px" },
+              defaultValue: "UMIS",
+            }}
+            datasource={[
+              {
+                key: "UMIS",
+              },
+              {
+                key: "UCSMI",
+              },
+            ]}
+            values={"key"}
+            display={"key"}
+          />
           <div
             className="button-action-desktop"
             style={{
@@ -682,6 +712,9 @@ export default function BondsPolicy() {
                     setMode("");
                     _policyInformationRef.current.resetRefs();
                     _policyPremiumRef.current.resetRefs();
+                    if (departmentRef.current) {
+                      departmentRef.current.value = "UMIS";
+                    }
                   }
                 });
               }}
@@ -968,6 +1001,9 @@ export default function BondsPolicy() {
                 setMode("");
                 _policyInformationRef.current.resetRefs();
                 _policyPremiumRef.current.resetRefs();
+                if (departmentRef.current) {
+                  departmentRef.current.value = "UMIS";
+                }
               }
             });
           }}
