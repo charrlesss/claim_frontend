@@ -255,7 +255,7 @@ function COMPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
           display: "flex",
           columnGap: "8px",
           alignItems: "center",
-          marginBottom: "15px",
+          marginBottom: "10px",
         }}
       >
         <div
@@ -788,7 +788,7 @@ function COMPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
           </div>
         </div>
       </div>
-      <div style={{ display: "flex", columnGap: "7px", marginBottom: "6px" }}>
+      <div style={{ display: "flex", columnGap: "7px" }}>
         <div
           className="desktop-choices-buttons"
           style={{ display: "flex", columnGap: "2px" }}
@@ -3119,7 +3119,7 @@ function TPLPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
           display: "flex",
           columnGap: "8px",
           alignItems: "center",
-          marginBottom: "15px",
+          marginBottom: "10px",
         }}
       >
         <div
@@ -3493,7 +3493,7 @@ function TPLPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
           </Button>
         </div>
       </div>
-      <div style={{ display: "flex", columnGap: "7px", marginBottom: "6px" }}>
+      <div style={{ display: "flex", columnGap: "7px" }}>
         {policy === "COM" && (
           <>
             <div

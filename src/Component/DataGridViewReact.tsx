@@ -2727,7 +2727,7 @@ export const UpwardTableModalSearch = forwardRef(
                 }}
               >
                 <DataGridViewReactUpgraded
-                  adjustVisibleRowCount={225}
+                  adjustVisibleRowCount={200}
                   ref={tableRef}
                   columns={column}
                   handleSelectionChange={handleSelectionChange}

@@ -15,7 +15,7 @@ export default function DisplayReport() {
         if (iframeRef.current) {
           iframeRef.current.src = state.pdfUrl;
         }
-        console.log(state)
+        console.log(state);
         setTitle(state.reportHeader);
       }
     });
@@ -23,21 +23,28 @@ export default function DisplayReport() {
 
   return (
     <>
-    <PageHelmet title={title} />
+      <PageHelmet title={title} />
       <div
         style={{
           margin: 0,
           padding: 0,
           boxSizing: "border-box",
+          overflow: "hidden",
+          display: "flex",
+          width: "100vw",
+          height: "100vh",
         }}
       >
         <iframe
           ref={iframeRef}
           id="reportFrame"
           style={{
-            border: "none",
-            width: "100%",
-            height: "100vh",
+            flex: 1,
+            border:"none",
+            outline:"none",
+            padding:0,
+            margin:0,
+            boxSizing:"border-box"
           }}
         ></iframe>
       </div>
