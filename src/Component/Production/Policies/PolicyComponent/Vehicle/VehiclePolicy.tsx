@@ -20,7 +20,7 @@ import RepeatIcon from "@mui/icons-material/Repeat";
 import { UserContext } from "../../../../../App";
 import PageHelmet from "../../../../PageHelmet";
 import { useMutation } from "@tanstack/react-query";
-import { useUpwardTableModalSearchSafeMode } from "../../../../DataGridViewReact";
+// import { useUpwardTableModalSearchSafeMode } from "../../../../DataGridViewReact";
 import {
   Autocomplete,
   AutocompleteNumber,
@@ -36,6 +36,8 @@ import {
 import { Loading } from "../../../../Loading";
 import { wait } from "../../../../../Lib/wait";
 import { isMobile } from "react-device-detect";
+import { UpwardTableModalSearch } from "../../../../DataGridViewReact";
+import { PolicyContext } from "../../Policy";
 
 export default function VehiclePolicy() {
   const { user, myAxios } = useContext(UserContext);
@@ -85,6 +87,9 @@ export default function VehiclePolicy() {
 }
 
 function COMPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
+    const { subAccountData } = useContext(PolicyContext);
+
+
   const [width, setWidth] = useState(window.innerWidth);
 
   const [mode, setMode] = useState("");
@@ -97,7 +102,10 @@ function COMPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
   const regularPolicyRef = useRef<any>(null);
   const temporaryPolicyRef = useRef<any>(null);
   const subAccountRef = useRef<HTMLSelectElement>(null);
-  const subAccountRef_ = useRef<any>(null);
+
+  const regularVpolicySearchModal = useRef<any>(null);
+  const temporaryVpolicySearchModal = useRef<any>(null);
+
   function handleSave() {
     if (policyType === "TEMP") {
       return temporaryPolicyRef.current.handleOnSave(mode);
@@ -108,108 +116,8 @@ function COMPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
       }
     }
   }
-  const { isPending: isLoading, mutate: mutateSubAcct } = useMutation({
-    mutationKey: ["sub-account"],
-    mutationFn: (variables: any) => {
-      return myAxios.post("/task/production/sub-account", variables, {
-        headers: {
-          Authorization: `Bearer ${user?.accessToken}`,
-        },
-      });
-    },
-    onSuccess(response: any) {
-      wait(100).then(() => {
-        if (subAccountRef_.current)
-          subAccountRef_.current.setDataSource(response.data?.data);
-        wait(100).then(() => {
-          if (subAccountRef.current) subAccountRef.current.value = "HO";
-        });
-      });
-    },
-  });
 
-  const {
-    UpwardTableModalSearch: PolicySearchUpwardTableModalSearch,
-    openModal: policySearchOpenModal,
-    closeModal: policySearchCloseModal,
-  } = useUpwardTableModalSearchSafeMode({
-    size: "large",
-    link: "/task/production/search-policy",
-    column: [
-      { key: "Date", label: "Date", width: 110 },
-      { key: "PolicyNo", label: "PolicyNo", width: 150 },
-      {
-        key: "Account",
-        label: "Account",
-        width: 100,
-      },
-      {
-        key: "Name",
-        label: "Name",
-        width: 255,
-      },
-      {
-        key: "ChassisNo",
-        label: "Chassis No",
-        width: 255,
-      },
-    ],
-    getSelectedItem: async (rowItm: any, _: any, rowIdx: any, __: any) => {
-      if (rowItm) {
-        regularPolicyRef.current.loadPolicy(rowItm);
-        policySearchCloseModal();
-        setMode("edit");
-        if (policyType === "REG") {
-          wait(100).then(() => {
-            regularPolicyRef.current.disableField(false);
-          });
-        } else {
-          wait(100).then(() => {
-            temporaryPolicyRef.current.disableField(false);
-          });
-        }
-      }
-    },
-  });
-  const {
-    UpwardTableModalSearch: PolicySearchTempUpwardTableModalSearch,
-    openModal: policySearcTempOpenModal,
-    closeModal: policySearchTempCloseModal,
-  } = useUpwardTableModalSearchSafeMode({
-    size: "medium",
-    link: "/task/production/search-policy-temp",
-    column: [
-      { key: "Date", label: "Date", width: 110 },
-      { key: "PolicyNo", label: "PolicyNo", width: 150 },
-      {
-        key: "Account",
-        label: "Account",
-        width: 100,
-      },
-      {
-        key: "Name",
-        label: "Name",
-        width: 255,
-      },
-    ],
-    getSelectedItem: async (rowItm: any, _: any, rowIdx: any, __: any) => {
-      if (rowItm) {
-        temporaryPolicyRef.current.loadPolicy(rowItm);
-        policySearchTempCloseModal();
-        setMode("edit");
 
-        if (policyType === "REG") {
-          wait(100).then(() => {
-            regularPolicyRef.current.disableField(false);
-          });
-        } else {
-          wait(100).then(() => {
-            temporaryPolicyRef.current.disableField(false);
-          });
-        }
-      }
-    },
-  });
   useEffect(() => {
     if (policyType === "REG") {
       wait(100).then(() => {
@@ -222,33 +130,21 @@ function COMPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
     }
   }, [policyType]);
 
-  const mutateSubAcctRef = useRef(mutateSubAcct);
-  useEffect(() => {
-    mutateSubAcctRef.current({});
-  }, []);
 
-  useEffect(() => {
+ useEffect(() => {
     const handleResize = () => {
       setWidth(window.innerWidth);
-
-      setTimeout(() => {
-        mutateSubAcctRef.current({});
-      }, 500);
     };
-
     window.addEventListener("resize", handleResize);
-
     // Cleanup on unmount
     return () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
 
+
   return (
     <>
-      {isLoading && <Loading />}
-      <PolicySearchUpwardTableModalSearch />
-      <PolicySearchTempUpwardTableModalSearch />
       <div
         className="header"
         style={{
@@ -436,10 +332,14 @@ function COMPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
                 if (e.key === "Enter" || e.key === "NumpadEnter") {
                   e.preventDefault();
                   if (policyType === "TEMP") {
-                    return policySearcTempOpenModal(e.currentTarget.value);
+                    return temporaryVpolicySearchModal.current.openModal(
+                      e.currentTarget.value
+                    );
                   } else {
                     if (policyType === "REG") {
-                      return policySearchOpenModal(e.currentTarget.value);
+                      return regularVpolicySearchModal.current.openModal(
+                        e.currentTarget.value
+                      );
                     } else {
                     }
                   }
@@ -452,10 +352,14 @@ function COMPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
               e.preventDefault();
               if (searchRef.current) {
                 if (policyType === "TEMP") {
-                  return policySearcTempOpenModal(searchRef.current.value);
+                  return temporaryVpolicySearchModal.current.openModal(
+                    searchRef.current.value
+                  );
                 } else {
                   if (policyType === "REG") {
-                    return policySearchOpenModal(searchRef.current.value);
+                    return regularVpolicySearchModal.current.openModal(
+                      searchRef.current.value
+                    );
                   } else {
                   }
                 }
@@ -526,10 +430,14 @@ function COMPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
                 if (e.key === "Enter" || e.key === "NumpadEnter") {
                   e.preventDefault();
                   if (policyType === "TEMP") {
-                    return policySearcTempOpenModal(e.currentTarget.value);
+                    return temporaryVpolicySearchModal.current.openModal(
+                      e.currentTarget.value
+                    );
                   } else {
                     if (policyType === "REG") {
-                      return policySearchOpenModal(e.currentTarget.value);
+                      return regularVpolicySearchModal.current.openModal(
+                        e.currentTarget.value
+                      );
                     } else {
                     }
                   }
@@ -542,10 +450,14 @@ function COMPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
               e.preventDefault();
               if (searchRef.current) {
                 if (policyType === "TEMP") {
-                  return policySearcTempOpenModal(searchRef.current.value);
+                  return temporaryVpolicySearchModal.current.openModal(
+                    searchRef.current.value
+                  );
                 } else {
                   if (policyType === "REG") {
-                    return policySearchOpenModal(searchRef.current.value);
+                    return regularVpolicySearchModal.current.openModal(
+                      searchRef.current.value
+                    );
                   } else {
                   }
                 }
@@ -649,7 +561,7 @@ function COMPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
                 showCancelButton: true,
                 confirmButtonColor: "#3085d6",
                 cancelButtonColor: "#d33",
-                confirmButtonText: "Yes, cencel it!",
+                confirmButtonText: "Yes, cancel it!",
                 cancelButtonText: "No",
               }).then((result) => {
                 if (result.isConfirmed) {
@@ -846,29 +758,33 @@ function COMPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
             Policy Premium
           </Button>
           {width > 768 && (
-            <SelectInput
-              ref={subAccountRef_}
-              label={{
-                title: "Sub Account :",
-                style: {
-                  fontSize: "12px",
-                  fontWeight: "bold",
-                  width: "100px",
-                },
-              }}
-              selectRef={subAccountRef}
-              select={{
-                style: { flex: 1, height: "22px" },
-                defaultValue: "HO",
-              }}
-              containerStyle={{
-                flex: 2,
-                marginLeft: "20px",
-              }}
-              datasource={[]}
-              values={"Acronym"}
-              display={"Acronym"}
-            />
+           <>
+            {subAccountData && (
+                <SelectInput
+                  // ref={subAccountRef_}
+                  label={{
+                    title: "Sub Account :",
+                    style: {
+                      fontSize: "12px",
+                      fontWeight: "bold",
+                      width: "100px",
+                    },
+                  }}
+                  selectRef={subAccountRef}
+                  select={{
+                    style: { flex: 1, height: "22px" },
+                    defaultValue: "HO",
+                  }}
+                  containerStyle={{
+                    flex: 2,
+                    marginLeft: "20px",
+                  }}
+                  datasource={subAccountData}
+                  values={"Acronym"}
+                  display={"Acronym"}
+                />
+              )}
+           </>
           )}
         </div>
         <div
@@ -928,30 +844,32 @@ function COMPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
             Premium
           </Button>
           {width <= 768 && (
-            <SelectInput
-              ref={subAccountRef_}
-              label={{
-                title: "",
-                style: {
-                  fontSize: "12px",
-                  fontWeight: "bold",
-                  width: "50px",
-                  display: "none",
-                },
-              }}
-              selectRef={subAccountRef}
-              select={{
-                style: { flex: 1, height: "22px" },
-                defaultValue: "HO",
-              }}
-              containerStyle={{
-                flex: 2,
-                marginLeft: "10px",
-              }}
-              datasource={[]}
-              values={"Acronym"}
-              display={"Acronym"}
-            />
+           <>
+              {subAccountData && (
+              <SelectInput
+                label={{
+                  title: "Sub Account :",
+                  style: {
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    width: "100px",
+                    display: "none",
+                  },
+                }}
+                selectRef={subAccountRef}
+                select={{
+                  style: { flex: 1, height: "22px" },
+                  defaultValue: "HO",
+                }}
+                containerStyle={{
+                  flex: 2,
+                }}
+                datasource={subAccountData}
+                values={"Acronym"}
+                display={"Acronym"}
+              />
+              )}
+           </>
           )}
         </div>
       </div>
@@ -1046,7 +964,7 @@ function COMPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
               showCancelButton: true,
               confirmButtonColor: "#3085d6",
               cancelButtonColor: "#d33",
-              confirmButtonText: "Yes, cencel it!",
+              confirmButtonText: "Yes, cancel it!",
               cancelButtonText: "No",
             }).then((result) => {
               if (result.isConfirmed) {
@@ -1106,6 +1024,80 @@ function COMPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
           {policyType === "TEMP" ? "To Reg" : "History"}
         </Button>
       </div>
+      <UpwardTableModalSearch
+        ref={regularVpolicySearchModal}
+        link={"/task/production/search-policy"}
+        column={[
+          { key: "Date", label: "Date", width: 110 },
+          { key: "PolicyNo", label: "PolicyNo", width: 150 },
+          {
+            key: "Account",
+            label: "Account",
+            width: 100,
+          },
+          {
+            key: "Name",
+            label: "Name",
+            width: 255,
+          },
+          {
+            key: "ChassisNo",
+            label: "Chassis No",
+            width: 255,
+          },
+        ]}
+        handleSelectionChange={(rowItm) => {
+          if (rowItm) {
+            regularPolicyRef.current.loadPolicy(rowItm);
+            setMode("edit");
+            if (policyType === "REG") {
+              wait(100).then(() => {
+                regularPolicyRef.current.disableField(false);
+              });
+            } else {
+              wait(100).then(() => {
+                temporaryPolicyRef.current.disableField(false);
+              });
+            }
+            regularVpolicySearchModal.current.closeModal();
+          }
+        }}
+      />
+      <UpwardTableModalSearch
+        ref={temporaryVpolicySearchModal}
+        link={"/task/production/search-policy-temp"}
+        column={[
+          { key: "Date", label: "Date", width: 110 },
+          { key: "PolicyNo", label: "PolicyNo", width: 150 },
+          {
+            key: "Account",
+            label: "Account",
+            width: 100,
+          },
+          {
+            key: "Name",
+            label: "Name",
+            width: 255,
+          },
+        ]}
+        handleSelectionChange={(rowItm) => {
+          if (rowItm) {
+            temporaryPolicyRef.current.loadPolicy(rowItm);
+            setMode("edit");
+
+            if (policyType === "REG") {
+              wait(100).then(() => {
+                regularPolicyRef.current.disableField(false);
+              });
+            } else {
+              wait(100).then(() => {
+                temporaryPolicyRef.current.disableField(false);
+              });
+            }
+            temporaryVpolicySearchModal.current.closeModal();
+          }
+        }}
+      />
     </>
   );
 }
@@ -1128,107 +1120,6 @@ const COMRegular = forwardRef(
     const _policyTypeDetailsRef = useRef<any>(null);
     const _policyPremiumRef = useRef<any>(null);
 
-    const {
-      UpwardTableModalSearch: ClientUpwardTableModalSearch,
-      openModal: clientOpenModal,
-      closeModal: clientCloseModal,
-    } = useUpwardTableModalSearchSafeMode({
-      link: "/task/production/search-client-by-id-or-name",
-      column: [
-        { key: "IDNo", label: "ID No", width: 120 },
-        { key: "Name", label: "Name", width: 200 },
-        {
-          key: "IDType",
-          label: "ID Type",
-          width: 90,
-        },
-        {
-          key: "address",
-          label: "Address",
-          width: 90,
-          hide: true,
-        },
-        {
-          key: "sale_officer",
-          label: "Sale Officer",
-          width: 90,
-          hide: true,
-        },
-      ],
-      getSelectedItem: async (rowItm: any, _: any, rowIdx: any, __: any) => {
-        if (rowItm) {
-          if (_policyInformationRef.current) {
-            if (_policyInformationRef.current.getRefs().clientIDRef.current) {
-              _policyInformationRef.current.getRefs().clientIDRef.current.value =
-                rowItm[0];
-            }
-            if (_policyInformationRef.current.getRefs().clientNameRef.current) {
-              _policyInformationRef.current.getRefs().clientNameRef.current.value =
-                rowItm[1];
-            }
-            if (
-              _policyInformationRef.current.getRefs().clientAddressRef.current
-            ) {
-              _policyInformationRef.current.getRefs().clientAddressRef.current.value =
-                rowItm[3];
-            }
-            if (
-              _policyInformationRef.current.getRefs().saleOfficerRef.current
-            ) {
-              _policyInformationRef.current.getRefs().saleOfficerRef.current.value =
-                rowItm[4];
-            }
-          }
-
-          clientCloseModal();
-          wait(100).then(() => {
-            if (_policyInformationRef.current)
-              _policyInformationRef.current
-                .getRefs()
-                .agentIdRef.current?.focus();
-          });
-        }
-      },
-    });
-
-    const {
-      UpwardTableModalSearch: AgentUpwardTableModalSearch,
-      openModal: agentOpenModal,
-      closeModal: agentCloseModal,
-    } = useUpwardTableModalSearchSafeMode({
-      link: "/task/production/search-agent-by-id-or-name",
-      column: [
-        { key: "IDNo", label: "ID No", width: 120 },
-        { key: "Name", label: "Name", width: 200 },
-        {
-          key: "IDType",
-          label: "ID Type",
-          width: 90,
-        },
-      ],
-      getSelectedItem: async (rowItm: any, _: any, rowIdx: any, __: any) => {
-        if (rowItm) {
-          if (_policyInformationRef.current) {
-            if (_policyInformationRef.current.getRefs().agentIdRef.current) {
-              _policyInformationRef.current.getRefs().agentIdRef.current.value =
-                rowItm[0];
-            }
-            if (_policyInformationRef.current.getRefs().agentNameRef.current) {
-              _policyInformationRef.current.getRefs().agentNameRef.current.value =
-                rowItm[1];
-            }
-          }
-
-          agentCloseModal();
-          wait(100).then(() => {
-            if (_policyInformationRef.current)
-              _policyInformationRef.current
-                .getRefs()
-                .accountRef.current?.focus();
-          });
-        }
-      },
-    });
     const { mutate: mutatateAccount, isPending: isLoadingAccount } =
       useMutation({
         mutationKey: ["account"],
@@ -1294,6 +1185,7 @@ const COMRegular = forwardRef(
     const mutatateAccountRef = useRef(mutatateAccount);
     const mutatateMortgageeRef = useRef(mutatateMortgagee);
     const mutatateDenominationRef = useRef(mutatateDenomination);
+
     const {
       mutate: mutatateSelectedSearch,
       isPending: isLoadingSelectedSearch,
@@ -1614,6 +1506,7 @@ const COMRegular = forwardRef(
         }
       },
     });
+
     const { mutate: mutatateSave, isPending: isLoadingSave } = useMutation({
       mutationKey: ["save"],
       mutationFn: (variables: any) => {
@@ -1657,7 +1550,6 @@ const COMRegular = forwardRef(
         });
       },
     });
-
     const { mutate: mutatateUpdate, isPending: isLoadingUpdate } = useMutation({
       mutationKey: ["update"],
       mutationFn: (variables: any) => {
@@ -1753,9 +1645,9 @@ const COMRegular = forwardRef(
       },
       loadPolicy: (selected: any) => {
         mutatateSelectedSearch({
-          account: selected[2],
+             account: selected.Account,
           policy: window.localStorage.getItem("__policy__"),
-          policyNo: selected[1],
+          policyNo: selected.PolicyNo,
         });
       },
       resetFields: () => {
@@ -1968,7 +1860,6 @@ const COMRegular = forwardRef(
           });
       }
     }
-
     function formatNumber(Amount: number) {
       return Amount.toLocaleString("en-US", {
         minimumFractionDigits: 2,
@@ -1991,8 +1882,6 @@ const COMRegular = forwardRef(
           isLoadingDenomination ||
           isLoadingSave ||
           isLoadingSelectedSearch) && <Loading />}
-        <ClientUpwardTableModalSearch />
-        <AgentUpwardTableModalSearch />
         <div
           style={{
             display: selectedPage === 0 ? "flex" : "none",
@@ -2003,12 +1892,6 @@ const COMRegular = forwardRef(
           <PolicyInformation
             disabled={mode === ""}
             ref={_policyInformationRef}
-            clientSearch={(input: string) => {
-              clientOpenModal(input);
-            }}
-            agentSearch={(input: string) => {
-              agentOpenModal(input);
-            }}
             onChangeAccount={(e: any) => {
               mutatateDenomination({
                 policy: window.localStorage.getItem("__policy__"),
@@ -2071,92 +1954,7 @@ const COMTemporary = forwardRef(
     const _policyInformationRef = useRef<any>(null);
     const _policyTypeDetailsRef = useRef<any>(null);
     const _policyPremiumRef = useRef<any>(null);
-    const {
-      UpwardTableModalSearch: ClientUpwardTableModalSearch,
-      openModal: clientOpenModal,
-      closeModal: clientCloseModal,
-    } = useUpwardTableModalSearchSafeMode({
-      link: "/task/production/search-client-by-id-or-name",
-      column: [
-        { key: "IDNo", label: "ID No", width: 120 },
-        { key: "Name", label: "Name", width: 200 },
-        {
-          key: "IDType",
-          label: "ID Type",
-          width: 90,
-        },
-        {
-          key: "address",
-          label: "Address",
-          width: 90,
-          hide: true,
-        },
-        {
-          key: "sale_officer",
-          label: "Sale Officer",
-          width: 90,
-          hide: true,
-        },
-      ],
-      getSelectedItem: async (rowItm: any, _: any, rowIdx: any, __: any) => {
-        if (rowItm) {
-          if (_policyInformationRef.current.getRefs().clientIDRef.current) {
-            _policyInformationRef.current.getRefs().clientIDRef.current.value =
-              rowItm[0];
-          }
-          if (_policyInformationRef.current.getRefs().clientNameRef.current) {
-            _policyInformationRef.current.getRefs().clientNameRef.current.value =
-              rowItm[1];
-          }
-          if (
-            _policyInformationRef.current.getRefs().clientAddressRef.current
-          ) {
-            _policyInformationRef.current.getRefs().clientAddressRef.current.value =
-              rowItm[3];
-          }
-          if (_policyInformationRef.current.getRefs().saleOfficerRef.current) {
-            _policyInformationRef.current.getRefs().saleOfficerRef.current.value =
-              rowItm[4];
-          }
-          clientCloseModal();
-        }
-      },
-    });
-    const {
-      UpwardTableModalSearch: AgentUpwardTableModalSearch,
-      openModal: agentOpenModal,
-      closeModal: agentCloseModal,
-    } = useUpwardTableModalSearchSafeMode({
-      link: "/task/production/search-agent-by-id-or-name",
-      column: [
-        { key: "IDNo", label: "ID No", width: 120 },
-        { key: "Name", label: "Name", width: 200 },
-        {
-          key: "IDType",
-          label: "ID Type",
-          width: 90,
-        },
-      ],
-      getSelectedItem: async (rowItm: any, _: any, rowIdx: any, __: any) => {
-        if (rowItm) {
-          if (
-            _policyInformationRef.current &&
-            _policyInformationRef.current.getRefs
-          ) {
-            if (_policyInformationRef.current.getRefs().agentIdRef.current) {
-              _policyInformationRef.current.getRefs().agentIdRef.current.value =
-                rowItm[0];
-            }
-            if (_policyInformationRef.current.getRefs().agentNameRef.current) {
-              _policyInformationRef.current.getRefs().agentNameRef.current.value =
-                rowItm[1];
-            }
-          }
 
-          agentCloseModal();
-        }
-      },
-    });
     const { mutate: mutatateAccount, isPending: isLoadingAccount } =
       useMutation({
         mutationKey: ["account"],
@@ -2729,9 +2527,9 @@ const COMTemporary = forwardRef(
       },
       loadPolicy: (selected: any) => {
         mutatateSelectedSearch({
-          account: selected[2],
+              account: selected.Account,
           policy: window.localStorage.getItem("__policy__"),
-          policyNo: selected[1],
+          policyNo: selected.PolicyNo,
         });
       },
       resetFields: () => {
@@ -2963,8 +2761,6 @@ const COMTemporary = forwardRef(
           isLoadingSave ||
           isLoadingUpdate ||
           isLoadingSelectedSearch) && <Loading />}
-        <ClientUpwardTableModalSearch />
-        <AgentUpwardTableModalSearch />
         <div
           style={{
             display: selectedPage === 0 ? "flex" : "none",
@@ -2974,12 +2770,6 @@ const COMTemporary = forwardRef(
         >
           <PolicyInformation
             ref={_policyInformationRef}
-            clientSearch={(input: string) => {
-              clientOpenModal(input);
-            }}
-            agentSearch={(input: string) => {
-              agentOpenModal(input);
-            }}
             onChangeAccount={(e: any) => {
               mutatateDenomination({
                 policy: window.localStorage.getItem("__policy__"),
@@ -3024,6 +2814,8 @@ const COMTemporary = forwardRef(
   }
 );
 function TPLPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
+    const {  subAccountData } = useContext(PolicyContext);
+
   const [width, setWidth] = useState(window.innerWidth);
 
   const [mode, setMode] = useState("");
@@ -3036,83 +2828,26 @@ function TPLPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
   const regularPolicyRef = useRef<any>(null);
   const subAccountRef = useRef<HTMLSelectElement>(null);
   const subAccountRef_ = useRef<any>(null);
+
+  const searchVpolicyModalRef = useRef<any>(null);
+  const searchTplIdModalRef = useRef<any>(null);
+
   function handleSave() {
     regularPolicyRef.current.handleOnSave(mode);
   }
-  const { isPending: isLoading, mutate: mutateSubAcct } = useMutation({
-    mutationKey: ["sub-account"],
-    mutationFn: (variables: any) => {
-      return myAxios.post("/task/production/sub-account", variables, {
-        headers: {
-          Authorization: `Bearer ${user?.accessToken}`,
-        },
-      });
-    },
-    onSuccess(response: any) {
-      wait(100).then(() => {
-        if (subAccountRef_.current)
-          subAccountRef_.current.setDataSource(response.data?.data);
-        wait(100).then(() => {
-          if (subAccountRef.current) subAccountRef.current.value = "HO";
-        });
-      });
-    },
-  });
-  const {
-    UpwardTableModalSearch: PolicySearchUpwardTableModalSearch,
-    openModal: policySearchOpenModal,
-    closeModal: policySearchCloseModal,
-  } = useUpwardTableModalSearchSafeMode({
-    size: "medium",
-    link: "/task/production/search-policy-tpl",
-    column: [
-      { key: "Date", label: "Date", width: 110 },
-      { key: "PolicyNo", label: "PolicyNo", width: 150 },
-      {
-        key: "Account",
-        label: "Account",
-        width: 100,
-      },
-      {
-        key: "Name",
-        label: "Name",
-        width: 255,
-      },
-    ],
-    getSelectedItem: async (rowItm: any, _: any, rowIdx: any, __: any) => {
-      if (rowItm) {
-        regularPolicyRef.current.loadPolicy(rowItm);
-        policySearchCloseModal();
-        setMode("edit");
-      }
-    },
-  });
 
-  const mutateSubAcctRef = useRef(mutateSubAcct);
-  useEffect(() => {
-    mutateSubAcctRef.current({});
-  }, []);
-  useEffect(() => {
+   useEffect(() => {
     const handleResize = () => {
       setWidth(window.innerWidth);
-
-      setTimeout(() => {
-        mutateSubAcctRef.current({});
-      }, 500);
     };
-
     window.addEventListener("resize", handleResize);
-
     // Cleanup on unmount
     return () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
-
   return (
     <>
-      {isLoading && <Loading />}
-      <PolicySearchUpwardTableModalSearch />
       <div
         className="header"
         style={{
@@ -3297,7 +3032,9 @@ function TPLPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
               onKeyDown: (e) => {
                 if (e.key === "Enter" || e.key === "NumpadEnter") {
                   e.preventDefault();
-                  return policySearchOpenModal(e.currentTarget.value);
+                  return searchVpolicyModalRef.current.openModal(
+                    e.currentTarget.value
+                  );
                 }
               },
               style: { width: "100%", height: "22px" },
@@ -3306,7 +3043,9 @@ function TPLPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
             onIconClick={(e) => {
               e.preventDefault();
               if (searchRef.current) {
-                policySearchOpenModal(searchRef.current.value);
+                searchVpolicyModalRef.current.openModal(
+                  searchRef.current.value
+                );
               }
             }}
             inputRef={searchRef}
@@ -3369,7 +3108,9 @@ function TPLPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
               onKeyDown: (e) => {
                 if (e.key === "Enter" || e.key === "NumpadEnter") {
                   e.preventDefault();
-                  return policySearchOpenModal(e.currentTarget.value);
+                  return searchVpolicyModalRef.current.openModal(
+                    e.currentTarget.value
+                  );
                 }
               },
               style: { width: "100%", height: "22px" },
@@ -3378,7 +3119,9 @@ function TPLPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
             onIconClick={(e) => {
               e.preventDefault();
               if (searchRef.current) {
-                policySearchOpenModal(searchRef.current.value);
+                searchVpolicyModalRef.current.openModal(
+                  searchRef.current.value
+                );
               }
             }}
             inputRef={searchRef}
@@ -3477,7 +3220,7 @@ function TPLPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
                 showCancelButton: true,
                 confirmButtonColor: "#3085d6",
                 cancelButtonColor: "#d33",
-                confirmButtonText: "Yes, cencel it!",
+                confirmButtonText: "Yes, cancel it!",
                 cancelButtonText: "No",
               }).then((result) => {
                 if (result.isConfirmed) {
@@ -3589,32 +3332,35 @@ function TPLPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
             Policy Premium
           </Button>
           {width > 768 && (
-            <SelectInput
-              ref={subAccountRef_}
-              label={{
-                title: "Sub Account :",
-                style: {
-                  fontSize: "12px",
-                  fontWeight: "bold",
-                  width: "100px",
-                },
-              }}
-              selectRef={subAccountRef}
-              select={{
-                style: { flex: 1, height: "22px" },
-                defaultValue: "HO",
-              }}
-              containerStyle={{
-                flex: 2,
-                marginLeft: "20px",
-              }}
-              datasource={[]}
-              values={"Acronym"}
-              display={"Acronym"}
-            />
+          <>
+              {subAccountData && (
+                <SelectInput
+                  label={{
+                    title: "Sub Account :",
+                    style: {
+                      fontSize: "12px",
+                      fontWeight: "bold",
+                      width: "100px",
+                    },
+                  }}
+                  selectRef={subAccountRef}
+                  select={{
+                    style: { flex: 1, height: "22px" },
+                    defaultValue: "HO",
+                  }}
+                  containerStyle={{
+                    flex: 2,
+                    marginLeft: "20px",
+                  }}
+                  datasource={subAccountData}
+                  values={"Acronym"}
+                  display={"Acronym"}
+                />
+              )}
+          </>
           )}
         </div>
-        {width < 768 && (
+        {width <= 768 && (
           <div
             className="mobile-choices-buttons"
             style={{ display: "flex", columnGap: "2px" }}
@@ -3667,30 +3413,31 @@ function TPLPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
             >
               Premium
             </Button>
-            <SelectInput
-              ref={subAccountRef_}
-              label={{
-                title: "Sub Account :",
-                style: {
-                  fontSize: "12px",
-                  fontWeight: "bold",
-                  width: "100px",
-                  display: "none",
-                },
-              }}
-              selectRef={subAccountRef}
-              select={{
-                style: { flex: 1, height: "22px" },
-                defaultValue: "HO",
-              }}
-              containerStyle={{
-                flex: 2,
-                marginLeft: "5px",
-              }}
-              datasource={[]}
-              values={"Acronym"}
-              display={"Acronym"}
-            />
+            {subAccountData && (
+               <SelectInput
+                ref={subAccountRef_}
+                label={{
+                  title: "Sub Account :",
+                  style: {
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    width: "100px",
+                    display: "none",
+                  },
+                }}
+                selectRef={subAccountRef}
+                select={{
+                  style: { flex: 1, height: "22px" },
+                  defaultValue: "HO",
+                }}
+                containerStyle={{
+                  flex: 2,
+                }}
+                datasource={subAccountData}
+                values={"Acronym"}
+                display={"Acronym"}
+              />
+              )}
           </div>
         )}
       </div>
@@ -3770,7 +3517,7 @@ function TPLPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
               showCancelButton: true,
               confirmButtonColor: "#3085d6",
               cancelButtonColor: "#d33",
-              confirmButtonText: "Yes, cencel it!",
+              confirmButtonText: "Yes, cancel it!",
               cancelButtonText: "No",
             }).then((result) => {
               if (result.isConfirmed) {
@@ -3785,6 +3532,74 @@ function TPLPolicy({ user, myAxios, policy, setPolicy, _policy }: any) {
           Cancel
         </Button>
       </div>
+
+      <UpwardTableModalSearch
+        ref={searchVpolicyModalRef}
+        link={"/task/production/search-policy-tpl"}
+        column={[
+          { key: "Date", label: "Date", width: 110 },
+          { key: "PolicyNo", label: "PolicyNo", width: 150 },
+          {
+            key: "Account",
+            label: "Account",
+            width: 100,
+          },
+          {
+            key: "Name",
+            label: "Name",
+            width: 255,
+          },
+        ]}
+        handleSelectionChange={(rowItm) => {
+          if (rowItm) {
+            regularPolicyRef.current.loadPolicy(rowItm);
+            setMode("edit");
+            searchVpolicyModalRef.current.closeModal();
+          }
+        }}
+      />
+      <UpwardTableModalSearch
+        autoselection={false}
+        ref={searchTplIdModalRef}
+        link={"/task/production/get-tpl-id"}
+        column={[
+          { key: "Source_No", label: "Source No.", width: 200 },
+          { key: "Cost", label: "Cost", width: 150 },
+        ]}
+        handleSelectionChange={(rowItm) => {
+          if (rowItm) {
+            if (
+              regularPolicyRef.current
+                .getRefs()
+                ._policyInformationRef.current.getRefs().policyNoRef.current
+            ) {
+              regularPolicyRef.current
+                .getRefs()
+                ._policyInformationRef.current.getRefs().policyNoRef.current.value =
+                rowItm.Source_No;
+            }
+
+            if (
+              regularPolicyRef.current
+                .getRefs()
+                ._policyInformationRef.current.getRefs().rateCostRef.current
+            ) {
+              regularPolicyRef.current
+                .getRefs()
+                ._policyInformationRef.current.getRefs().rateCostRef.current.value =
+                rowItm.Cost;
+            }
+
+            wait(100).then(() => {
+              regularPolicyRef.current
+                .getRefs()
+                ._policyInformationRef.current.getRefs()
+                .corNoRef.current?.focus();
+            });
+            searchTplIdModalRef.current.closeModal();
+          }
+        }}
+      />
     </>
   );
 }
@@ -3827,6 +3642,9 @@ const PolicyInformation = forwardRef((props: any, ref) => {
   const authorizedCapacityRef = useRef<HTMLInputElement>(null);
   const bltFileNoRef = useRef<HTMLInputElement>(null);
   const unladenWeightRef = useRef<HTMLInputElement>(null);
+
+  const clientModalRef = useRef<any>(null);
+  const agentModalRef = useRef<any>(null);
 
   useImperativeHandle(ref, () => ({
     getRefsValue: () => {
@@ -4066,809 +3884,920 @@ const PolicyInformation = forwardRef((props: any, ref) => {
   }));
 
   return (
-    <div
-      className="main-field-container"
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        flex: 1,
-        marginTop: "10px",
-        rowGap: "20px",
-      }}
-    >
-      {/* First Field*/}
+    <>
       <div
-        className="container-fields"
+        className="main-field-container"
         style={{
-          display: "flex",
-          columnGap: "15px",
-        }}
-      >
-        {/* Insurer Information*/}
-        <div
-          className="container-max-width"
-          style={{
-            width: "50%",
-            border: "1px solid #9ca3af",
-            boxSizing: "border-box",
-            padding: "10px",
-            position: "relative",
-            display: "flex",
-            flexDirection: "column",
-            rowGap: "5px",
-          }}
-        >
-          <span
-            style={{
-              position: "absolute",
-              top: "-12px",
-              left: "20px",
-              fontSize: "14px",
-              background: "#F1F1F1",
-              padding: "0 2px",
-              fontWeight: "bold",
-            }}
-          >
-            Insurer Information
-          </span>
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "70%",
-            }}
-            label={{
-              title: "Client ID:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "text",
-              style: { width: "calc(100% - 150px)", height: "20px" },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  props.clientSearch(e.currentTarget.value);
-                }
-              },
-            }}
-            icon={<SearchIcon sx={{ fontSize: "18px" }} />}
-            onIconClick={(e) => {
-              e.preventDefault();
-              props.clientSearch(clientIDRef.current?.value);
-            }}
-            inputRef={clientIDRef}
-          />
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "90%",
-            }}
-            label={{
-              title: "Name:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "text",
-              style: { width: "calc(100% - 150px)", height: "20px" },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                }
-              },
-            }}
-            inputRef={clientNameRef}
-          />
-          <TextAreaInput
-            containerClassName="custom-input"
-            label={{
-              title: "Address",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            textarea={{
-              disabled: props.disabled,
-              rows: 3,
-              style: { width: "calc(100% - 150px)", height: "40px" },
-              defaultValue: "",
-              onChange: (e) => {},
-            }}
-            _inputRef={clientAddressRef}
-          />
-        </div>
-        {/* Agent Information*/}
-        <div
-          className="container-max-width"
-          style={{
-            width: "50%",
-            border: "1px solid #9ca3af",
-            boxSizing: "border-box",
-            padding: "10px",
-            position: "relative",
-            display: "flex",
-            flexDirection: "column",
-            rowGap: "5px",
-          }}
-        >
-          <span
-            style={{
-              position: "absolute",
-              top: "-12px",
-              left: "20px",
-              fontSize: "14px",
-              background: "#F1F1F1",
-              padding: "0 2px",
-              fontWeight: "bold",
-            }}
-          >
-            Agent Information
-          </span>
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "70%",
-            }}
-            label={{
-              title: "Agent ID:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "text",
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  props.agentSearch(e.currentTarget.value);
-                }
-              },
-            }}
-            icon={<SearchIcon sx={{ fontSize: "18px" }} />}
-            onIconClick={(e) => {
-              e.preventDefault();
-              props.agentSearch(agentIdRef.current?.value);
-            }}
-            inputRef={agentIdRef}
-          />
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "90%",
-            }}
-            label={{
-              title: "Name:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "text",
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                }
-              },
-            }}
-            inputRef={agentNameRef}
-          />
-          <TextFormatedInput
-            containerClassName="custom-input"
-            label={{
-              title: "Commission:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            containerStyle={{
-              width: "50%",
-            }}
-            input={{
-              disabled: props.disabled,
-              defaultValue: "0.00",
-              type: "text",
-              style: { width: "calc(100% - 150px)" },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                }
-              },
-            }}
-            inputRef={agentCommisionRef}
-          />
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "100%",
-            }}
-            label={{
-              title: "Sale Officer:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "text",
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                }
-              },
-            }}
-            inputRef={saleOfficerRef}
-          />
-        </div>
-      </div>
-      {/* Second Field*/}
-      <div
-        className="container-fields"
-        style={{
-          display: "flex",
-          columnGap: "15px",
-        }}
-      >
-        {/* Vehicle Policy*/}
-        <div
-          className="container-max-width"
-          style={{
-            width: "50%",
-            border: "1px solid #9ca3af",
-            boxSizing: "border-box",
-            padding: "10px",
-            position: "relative",
-            display: "flex",
-            flexDirection: "column",
-            rowGap: "5px",
-          }}
-        >
-          <span
-            style={{
-              position: "absolute",
-              top: "-12px",
-              left: "20px",
-              fontSize: "14px",
-              background: "#F1F1F1",
-              padding: "0 2px",
-              fontWeight: "bold",
-            }}
-          >
-            Vehicle Policy
-          </span>
-          <SelectInput
-            containerClassName="custom-input"
-            ref={_accountRef}
-            label={{
-              title: "Account:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            selectRef={accountRef}
-            select={{
-              disabled: props.disabled,
-              style: { flex: 1, height: "22px" },
-              defaultValue: "",
-              onChange: props.onChangeAccount,
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  policyNoRef.current?.focus();
-                }
-              },
-            }}
-            containerStyle={{
-              width: "90%",
-            }}
-            datasource={[]}
-            values={"Account"}
-            display={"Account"}
-          />
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "90%",
-            }}
-            label={{
-              title: "Policy No: ",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "text",
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  corNoRef.current?.focus();
-                }
-              },
-            }}
-            inputRef={policyNoRef}
-          />
-
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "90%",
-            }}
-            label={{
-              title: "Certificate of Cover No.:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "text",
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  orNoRef.current?.focus();
-                }
-              },
-            }}
-            inputRef={corNoRef}
-          />
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "90%",
-            }}
-            label={{
-              title: "Official Receipt No.:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "text",
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  dateFromRef.current?.focus();
-                }
-              },
-            }}
-            inputRef={orNoRef}
-          />
-        </div>
-        {/* Period of Insurance*/}
-        <div
-          className="container-max-width"
-          style={{
-            width: "50%",
-            border: "1px solid #9ca3af",
-            boxSizing: "border-box",
-            padding: "10px",
-            position: "relative",
-            display: "flex",
-            flexDirection: "column",
-            rowGap: "5px",
-          }}
-        >
-          <span
-            style={{
-              position: "absolute",
-              top: "-12px",
-              left: "20px",
-              fontSize: "14px",
-              background: "#F1F1F1",
-              padding: "0 2px",
-              fontWeight: "bold",
-            }}
-          >
-            Period of Insurance
-          </span>
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "50%",
-            }}
-            label={{
-              title: "Date From:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "date",
-              defaultValue: format(new Date(), "yyyy-MM-dd"),
-              style: { width: "calc(100% - 150px)" },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  dateToRef.current?.focus();
-                }
-              },
-            }}
-            inputRef={dateFromRef}
-          />
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "50%",
-            }}
-            label={{
-              title: "Date To:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "date",
-              defaultValue: format(addYears(new Date(), 1), "yyyy-MM-dd"),
-              style: { width: "calc(100% - 150px)" },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  dateIssuedRef.current?.focus();
-                }
-              },
-            }}
-            inputRef={dateToRef}
-          />
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "50%",
-            }}
-            label={{
-              title: "Date Issued:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "date",
-              defaultValue: format(new Date(), "yyyy-MM-dd"),
-              style: { width: "calc(100% - 150px)" },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  modelRef.current?.focus();
-                }
-              },
-            }}
-            inputRef={dateIssuedRef}
-          />
-        </div>
-      </div>
-      {/* Last Field*/}
-      {/* Insured Unit*/}
-      <div
-        style={{
-          width: "100%",
-          border: "1px solid #9ca3af",
-          boxSizing: "border-box",
-          padding: "10px",
-          position: "relative",
           display: "flex",
           flexDirection: "column",
-          rowGap: "5px",
+          flex: 1,
+          marginTop: "10px",
+          rowGap: "20px",
         }}
       >
-        <span
+        {/* First Field*/}
+        <div
+          className="container-fields"
           style={{
-            position: "absolute",
-            top: "-12px",
-            left: "20px",
-            fontSize: "14px",
-            background: "#F1F1F1",
-            padding: "0 2px",
-            fontWeight: "bold",
+            display: "flex",
+            columnGap: "15px",
           }}
         >
-          Insured Unit
-        </span>
-        <div
-          className="container-fields"
-          style={{ display: "flex", columnGap: "100px" }}
-        >
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "83%",
+          {/* Insurer Information*/}
+          <div
+            className="container-max-width"
+            style={{
+              width: "50%",
+              border: "1px solid #9ca3af",
+              boxSizing: "border-box",
+              padding: "10px",
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
+              rowGap: "5px",
             }}
-            label={{
-              title: "Model:",
-              style: {
-                fontSize: "12px",
+          >
+            <span
+              style={{
+                position: "absolute",
+                top: "-12px",
+                left: "20px",
+                fontSize: "14px",
+                background: "#F1F1F1",
+                padding: "0 2px",
                 fontWeight: "bold",
-                width: "150px",
-              },
+              }}
+            >
+              Insured Information
+            </span>
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "70%",
+              }}
+              label={{
+                title: "Client ID:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "text",
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    clientModalRef.current.openModal(e.currentTarget.value);
+                  }
+                },
+              }}
+              icon={<SearchIcon sx={{ fontSize: "18px" }} />}
+              onIconClick={(e) => {
+                e.preventDefault();
+                clientModalRef.current.openModal(clientIDRef.current?.value);
+              }}
+              inputRef={clientIDRef}
+            />
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "90%",
+              }}
+              label={{
+                title: "Name:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "text",
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                  }
+                },
+              }}
+              inputRef={clientNameRef}
+            />
+            <TextAreaInput
+              containerClassName="custom-input"
+              label={{
+                title: "Address",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              textarea={{
+                disabled: props.disabled,
+                rows: 3,
+                style: { flex: 1 },
+                defaultValue: "",
+                onChange: (e) => {},
+              }}
+              _inputRef={clientAddressRef}
+            />
+          </div>
+          {/* Agent Information*/}
+          <div
+            className="container-max-width"
+            style={{
+              width: "50%",
+              border: "1px solid #9ca3af",
+              boxSizing: "border-box",
+              padding: "10px",
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
+              rowGap: "5px",
             }}
-            input={{
-              disabled: props.disabled,
-              type: "text",
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  plateNoRef.current?.focus();
-                }
-              },
-            }}
-            inputRef={modelRef}
-          />
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "90%",
-            }}
-            label={{
-              title: "Plate No.:",
-              style: {
-                fontSize: "12px",
+          >
+            <span
+              style={{
+                position: "absolute",
+                top: "-12px",
+                left: "20px",
+                fontSize: "14px",
+                background: "#F1F1F1",
+                padding: "0 2px",
                 fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "text",
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  makeRef.current?.focus();
-                }
-              },
-            }}
-            inputRef={plateNoRef}
-          />
+              }}
+            >
+              Agent Information
+            </span>
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "70%",
+              }}
+              label={{
+                title: "Agent ID:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "text",
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    agentModalRef.current.openModal(e.currentTarget.value);
+                  }
+                },
+              }}
+              icon={<SearchIcon sx={{ fontSize: "18px" }} />}
+              onIconClick={(e) => {
+                e.preventDefault();
+                agentModalRef.current.openModal(agentIdRef.current?.value);
+              }}
+              inputRef={agentIdRef}
+            />
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "90%",
+              }}
+              label={{
+                title: "Name:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "text",
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                  }
+                },
+              }}
+              inputRef={agentNameRef}
+            />
+            <TextFormatedInput
+              containerClassName="custom-input"
+              label={{
+                title: "Commission:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              containerStyle={{
+                width: "50%",
+              }}
+              input={{
+                disabled: props.disabled,
+                defaultValue: "0.00",
+                type: "text",
+                style: { width: "calc(100% - 150px)" },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                  }
+                },
+              }}
+              inputRef={agentCommisionRef}
+            />
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "100%",
+              }}
+              label={{
+                title: "Sales Officer:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "text",
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                  }
+                },
+              }}
+              inputRef={saleOfficerRef}
+            />
+          </div>
         </div>
+        {/* Second Field*/}
         <div
           className="container-fields"
-          style={{ display: "flex", columnGap: "100px" }}
+          style={{
+            display: "flex",
+            columnGap: "15px",
+          }}
         >
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "83%",
+          {/* Vehicle Policy*/}
+          <div
+            className="container-max-width"
+            style={{
+              width: "50%",
+              border: "1px solid #9ca3af",
+              boxSizing: "border-box",
+              padding: "10px",
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
+              rowGap: "5px",
             }}
-            label={{
-              title: "Make:",
-              style: {
-                fontSize: "12px",
+          >
+            <span
+              style={{
+                position: "absolute",
+                top: "-12px",
+                left: "20px",
+                fontSize: "14px",
+                background: "#F1F1F1",
+                padding: "0 2px",
                 fontWeight: "bold",
-                width: "150px",
-              },
+              }}
+            >
+              Vehicle Policy
+            </span>
+            <SelectInput
+              containerClassName="custom-input"
+              ref={_accountRef}
+              label={{
+                title: "Account:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              selectRef={accountRef}
+              select={{
+                disabled: props.disabled,
+                style: { flex: 1, height: "22px" },
+                defaultValue: "",
+                onChange: props.onChangeAccount,
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    policyNoRef.current?.focus();
+                  }
+                },
+              }}
+              containerStyle={{
+                width: "90%",
+              }}
+              datasource={[]}
+              values={"Account"}
+              display={"Account"}
+            />
+            {policy === "COM" ? (
+              <TextInput
+                containerClassName="custom-input"
+                containerStyle={{
+                  width: "90%",
+                }}
+                label={{
+                  title: "Policy No: ",
+                  style: {
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    width: "150px",
+                  },
+                }}
+                input={{
+                  disabled: props.disabled,
+                  type: "text",
+                  style: { width: "calc(100% - 150px) " },
+                  onKeyDown: (e) => {
+                    if (e.code === "NumpadEnter" || e.code === "Enter") {
+                      corNoRef.current?.focus();
+                    }
+                  },
+                }}
+                inputRef={policyNoRef}
+              />
+            ) : (
+              <TextInput
+                containerClassName="custom-input"
+                containerStyle={{
+                  width: "90%",
+                }}
+                label={{
+                  title: "Policy No:",
+                  style: {
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    width: "150px",
+                  },
+                }}
+                input={{
+                  disabled: props.disabled,
+                  readOnly: true,
+                  type: "text",
+                  style: { width: "calc(100% - 150px) " },
+                  onKeyDown: (e) => {
+                    if (e.code === "NumpadEnter" || e.code === "Enter") {
+                      props.searchPolicyNo(e.currentTarget.value);
+                    }
+                  },
+                }}
+                inputRef={policyNoRef}
+                icon={<SearchIcon sx={{ fontSize: "18px" }} />}
+                onIconClick={(e) => {
+                  e.preventDefault();
+                  if (policyNoRef.current) {
+                    props.searchPolicyNo(policyNoRef.current.value);
+                  }
+                }}
+              />
+            )}
+
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "90%",
+              }}
+              label={{
+                title: "Certificate of Cover No.:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "text",
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    orNoRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={corNoRef}
+            />
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "90%",
+              }}
+              label={{
+                title: "Official Receipt No.:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "text",
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    dateFromRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={orNoRef}
+            />
+          </div>
+          {/* Period of Insurance*/}
+          <div
+            className="container-max-width"
+            style={{
+              width: "50%",
+              border: "1px solid #9ca3af",
+              boxSizing: "border-box",
+              padding: "10px",
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
+              rowGap: "5px",
             }}
-            input={{
-              disabled: props.disabled,
-              type: "text",
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  chassisNoRef.current?.focus();
-                }
-              },
-            }}
-            inputRef={makeRef}
-          />
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "90%",
-            }}
-            label={{
-              title: "Chassis No.:",
-              style: {
-                fontSize: "12px",
+          >
+            <span
+              style={{
+                position: "absolute",
+                top: "-12px",
+                left: "20px",
+                fontSize: "14px",
+                background: "#F1F1F1",
+                padding: "0 2px",
                 fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "text",
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  typeOfBodyRef.current?.focus();
-                }
-              },
-            }}
-            inputRef={chassisNoRef}
-          />
+              }}
+            >
+              Period of Insurance
+            </span>
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "50%",
+              }}
+              label={{
+                title: "Date From:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "date",
+                defaultValue: format(new Date(), "yyyy-MM-dd"),
+                style: { width: "calc(100% - 150px)" },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    dateToRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={dateFromRef}
+            />
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "50%",
+              }}
+              label={{
+                title: "Date To:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "date",
+                defaultValue: format(addYears(new Date(), 1), "yyyy-MM-dd"),
+                style: { width: "calc(100% - 150px)" },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    dateIssuedRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={dateToRef}
+            />
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "50%",
+              }}
+              label={{
+                title: "Date Issued:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "date",
+                defaultValue: format(new Date(), "yyyy-MM-dd"),
+                style: { width: "calc(100% - 150px)" },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    modelRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={dateIssuedRef}
+            />
+          </div>
         </div>
+        {/* Last Field*/}
+        {/* Insured Unit*/}
         <div
-          className="container-fields"
-          style={{ display: "flex", columnGap: "100px" }}
+          style={{
+            width: "100%",
+            border: "1px solid #9ca3af",
+            boxSizing: "border-box",
+            padding: "10px",
+            position: "relative",
+            display: "flex",
+            flexDirection: "column",
+            rowGap: "5px",
+          }}
         >
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "83%",
+          <span
+            style={{
+              position: "absolute",
+              top: "-12px",
+              left: "20px",
+              fontSize: "14px",
+              background: "#F1F1F1",
+              padding: "0 2px",
+              fontWeight: "bold",
             }}
-            label={{
-              title: "Type of Body:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "text",
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  motorNoRef.current?.focus();
-                }
-              },
-            }}
-            inputRef={typeOfBodyRef}
-          />
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "90%",
-            }}
-            label={{
-              title: "Motor No.:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "text",
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  colorRef.current?.focus();
-                }
-              },
-            }}
-            inputRef={motorNoRef}
-          />
-        </div>
-        <div
-          className="container-fields"
-          style={{ display: "flex", columnGap: "100px" }}
-        >
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "83%",
-            }}
-            label={{
-              title: "Color:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "text",
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  authorizedCapacityRef.current?.focus();
-                }
-              },
-            }}
-            inputRef={colorRef}
-          />
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "90%",
-            }}
-            label={{
-              title: "Authorized Capacity:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "text",
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  bltFileNoRef.current?.focus();
-                }
-              },
-            }}
-            inputRef={authorizedCapacityRef}
-          />
-        </div>
-        <div
-          className="container-fields"
-          style={{ display: "flex", columnGap: "100px" }}
-        >
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "83%",
-            }}
-            label={{
-              title: "BLT File No:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "text",
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  unladenWeightRef.current?.focus();
-                }
-              },
-            }}
-            inputRef={bltFileNoRef}
-          />
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "90%",
-            }}
-            label={{
-              title: "Unladen Weight:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "text",
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                }
-              },
-            }}
-            inputRef={unladenWeightRef}
-          />
+          >
+            Insured Unit
+          </span>
+          <div
+            className="container-fields"
+            style={{ display: "flex", columnGap: "100px" }}
+          >
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "83%",
+              }}
+              label={{
+                title: "Model:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "text",
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    plateNoRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={modelRef}
+            />
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "90%",
+              }}
+              label={{
+                title: "Plate No.:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "text",
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    makeRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={plateNoRef}
+            />
+          </div>
+          <div
+            className="container-fields"
+            style={{ display: "flex", columnGap: "100px" }}
+          >
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "83%",
+              }}
+              label={{
+                title: "Make:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "text",
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    chassisNoRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={makeRef}
+            />
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "90%",
+              }}
+              label={{
+                title: "Chassis No.:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "text",
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    typeOfBodyRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={chassisNoRef}
+            />
+          </div>
+          <div
+            className="container-fields"
+            style={{ display: "flex", columnGap: "100px" }}
+          >
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "83%",
+              }}
+              label={{
+                title: "Type of Body:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "text",
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    motorNoRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={typeOfBodyRef}
+            />
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "90%",
+              }}
+              label={{
+                title: "Motor No.:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "text",
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    colorRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={motorNoRef}
+            />
+          </div>
+          <div
+            className="container-fields"
+            style={{ display: "flex", columnGap: "100px" }}
+          >
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "83%",
+              }}
+              label={{
+                title: "Color:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "text",
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    authorizedCapacityRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={colorRef}
+            />
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "90%",
+              }}
+              label={{
+                title: "Authorized Capacity:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "text",
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    bltFileNoRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={authorizedCapacityRef}
+            />
+          </div>
+          <div
+            className="container-fields"
+            style={{ display: "flex", columnGap: "100px" }}
+          >
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "83%",
+              }}
+              label={{
+                title: "BLT File No:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "text",
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    unladenWeightRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={bltFileNoRef}
+            />
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "90%",
+              }}
+              label={{
+                title: "Unladen Weight:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "text",
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                  }
+                },
+              }}
+              inputRef={unladenWeightRef}
+            />
+          </div>
         </div>
       </div>
-    </div>
+      <UpwardTableModalSearch
+        ref={clientModalRef}
+        link={"/task/production/search-client-by-id-or-name"}
+        column={[
+          { key: "IDNo", label: "ID No", width: 120 },
+          { key: "Name", label: "Name", width: 200 },
+          {
+            key: "IDType",
+            label: "ID Type",
+            width: 90,
+          },
+          {
+            key: "address",
+            label: "Address",
+            width: 90,
+            hide: true,
+          },
+          {
+            key: "sale_officer",
+            label: "Sale Officer",
+            width: 90,
+            hide: true,
+          },
+        ]}
+        handleSelectionChange={(rowItm) => {
+          if (rowItm) {
+            if (clientIDRef.current) {
+              clientIDRef.current.value = rowItm.IDNo;
+            }
+            if (clientNameRef.current) {
+              clientNameRef.current.value = rowItm.Name;
+            }
+            if (clientAddressRef.current) {
+              clientAddressRef.current.value = rowItm.address;
+            }
+            if (saleOfficerRef.current) {
+              saleOfficerRef.current.value = rowItm.sale_officer;
+            }
+            wait(100).then(() => {
+              agentIdRef.current?.focus();
+            });
+            clientModalRef.current.closeModal();
+          }
+        }}
+      />
+      <UpwardTableModalSearch
+        ref={agentModalRef}
+        link={"/task/production/search-agent-by-id-or-name"}
+        column={[
+          { key: "IDNo", label: "ID No", width: 120 },
+          { key: "Name", label: "Name", width: 200 },
+          {
+            key: "IDType",
+            label: "ID Type",
+            width: 90,
+          },
+        ]}
+        handleSelectionChange={(rowItm) => {
+          if (rowItm) {
+            if (agentIdRef.current) {
+              agentIdRef.current.value = rowItm.IDNo;
+            }
+            if (agentNameRef.current) {
+              agentNameRef.current.value = rowItm.Name;
+            }
+
+            wait(100).then(() => {
+              accountRef.current?.focus();
+            });
+            agentModalRef.current.closeModal();
+          }
+        }}
+      />
+    </>
   );
 });
 const PolicyTypeDetails = forwardRef((props: any, ref) => {

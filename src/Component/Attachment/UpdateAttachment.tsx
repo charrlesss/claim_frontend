@@ -1735,45 +1735,51 @@ function UpdateAttachment() {
                         missingFiles.join("\n")
                     );
                   } else {
-                    const newData = [
-                      configuration.reference,
-                      configuration.claimType,
-                      dateReportRef.current?.value === ""
-                        ? ""
-                        : format(
-                            new Date(dateReportRef.current?.value as any),
-                            "MM/dd/YYY"
-                          ),
-                      format(
+                    const newData = {
+                      reference: configuration.reference,
+                      claim_type: configuration.claimType,
+                      date_report:
+                        dateReportRef.current?.value === ""
+                          ? ""
+                          : format(
+                              new Date(dateReportRef.current?.value as any),
+                              "MM/dd/YYY"
+                            ),
+                      date_accident: format(
                         new Date(dateAccidentRef.current?.value as any),
                         "MM/dd/YYY"
                       ),
-                      claimStatus.current?.value,
-                      dateReceivedDocumentsRef.current?.value === ""
-                        ? ""
-                        : format(
-                            new Date(
-                              dateReceivedDocumentsRef.current?.value as any
+                      claimStatus: claimStatus.current?.value,
+                      date_receive:
+                        dateReceivedDocumentsRef.current?.value === ""
+                          ? ""
+                          : format(
+                              new Date(
+                                dateReceivedDocumentsRef.current?.value as any
+                              ),
+                              "MM/dd/YYY"
                             ),
-                            "MM/dd/YYY"
-                          ),
-                      amountClaimRef.current?.value,
-                      amountApprovedRef.current?.value,
-                      amountParticipationRef.current?.value,
-                      amountNetAmountRef.current?.value,
-                      nameOfTTPDRef.current?.value,
-                      remarksRef.current?.value,
-                      dateApproved !== ""
-                        ? format(new Date(dateApproved), "MM/dd/YYY")
-                        : dateApproved,
-                      dateApproved,
-                      dateReportRef.current?.value,
-                      dateAccidentRef.current?.value,
-                      dateReceivedDocumentsRef.current?.value,
-                      selected,
-                      configuration.id,
-                      configuration.documents,
-                    ];
+                      amount_claim: amountClaimRef.current?.value,
+                      amount_approved: amountApprovedRef.current?.value,
+                      amount_participation:
+                        amountParticipationRef.current?.value,
+                      amount_net: amountNetAmountRef.current?.value,
+                      name_ttpd: nameOfTTPDRef.current?.value,
+                      remarks: remarksRef.current?.value,
+                      date_approved:
+                        dateApproved !== ""
+                          ? format(new Date(dateApproved), "MM/dd/YYY")
+                          : dateApproved,
+                      date_approved_not_formated: dateApproved,
+                      date_report_not_formated: dateReportRef.current?.value,
+                      date_accident_not_formated:
+                        dateAccidentRef.current?.value,
+                      date_receive_not_formated:
+                        dateReceivedDocumentsRef.current?.value,
+                      status: selected,
+                      documentId: configuration.id,
+                      files: configuration.documents,
+                    };
 
                     const queryParams = new URLSearchParams(
                       window.location.search

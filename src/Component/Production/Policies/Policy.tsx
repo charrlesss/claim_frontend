@@ -2,9 +2,35 @@ import { Chip,  } from "@mui/material";
 import { blue } from "@mui/material/colors";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import "../../../Style/monbileview/production/production.css";
+import { createContext } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useContext } from "react";
+import { UserContext } from "../../../App";
+import { Loading } from "../../Loading";
+
+export const PolicyContext = createContext<{
+  subAccountData: Array<any>;
+}>({
+  subAccountData: [],
+});
 
 export default function Policy() {
+  const { user, myAxios } = useContext(UserContext);
+
+    const { isPending: isLoading, data } = useQuery({
+      queryKey: ["sub-account"],
+      queryFn: (variables: any) => {
+        return myAxios.post("/task/production/sub-account", variables, {
+          headers: {
+            Authorization: `Bearer ${user?.accessToken}`,
+          },
+        });
+      },
+    });
+
   return (
+   <>
+   {isLoading && <Loading />}
     <div
       className="main"
       style={{
@@ -18,8 +44,15 @@ export default function Policy() {
       }}
     >
       <ChipsButton />
-      <Outlet />
+       <PolicyContext.Provider 
+          value={{
+            subAccountData: data?.data.data,
+          }}
+        >
+          <Outlet />
+        </PolicyContext.Provider>
     </div>
+   </>
   );
 }
 const chipStyle = {

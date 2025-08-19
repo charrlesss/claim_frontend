@@ -12,13 +12,12 @@ import {
   useRef,
   useEffect,
 } from "react";
-import "../Style/design.css";
-import { isValidDate } from "../Lib/validateDate";
+import '../Style/design.css'
 import { format } from "date-fns";
+import { isValidDate } from "../Lib/validateDate";
 import { wait } from "../Lib/wait";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { flushSync } from "react-dom";
-
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 interface TextInputProps {
   input: InputHTMLAttributes<HTMLInputElement>;
   label: HtmlHTMLAttributes<HTMLLabelElement>;
@@ -28,8 +27,9 @@ interface TextInputProps {
   onIconClick?: React.MouseEventHandler<HTMLDivElement> | undefined;
   disableIcon?: boolean;
   containerStyle?: CSSProperties;
-  offValidation?: boolean;
   containerClassName?: string;
+  buttonStyle?:CSSProperties
+  offValidation?:boolean
 }
 
 interface TextAreaPrps {
@@ -59,7 +59,7 @@ export function TextFormatedInput({
   onChange = (e) => {},
   onBlur = (e) => {},
   containerStyle,
-  containerClassName = "",
+  containerClassName,
 }: TextFormatedInputProps) {
   // const [inputValue, setInputValue] = useState('');
   const id = useId();
@@ -167,7 +167,7 @@ export function TextFormatedInput({
         {...input}
         type="text"
         style={{
-          height: "18px",
+          height: "100%",
           textAlign: "right",
           ...input.style,
         }}
@@ -217,20 +217,21 @@ export function TextInput({
   disableIcon = false,
   containerStyle,
   onIconClick = (e) => {},
-  offValidation = false,
-  containerClassName = "",
+  containerClassName,
+  buttonStyle,
+  offValidation = false
 }: TextInputProps) {
   const id = useId();
 
   return (
     <div
+      className={containerClassName}
       style={{
         display: "flex",
         alignItems: "center",
         position: "relative",
         ...containerStyle,
       }}
-      className={containerClassName}
     >
       <label {...label} htmlFor={id}>
         {label.title}
@@ -245,7 +246,8 @@ export function TextInput({
         id={id}
         {...input}
         onBlur={(e) => {
-          if (input.type === "month" && !offValidation) {
+          if(!offValidation){
+    if (input.type === "month") {
             if (!isValidDate(`${e.currentTarget.value}-01`)) {
               alert(
                 `Invalid ${label.title
@@ -259,7 +261,7 @@ export function TextInput({
               return;
             }
           }
-          if (input.type === "date" && !offValidation) {
+          if (input.type === "date") {
             if (!isValidDate(e.currentTarget.value)) {
               alert(
                 `Invalid ${label.title
@@ -273,10 +275,12 @@ export function TextInput({
               return;
             }
           }
+          }
+      
           if (input && input.onBlur) input.onBlur(e);
         }}
         style={{
-          height: "18px",
+          height: "100%",
           ...input.style,
         }}
       />
@@ -295,6 +299,7 @@ export function TextInput({
             justifyContent: "center",
             background: "white",
             pointerEvents: disableIcon ? "none" : "auto",
+            ...buttonStyle
           }}
         >
           {icon}
@@ -305,6 +310,7 @@ export function TextInput({
 }
 
 export function TextAreaInput({
+  containerClassName,
   textarea,
   label,
   _inputRef,
@@ -313,7 +319,6 @@ export function TextAreaInput({
   disableIcon = false,
   onIconClick = (e) => {},
   containerStyle,
-  containerClassName = "",
 }: TextAreaPrps) {
   const id = useId();
 
@@ -340,8 +345,7 @@ export function TextAreaInput({
         id={id}
         {...textarea}
         style={{
-          minHeight:"35px",
-          maxHeight: "100%",
+          height: "100%",
           ...textarea.style,
         }}
       />
@@ -410,6 +414,7 @@ export const SelectInput = forwardRef(
         className={containerClassName}
         style={{
           display: "flex",
+          height: "18px",
           alignItems: "center",
           ...containerStyle,
         }}
@@ -438,6 +443,7 @@ export const SelectInput = forwardRef(
     );
   }
 );
+
 
 export function ButtonField({
   buttonRetRef,
@@ -471,7 +477,6 @@ export function ButtonField({
     </div>
   );
 }
-
 export const Autocomplete = forwardRef(
   (
     {
@@ -665,7 +670,6 @@ export const Autocomplete = forwardRef(
     );
   }
 );
-
 export const AutocompleteNumber = forwardRef(
   (
     {
@@ -937,7 +941,6 @@ export const AutocompleteNumber = forwardRef(
     );
   }
 );
-
 export const AutoCompletePro = forwardRef(
   (
     { containerStyle, label, inputRef, onChange, onKeydown, disableInput }: any,

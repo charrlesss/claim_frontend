@@ -1,7 +1,6 @@
 import { forwardRef, useContext, useEffect, useRef, useState } from "react";
 import { wait } from "../Lib/wait";
 import {
-  DataGridViewReact,
   DataGridViewReactUpgraded,
 } from "./DataGridViewReact";
 import { Loading } from "./Loading";
@@ -382,7 +381,6 @@ const ListImursement = forwardRef(({}, ref) => {
       });
     }
   };
-
   const resetFields = () => {
     if (checkFromRef.current) {
       checkFromRef.current.value = "";
@@ -432,7 +430,6 @@ const ListImursement = forwardRef(({}, ref) => {
     }
     mutateRefNoRef.current({});
   };
-
   const disabledField = useRef((disabled: boolean) => {
     if (checkFromRef.current) {
       checkFromRef.current.disabled = disabled;
@@ -481,14 +478,12 @@ const ListImursement = forwardRef(({}, ref) => {
       unitInsuredRef.current.disabled = disabled;
     }
   });
-
   const resetAll = () => {
     resetFields();
     mutateRefNoRef.current({});
     tableRef.current.setSelectedRow(null);
     setImbursementMode("");
   };
-
   useEffect(() => {
     if (imbursementMode === "") {
       disabledField.current(true);
@@ -496,9 +491,7 @@ const ListImursement = forwardRef(({}, ref) => {
       disabledField.current(false);
     }
   }, [imbursementMode]);
-
   const navigateRef = useRef(navigate);
-
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     const dataParam = queryParams.get("Mkr44Rt2iuy13R");
@@ -578,7 +571,6 @@ const ListImursement = forwardRef(({}, ref) => {
         isLoadingRefNo ||
         loading) && <Loading />}
       <PageHelmet title="Reimbursement" />
-
       <div
         style={{
           display: "flex",
@@ -770,11 +762,11 @@ const ListImursement = forwardRef(({}, ref) => {
             </Button>
           </div>
         </div>
-        <fieldset
+        <div
           className="fields-reimbursement"
           style={{
             display: "flex",
-            border: "1px solid #cbd5e1",
+            // border: "1px solid #cbd5e1",
             borderRadius: "5px",
             width: "100%",
             position: "relative",
@@ -801,7 +793,7 @@ const ListImursement = forwardRef(({}, ref) => {
                 readOnly: true,
                 type: "text",
                 style: {
-                  width: "calc(100% - 110px)",
+                  width: "calc(100% - 100px)",
                   height: "22px !important",
                 },
                 onKeyDown: (e) => {
@@ -834,7 +826,7 @@ const ListImursement = forwardRef(({}, ref) => {
               input={{
                 type: "text",
                 style: {
-                  width: "calc(100% - 110px)",
+                  width: "calc(100% - 100px)",
                   height: "22px !important",
                 },
                 onKeyDown: (e) => {
@@ -930,7 +922,7 @@ const ListImursement = forwardRef(({}, ref) => {
               input={{
                 disabled: true,
                 type: "date",
-                style: { width: "calc(100% - 110px)" },
+                style: { width: "calc(100% - 100px)" },
                 defaultValue: format(new Date(), "yyyy-MM-dd"),
                 onKeyDown: (e) => {
                   if (e.code === "NumpadEnter" || e.code === "Enter") {
@@ -958,7 +950,7 @@ const ListImursement = forwardRef(({}, ref) => {
                 disabled: true,
                 type: "text",
                 defaultValue: "0.00",
-                style: { width: "calc(100% - 110px)" },
+                style: { width: "calc(100% - 100px)" },
                 onKeyDown: (e) => {
                   if (e.code === "NumpadEnter" || e.code === "Enter") {
                     dateReleaseRef.current?.focus();
@@ -980,13 +972,13 @@ const ListImursement = forwardRef(({}, ref) => {
                 style: {
                   fontSize: "12px",
                   fontWeight: "bold",
-                  width: "180px",
+                  width: "200px",
                 },
               }}
               input={{
                 disabled: true,
                 type: "date",
-                style: { width: "calc(100% - 180px)" },
+                style: { width: "calc(100% - 200px)" },
                 defaultValue: format(new Date(), "yyyy-MM-dd"),
                 onKeyDown: (e) => {
                   if (e.code === "NumpadEnter" || e.code === "Enter") {
@@ -1007,13 +999,13 @@ const ListImursement = forwardRef(({}, ref) => {
                 style: {
                   fontSize: "12px",
                   fontWeight: "bold",
-                  width: "180px",
+                  width: "200px",
                 },
               }}
               input={{
                 disabled: true,
                 type: "date",
-                style: { width: "calc(100% - 180px)" },
+                style: { width: "calc(100% - 200px)" },
                 defaultValue: format(new Date(), "yyyy-MM-dd"),
                 onKeyDown: (e) => {
                   if (e.code === "NumpadEnter" || e.code === "Enter") {
@@ -1035,14 +1027,14 @@ const ListImursement = forwardRef(({}, ref) => {
                 style: {
                   fontSize: "12px",
                   fontWeight: "bold",
-                  width: "180px",
+                  width: "200px",
                 },
               }}
               input={{
                 disabled: true,
                 type: "text",
                 defaultValue: "0.00",
-                style: { width: "calc(100% - 180px)" },
+                style: { width: "calc(100% - 200px)" },
                 onKeyDown: (e) => {
                   if (e.code === "NumpadEnter" || e.code === "Enter") {
                     amountApprovedRef.current?.focus();
@@ -1062,14 +1054,14 @@ const ListImursement = forwardRef(({}, ref) => {
                 style: {
                   fontSize: "12px",
                   fontWeight: "bold",
-                  width: "180px",
+                  width: "200px",
                 },
               }}
               input={{
                 disabled: true,
                 type: "text",
                 defaultValue: "0.00",
-                style: { width: "calc(100% - 180px)" },
+                style: { width: "calc(100% - 200px)" },
                 onKeyDown: (e) => {
                   if (e.code === "NumpadEnter" || e.code === "Enter") {
                     paymentRef.current?.focus();
@@ -1089,13 +1081,13 @@ const ListImursement = forwardRef(({}, ref) => {
                 style: {
                   fontSize: "12px",
                   fontWeight: "bold",
-                  width: "175px",
+                  width: "200px",
                 },
               }}
               selectRef={paymentRef}
               select={{
                 disabled: true,
-                style: { width: "calc(100% - 175px)", height: "22px" },
+                style: { width: "calc(100% - 200px)", height: "22px" },
                 defaultValue: "CHECK",
                 onKeyDown: (e) => {
                   if (e.code === "NumpadEnter" || e.code === "Enter") {
@@ -1127,7 +1119,7 @@ const ListImursement = forwardRef(({}, ref) => {
               input={{
                 type: "text",
                 style: {
-                  width: "calc(100% - 110px)",
+                  width: "calc(100% - 100px)",
                   height: "22px !important",
                 },
                 onKeyDown: (e) => {
@@ -1155,7 +1147,7 @@ const ListImursement = forwardRef(({}, ref) => {
               input={{
                 type: "text",
                 style: {
-                  width: "calc(100% - 110px)",
+                  width: "calc(100% - 100px)",
                   height: "22px !important",
                 },
                 onKeyDown: (e) => {
@@ -1183,7 +1175,7 @@ const ListImursement = forwardRef(({}, ref) => {
               input={{
                 type: "text",
                 style: {
-                  width: "calc(100% - 110px)",
+                  width: "calc(100% - 100px)",
                   height: "22px !important",
                 },
                 onKeyDown: (e) => {
@@ -1212,7 +1204,7 @@ const ListImursement = forwardRef(({}, ref) => {
               input={{
                 type: "text",
                 style: {
-                  width: "calc(100% - 110px)",
+                  width: "calc(100% - 100px)",
                   height: "22px !important",
                 },
                 onKeyDown: (e) => {
@@ -1246,7 +1238,7 @@ const ListImursement = forwardRef(({}, ref) => {
               _inputRef={remarksRef}
             />
           </div>
-        </fieldset>
+        </div>
         <div
           style={{
             marginTop: "10px",

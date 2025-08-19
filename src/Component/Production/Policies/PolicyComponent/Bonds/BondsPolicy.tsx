@@ -19,7 +19,7 @@ import { UserContext } from "../../../../../App";
 import { useMutation } from "@tanstack/react-query";
 import { wait } from "../../../../../Lib/wait";
 import { formatNumber } from "../../../../Dashboard";
-import { useUpwardTableModalSearchSafeMode } from "../../../../DataGridViewReact";
+import { UpwardTableModalSearch } from "../../../../DataGridViewReact";
 import {
   codeCondfirmationAlert,
   saveCondfirmationAlert,
@@ -32,8 +32,10 @@ import {
   TextInput,
 } from "../../../../UpwardFields";
 import { Loading } from "../../../../Loading";
+import { PolicyContext } from "../../Policy";
 
 export default function BondsPolicy() {
+  const { subAccountData } = useContext(PolicyContext);
   const [width, setWidth] = useState(window.innerWidth);
   const { myAxios, user } = useContext(UserContext);
   const [mode, setMode] = useState("");
@@ -90,26 +92,6 @@ export default function BondsPolicy() {
     },
   });
 
-  const { isPending: isLoadingSubAccount, mutate: mutateSubAccount } =
-    useMutation({
-      mutationKey: ["sub-account"],
-      mutationFn: (variables: any) => {
-        return myAxios.post("/task/production/sub-account", variables, {
-          headers: {
-            Authorization: `Bearer ${user?.accessToken}`,
-          },
-        });
-      },
-      onSuccess(response) {
-        wait(100).then(() => {
-          if (subAccountRef_.current)
-            subAccountRef_.current.setDataSource(response.data?.data);
-          wait(100).then(() => {
-            if (subAccountRef.current) subAccountRef.current.value = "HO";
-          });
-        });
-      },
-    });
   const { mutate: mutateAddUpdate, isPending: loadingAddUpdate } = useMutation({
     mutationKey: ["add-update"],
     mutationFn: async (variables: any) => {
@@ -387,120 +369,9 @@ export default function BondsPolicy() {
         }
       },
     });
-  const {
-    UpwardTableModalSearch: ClientUpwardTableModalSearch,
-    openModal: clientOpenModal,
-    closeModal: clientCloseModal,
-  } = useUpwardTableModalSearchSafeMode({
-    link: "/task/production/search-client-by-id-or-name",
-    column: [
-      { key: "IDNo", label: "ID No", width: 120 },
-      { key: "Name", label: "Name", width: 200 },
-      {
-        key: "IDType",
-        label: "ID Type",
-        width: 90,
-      },
-      {
-        key: "address",
-        label: "Address",
-        width: 90,
-        hide: true,
-      },
-      {
-        key: "sale_officer",
-        label: "Sale Officer",
-        width: 90,
-        hide: true,
-      },
-    ],
-    getSelectedItem: async (rowItm: any, _: any, rowIdx: any, __: any) => {
-      if (rowItm) {
-        if (_policyInformationRef.current.getRefs().clientIDRef.current) {
-          _policyInformationRef.current.getRefs().clientIDRef.current.value =
-            rowItm[0];
-        }
-        if (_policyInformationRef.current.getRefs().clientNameRef.current) {
-          _policyInformationRef.current.getRefs().clientNameRef.current.value =
-            rowItm[1];
-        }
-        if (_policyInformationRef.current.getRefs().clientAddressRef.current) {
-          _policyInformationRef.current.getRefs().clientAddressRef.current.value =
-            rowItm[3];
-        }
-        if (_policyInformationRef.current.getRefs().saleOfficerRef.current) {
-          _policyInformationRef.current.getRefs().saleOfficerRef.current.value =
-            rowItm[4];
-        }
-        clientCloseModal();
-        wait(100).then(() => {
-          _policyInformationRef.current.getRefs().agentIdRef.current?.focus();
-        });
-      }
-    },
-  });
-  const {
-    UpwardTableModalSearch: AgentUpwardTableModalSearch,
-    openModal: agentOpenModal,
-    closeModal: agentCloseModal,
-  } = useUpwardTableModalSearchSafeMode({
-    link: "/task/production/search-agent-by-id-or-name",
-    column: [
-      { key: "IDNo", label: "ID No", width: 120 },
-      { key: "Name", label: "Name", width: 200 },
-      {
-        key: "IDType",
-        label: "ID Type",
-        width: 90,
-      },
-    ],
-    getSelectedItem: async (rowItm: any, _: any, rowIdx: any, __: any) => {
-      if (rowItm) {
-        if (_policyInformationRef.current.getRefs().agentIdRef.current) {
-          _policyInformationRef.current.getRefs().agentIdRef.current.value =
-            rowItm[0];
-        }
-        if (_policyInformationRef.current.getRefs().agentNameRef.current) {
-          _policyInformationRef.current.getRefs().agentNameRef.current.value =
-            rowItm[1];
-        }
 
-        agentCloseModal();
-        wait(100).then(() => {
-          _policyInformationRef.current.getRefs().accountRef.current?.focus();
-        });
-      }
-    },
-  });
-  const {
-    UpwardTableModalSearch: SearchFireUpwardTableModalSearch,
-    openModal: searchFireOpenModal,
-    closeModal: searchFireCloseModal,
-  } = useUpwardTableModalSearchSafeMode({
-    size: "medium",
-    link: "/task/production/search-bonds-policy",
-    column: [
-      { key: "_DateIssued", label: "Date", width: 100 },
-      { key: "PolicyNo", label: "Policy No", width: 150 },
-      {
-        key: "Account",
-        label: "Account",
-        width: 110,
-      },
-      {
-        key: "client_fullname",
-        label: "Full Name",
-        width: 200,
-      },
-    ],
-    getSelectedItem: async (rowItm: any, _: any, rowIdx: any, __: any) => {
-      if (rowItm) {
-        setMode("edit");
-        mutateSelectedSearch({ policyNo: rowItm[1] });
-        searchFireCloseModal();
-      }
-    },
-  });
+  const searchBondModalRef = useRef<any>(null);
+
   function handleSave() {
     if (
       _policyInformationRef.current.requiredField() ||
@@ -538,22 +409,16 @@ export default function BondsPolicy() {
     }
   }
   const mutateBondSublineRef = useRef<any>(mutateBondSubline);
-  const mutateSubAccountRef = useRef<any>(mutateSubAccount);
   const mutateAccountRef = useRef<any>(mutateAccount);
 
   useEffect(() => {
     mutateAccountRef.current({ policyType: "" });
     mutateBondSublineRef.current({});
-    mutateSubAccountRef.current({});
   }, []);
 
   useEffect(() => {
     const handleResize = () => {
       setWidth(window.innerWidth);
-
-      setTimeout(() => {
-        mutateSubAccountRef.current({});
-      }, 500);
     };
 
     window.addEventListener("resize", handleResize);
@@ -568,12 +433,11 @@ export default function BondsPolicy() {
     <>
       {(isLoadingBondSubline ||
         isLoadingAccount ||
-        isLoadingSubAccount ||
         laodingSelectedSearch ||
         loadingAddUpdate) && <Loading />}
-      <AgentUpwardTableModalSearch />
+      {/* <AgentUpwardTableModalSearch />
       <ClientUpwardTableModalSearch />
-      <SearchFireUpwardTableModalSearch />
+      <SearchFireUpwardTableModalSearch /> */}
       <div
         style={{
           flex: 1,
@@ -608,7 +472,7 @@ export default function BondsPolicy() {
               onKeyDown: (e) => {
                 if (e.key === "Enter" || e.key === "NumpadEnter") {
                   e.preventDefault();
-                  searchFireOpenModal(e.currentTarget.value);
+                  searchBondModalRef.current.openModal(e.currentTarget.value);
                 }
               },
               style: { width: "100%", height: "22px" },
@@ -617,7 +481,7 @@ export default function BondsPolicy() {
             onIconClick={(e) => {
               e.preventDefault();
               if (searchRef.current) {
-                searchFireOpenModal(searchRef.current.value);
+                searchBondModalRef.current.openModal(searchRef.current.value);
               }
             }}
             inputRef={searchRef}
@@ -705,7 +569,7 @@ export default function BondsPolicy() {
                   showCancelButton: true,
                   confirmButtonColor: "#3085d6",
                   cancelButtonColor: "#d33",
-                  confirmButtonText: "Yes, cencel it!",
+                  confirmButtonText: "Yes, cancel it!",
                   cancelButtonText: "No",
                 }).then((result) => {
                   if (result.isConfirmed) {
@@ -764,29 +628,33 @@ export default function BondsPolicy() {
               Policy Premium
             </Button>
             {width > 768 && (
-              <SelectInput
-                ref={subAccountRef_}
-                label={{
-                  title: "Sub Account :",
-                  style: {
-                    fontSize: "12px",
-                    fontWeight: "bold",
-                    width: "100px",
-                  },
-                }}
-                selectRef={subAccountRef}
-                select={{
-                  style: { flex: 1, height: "22px" },
-                  defaultValue: "HO",
-                }}
-                containerStyle={{
-                  flex: 2,
-                  marginLeft: "20px",
-                }}
-                datasource={[]}
-                values={"Acronym"}
-                display={"Acronym"}
-              />
+              <>
+                {subAccountData && (
+                  <SelectInput
+                    ref={subAccountRef_}
+                    label={{
+                      title: "Sub Account :",
+                      style: {
+                        fontSize: "12px",
+                        fontWeight: "bold",
+                        width: "100px",
+                      },
+                    }}
+                    selectRef={subAccountRef}
+                    select={{
+                      style: { flex: 1, height: "22px" },
+                      defaultValue: "HO",
+                    }}
+                    containerStyle={{
+                      flex: 2,
+                      marginLeft: "20px",
+                    }}
+                    datasource={subAccountData}
+                    values={"Acronym"}
+                    display={"Acronym"}
+                  />
+                )}
+              </>
             )}
           </div>
           <div
@@ -829,7 +697,8 @@ export default function BondsPolicy() {
               Policy Premium
             </Button>
             {width <= 768 && (
-              <SelectInput
+              <>
+              {subAccountData &&     <SelectInput
                 ref={subAccountRef_}
                 label={{
                   title: "Sub Account :",
@@ -848,10 +717,12 @@ export default function BondsPolicy() {
                 containerStyle={{
                   flex: 2,
                 }}
-                datasource={[]}
+                datasource={subAccountData}
                 values={"Acronym"}
                 display={"Acronym"}
-              />
+              />}
+              </>
+           
             )}
           </div>
         </div>
@@ -867,12 +738,6 @@ export default function BondsPolicy() {
             user={user}
             disabled={mode === ""}
             ref={_policyInformationRef}
-            clientSearch={(input: string) => {
-              clientOpenModal(input);
-            }}
-            agentSearch={(input: string) => {
-              agentOpenModal(input);
-            }}
             onChangeAccount={(e: any) => {
               mutateAccountRef.current({ policyType: e.currentTarget.value });
             }}
@@ -994,7 +859,7 @@ export default function BondsPolicy() {
               showCancelButton: true,
               confirmButtonColor: "#3085d6",
               cancelButtonColor: "#d33",
-              confirmButtonText: "Yes, cencel it!",
+              confirmButtonText: "Yes, cancel it!",
               cancelButtonText: "No",
             }).then((result) => {
               if (result.isConfirmed) {
@@ -1011,6 +876,31 @@ export default function BondsPolicy() {
           Cancel
         </Button>
       </div>
+      <UpwardTableModalSearch
+        ref={searchBondModalRef}
+        link={"/task/production/search-bonds-policy"}
+        column={[
+          { key: "_DateIssued", label: "Date", width: 100 },
+          { key: "PolicyNo", label: "Policy No", width: 150 },
+          {
+            key: "Account",
+            label: "Account",
+            width: 110,
+          },
+          {
+            key: "client_fullname",
+            label: "Full Name",
+            width: 200,
+          },
+        ]}
+        handleSelectionChange={(rowItm) => {
+          if (rowItm) {
+            setMode("edit");
+            mutateSelectedSearch({ policyNo: rowItm.PolicyNo });
+            searchBondModalRef.current.closeModal();
+          }
+        }}
+      />
     </>
   );
 }
@@ -1045,6 +935,9 @@ const PolicyInformation = forwardRef((props: any, ref) => {
   // Insured Unit
   const unitRef = useRef<HTMLTextAreaElement>(null);
   const obligeeRef = useRef<HTMLTextAreaElement>(null);
+
+  const clientModalRef = useRef<any>(null);
+  const agentModalRef = useRef<any>(null);
 
   useImperativeHandle(ref, () => ({
     getRefsValue: () => {
@@ -1236,647 +1129,727 @@ const PolicyInformation = forwardRef((props: any, ref) => {
   }));
 
   return (
-    <div
-      className="main-field-container"
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        flex: 1,
-        marginTop: "10px",
-        rowGap: "20px",
-      }}
-    >
-      {/* First Field*/}
+    <>
       <div
-        className="container-fields"
+        className="main-field-container"
         style={{
-          display: "flex",
-          columnGap: "15px",
-        }}
-      >
-        {/* Insurer Information*/}
-        <div
-          className="container-max-width"
-          style={{
-            width: "50%",
-            border: "1px solid #9ca3af",
-            boxSizing: "border-box",
-            padding: "10px",
-            position: "relative",
-            display: "flex",
-            flexDirection: "column",
-            rowGap: "5px",
-          }}
-        >
-          <span
-            style={{
-              position: "absolute",
-              top: "-12px",
-              left: "20px",
-              fontSize: "14px",
-              background: "#F1F1F1",
-              padding: "0 2px",
-              fontWeight: "bold",
-            }}
-          >
-            Insurer Information
-          </span>
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "70%",
-            }}
-            label={{
-              title: "Client ID:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "text",
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  props.clientSearch(e.currentTarget.value);
-                }
-              },
-            }}
-            icon={<SearchIcon sx={{ fontSize: "18px" }} />}
-            onIconClick={(e) => {
-              e.preventDefault();
-              props.clientSearch(clientIDRef.current?.value);
-            }}
-            inputRef={clientIDRef}
-          />
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "90%",
-            }}
-            label={{
-              title: "Name:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "text",
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                }
-              },
-            }}
-            inputRef={clientNameRef}
-          />
-          <TextAreaInput
-            containerClassName="custom-input"
-            label={{
-              title: "Address",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            textarea={{
-              disabled: props.disabled,
-              rows: 3,
-              style: { flex: 1 },
-              defaultValue: "",
-              onChange: (e) => {},
-            }}
-            _inputRef={clientAddressRef}
-          />
-        </div>
-        {/* Agent Information*/}
-        <div
-          className="container-max-width"
-          style={{
-            width: "50%",
-            border: "1px solid #9ca3af",
-            boxSizing: "border-box",
-            padding: "10px",
-            position: "relative",
-            display: "flex",
-            flexDirection: "column",
-            rowGap: "5px",
-          }}
-        >
-          <span
-            style={{
-              position: "absolute",
-              top: "-12px",
-              left: "20px",
-              fontSize: "14px",
-              background: "#F1F1F1",
-              padding: "0 2px",
-              fontWeight: "bold",
-            }}
-          >
-            Agent Information
-          </span>
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "70%",
-            }}
-            label={{
-              title: "Agent ID:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "text",
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  props.agentSearch(e.currentTarget.value);
-                }
-              },
-            }}
-            icon={<SearchIcon sx={{ fontSize: "18px" }} />}
-            onIconClick={(e) => {
-              e.preventDefault();
-              props.agentSearch(agentIdRef.current?.value);
-            }}
-            inputRef={agentIdRef}
-          />
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "90%",
-            }}
-            label={{
-              title: "Name:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "text",
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                }
-              },
-            }}
-            inputRef={agentNameRef}
-          />
-          <TextFormatedInput
-            containerClassName="custom-input"
-            label={{
-              title: "Commission:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            containerStyle={{
-              width: "50%",
-            }}
-            input={{
-              disabled: props.disabled,
-              defaultValue: "0.00",
-              type: "text",
-              style: { width: "calc(100% - 150px)" },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                }
-              },
-            }}
-            inputRef={agentCommisionRef}
-          />
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "100%",
-            }}
-            label={{
-              title: "Sale Officer:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "text",
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                }
-              },
-            }}
-            inputRef={saleOfficerRef}
-          />
-        </div>
-      </div>
-      {/* Second Field*/}
-      <div
-        className="container-fields"
-        style={{
-          display: "flex",
-          columnGap: "15px",
-        }}
-      >
-        {/* Bonds Policy*/}
-        <div
-          className="container-max-width"
-          style={{
-            width: "50%",
-            border: "1px solid #9ca3af",
-            boxSizing: "border-box",
-            padding: "10px",
-            position: "relative",
-            display: "flex",
-            flexDirection: "column",
-            rowGap: "5px",
-          }}
-        >
-          <span
-            style={{
-              position: "absolute",
-              top: "-12px",
-              left: "20px",
-              fontSize: "14px",
-              background: "#F1F1F1",
-              padding: "0 2px",
-              fontWeight: "bold",
-            }}
-          >
-            Bonds Policy
-          </span>
-          <SelectInput
-            containerClassName="custom-select"
-            ref={_accountRef}
-            label={{
-              title: "Account:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            selectRef={accountRef}
-            select={{
-              disabled: props.disabled,
-              style: { flex: 1, height: "22px" },
-              defaultValue: "",
-              onChange: props.onChangeAccount,
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  policyNoRef.current?.focus();
-                }
-              },
-            }}
-            containerStyle={{
-              width: "90%",
-            }}
-            datasource={[]}
-            values={"Account"}
-            display={"Account"}
-          />
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "90%",
-            }}
-            label={{
-              title: "Policy No: ",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "text",
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  policyTypeRef.current?.focus();
-                }
-              },
-            }}
-            inputRef={policyNoRef}
-          />
-          <SelectInput
-            containerClassName="custom-select"
-            ref={_policyTypeRef}
-            label={{
-              title: "Policy Type :",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            selectRef={policyTypeRef}
-            select={{
-              disabled: props.disabled,
-              style: { flex: 1, height: "22px" },
-              defaultValue: "",
-              onChange: props.onChangeAccount,
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  officerRef.current?.focus();
-                }
-              },
-            }}
-            containerStyle={{
-              width: "90%",
-            }}
-            datasource={[]}
-            values={"SubLineName"}
-            display={"SubLineName"}
-          />
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "90%",
-            }}
-            label={{
-              title: "Officer : ",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "text",
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  positionRef.current?.focus();
-                }
-              },
-            }}
-            inputRef={officerRef}
-          />
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "90%",
-            }}
-            label={{
-              title: "Position : ",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "text",
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  biddingDateRef.current?.focus();
-                }
-              },
-            }}
-            inputRef={positionRef}
-          />
-        </div>
-        {/* Period of Insurance*/}
-        <div
-          className="container-max-width"
-          style={{
-            width: "50%",
-            border: "1px solid #9ca3af",
-            boxSizing: "border-box",
-            padding: "10px",
-            position: "relative",
-            display: "flex",
-            flexDirection: "column",
-            rowGap: "5px",
-          }}
-        >
-          <span
-            style={{
-              position: "absolute",
-              top: "-12px",
-              left: "20px",
-              fontSize: "14px",
-              background: "#F1F1F1",
-              padding: "0 2px",
-              fontWeight: "bold",
-            }}
-          >
-            Period of Insurance
-          </span>
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "50%",
-            }}
-            label={{
-              title: "Bidding Date:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "date",
-              defaultValue: format(new Date(), "yyyy-MM-dd"),
-              style: { width: "calc(100% - 150px)" },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  timeRef.current?.focus();
-                }
-              },
-            }}
-            inputRef={biddingDateRef}
-          />
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "50%",
-            }}
-            label={{
-              title: "Time :",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "time",
-              defaultValue: format(new Date(), "hh:mm"),
-              style: { width: "calc(100% - 150px)" },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  dateIssuedRef.current?.focus();
-                }
-              },
-            }}
-            inputRef={timeRef}
-          />
-          <TextInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "50%",
-            }}
-            label={{
-              title: "Date Issued:",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            input={{
-              disabled: props.disabled,
-              type: "date",
-              defaultValue: format(new Date(), "yyyy-MM-dd"),
-              style: { width: "calc(100% - 150px)" },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  validityRef.current?.focus();
-                }
-              },
-            }}
-            inputRef={dateIssuedRef}
-          />
-          <TextAreaInput
-            containerClassName="custom-input"
-            containerStyle={{
-              width: "100%",
-            }}
-            label={{
-              title: "Validity :",
-              style: {
-                fontSize: "12px",
-                fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            textarea={{
-              disabled: props.disabled,
-              rows: 2,
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  unitRef.current?.focus();
-                }
-              },
-            }}
-            _inputRef={validityRef}
-          />
-        </div>
-      </div>
-      {/* Last Field*/}
-      {/* Insured Unit*/}
-      <div
-        className="container-fields"
-        style={{
-          width: "100%",
-          border: "1px solid #9ca3af",
-          boxSizing: "border-box",
-          padding: "10px",
-          position: "relative",
           display: "flex",
           flexDirection: "column",
-          rowGap: "5px",
+          flex: 1,
+          marginTop: "10px",
+          rowGap: "20px",
         }}
       >
-        <span
+        {/* First Field*/}
+        <div
+          className="container-fields"
           style={{
-            position: "absolute",
-            top: "-12px",
-            left: "20px",
-            fontSize: "14px",
-            background: "#F1F1F1",
-            padding: "0 2px",
-            fontWeight: "bold",
+            display: "flex",
+            columnGap: "15px",
           }}
         >
-          Insured Unit
-        </span>
+          {/* Insurer Information*/}
+          <div
+            className="container-max-width"
+            style={{
+              width: "50%",
+              border: "1px solid #9ca3af",
+              boxSizing: "border-box",
+              padding: "10px",
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
+              rowGap: "5px",
+            }}
+          >
+            <span
+              style={{
+                position: "absolute",
+                top: "-12px",
+                left: "20px",
+                fontSize: "14px",
+                background: "#F1F1F1",
+                padding: "0 2px",
+                fontWeight: "bold",
+              }}
+            >
+              Insurer Information
+            </span>
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "70%",
+              }}
+              label={{
+                title: "Client ID:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "text",
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    clientModalRef.current.openModal(e.currentTarget.value);
+                  }
+                },
+              }}
+              icon={<SearchIcon sx={{ fontSize: "18px" }} />}
+              onIconClick={(e) => {
+                e.preventDefault();
+                if (clientIDRef.current) {
+                  clientModalRef.current.openModal(clientIDRef.current.value);
+                }
+              }}
+              inputRef={clientIDRef}
+            />
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "90%",
+              }}
+              label={{
+                title: "Name:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "text",
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                  }
+                },
+              }}
+              inputRef={clientNameRef}
+            />
+            <TextAreaInput
+              containerClassName="custom-input"
+              label={{
+                title: "Address",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              textarea={{
+                disabled: props.disabled,
+                rows: 3,
+                style: { flex: 1 },
+                defaultValue: "",
+                onChange: (e) => {},
+              }}
+              _inputRef={clientAddressRef}
+            />
+          </div>
+          {/* Agent Information*/}
+          <div
+            className="container-max-width"
+            style={{
+              width: "50%",
+              border: "1px solid #9ca3af",
+              boxSizing: "border-box",
+              padding: "10px",
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
+              rowGap: "5px",
+            }}
+          >
+            <span
+              style={{
+                position: "absolute",
+                top: "-12px",
+                left: "20px",
+                fontSize: "14px",
+                background: "#F1F1F1",
+                padding: "0 2px",
+                fontWeight: "bold",
+              }}
+            >
+              Agent Information
+            </span>
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "70%",
+              }}
+              label={{
+                title: "Agent ID:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "text",
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    agentModalRef.current.openModal(e.currentTarget.value);
+                  }
+                },
+              }}
+              icon={<SearchIcon sx={{ fontSize: "18px" }} />}
+              onIconClick={(e) => {
+                e.preventDefault();
+                props.agentSearch(agentIdRef.current?.value);
+                if (agentIdRef.current) {
+                  agentModalRef.current.openModal(agentIdRef.current.value);
+                }
+              }}
+              inputRef={agentIdRef}
+            />
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "90%",
+              }}
+              label={{
+                title: "Name:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "text",
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                  }
+                },
+              }}
+              inputRef={agentNameRef}
+            />
+            <TextFormatedInput
+              containerClassName="custom-input"
+              label={{
+                title: "Commission:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              containerStyle={{
+                width: "50%",
+              }}
+              input={{
+                disabled: props.disabled,
+                defaultValue: "0.00",
+                type: "text",
+                style: { width: "calc(100% - 150px)" },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                  }
+                },
+              }}
+              inputRef={agentCommisionRef}
+            />
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "100%",
+              }}
+              label={{
+                title: "Sale Officer:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "text",
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                  }
+                },
+              }}
+              inputRef={saleOfficerRef}
+            />
+          </div>
+        </div>
+        {/* Second Field*/}
         <div
-          className="container-fields-tpl"
-          style={{ display: "flex", columnGap: "100px" }}
+          className="container-fields"
+          style={{
+            display: "flex",
+            columnGap: "15px",
+          }}
         >
-          <TextAreaInput
-            containerClassName="custom-input"
-            containerStyle={{
+          {/* Bonds Policy*/}
+          <div
+            className="container-max-width"
+            style={{
               width: "50%",
-              alignItems: "flex-start",
+              border: "1px solid #9ca3af",
+              boxSizing: "border-box",
+              padding: "10px",
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
+              rowGap: "5px",
             }}
-            label={{
-              title: "Unit :",
-              style: {
-                fontSize: "12px",
+          >
+            <span
+              style={{
+                position: "absolute",
+                top: "-12px",
+                left: "20px",
+                fontSize: "14px",
+                background: "#F1F1F1",
+                padding: "0 2px",
                 fontWeight: "bold",
-                width: "150px",
-              },
-            }}
-            textarea={{
-              disabled: props.disabled,
-              rows: 4,
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  obligeeRef.current?.focus();
-                }
-              },
-            }}
-            _inputRef={unitRef}
-          />
-          <TextAreaInput
-            containerClassName="custom-input"
-            containerStyle={{
+              }}
+            >
+              Bonds Policy
+            </span>
+            <SelectInput
+              containerClassName="custom-select"
+              ref={_accountRef}
+              label={{
+                title: "Account:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              selectRef={accountRef}
+              select={{
+                disabled: props.disabled,
+                style: { flex: 1, height: "22px" },
+                defaultValue: "",
+                onChange: props.onChangeAccount,
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    policyNoRef.current?.focus();
+                  }
+                },
+              }}
+              containerStyle={{
+                width: "90%",
+              }}
+              datasource={[]}
+              values={"Account"}
+              display={"Account"}
+            />
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "90%",
+              }}
+              label={{
+                title: "Policy No: ",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "text",
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    policyTypeRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={policyNoRef}
+            />
+            <SelectInput
+              containerClassName="custom-select"
+              ref={_policyTypeRef}
+              label={{
+                title: "Policy Type :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              selectRef={policyTypeRef}
+              select={{
+                disabled: props.disabled,
+                style: { flex: 1, height: "22px" },
+                defaultValue: "",
+                onChange: props.onChangeAccount,
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    officerRef.current?.focus();
+                  }
+                },
+              }}
+              containerStyle={{
+                width: "90%",
+              }}
+              datasource={[]}
+              values={"SubLineName"}
+              display={"SubLineName"}
+            />
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "90%",
+              }}
+              label={{
+                title: "Officer : ",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "text",
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    positionRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={officerRef}
+            />
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "90%",
+              }}
+              label={{
+                title: "Position : ",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "text",
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    biddingDateRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={positionRef}
+            />
+          </div>
+          {/* Period of Insurance*/}
+          <div
+            className="container-max-width"
+            style={{
               width: "50%",
-              alignItems: "flex-start",
+              border: "1px solid #9ca3af",
+              boxSizing: "border-box",
+              padding: "10px",
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
+              rowGap: "5px",
             }}
-            label={{
-              title: "Obligee :",
-              style: {
-                fontSize: "12px",
+          >
+            <span
+              style={{
+                position: "absolute",
+                top: "-12px",
+                left: "20px",
+                fontSize: "14px",
+                background: "#F1F1F1",
+                padding: "0 2px",
                 fontWeight: "bold",
-                width: "150px",
-              },
+              }}
+            >
+              Period of Insurance
+            </span>
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "50%",
+              }}
+              label={{
+                title: "Bidding Date:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "date",
+                defaultValue: format(new Date(), "yyyy-MM-dd"),
+                style: { width: "calc(100% - 150px)" },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    timeRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={biddingDateRef}
+            />
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "50%",
+              }}
+              label={{
+                title: "Time :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "time",
+                defaultValue: format(new Date(), "hh:mm"),
+                style: { width: "calc(100% - 150px)" },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    dateIssuedRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={timeRef}
+            />
+            <TextInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "50%",
+              }}
+              label={{
+                title: "Date Issued:",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              input={{
+                disabled: props.disabled,
+                type: "date",
+                defaultValue: format(new Date(), "yyyy-MM-dd"),
+                style: { width: "calc(100% - 150px)" },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    validityRef.current?.focus();
+                  }
+                },
+              }}
+              inputRef={dateIssuedRef}
+            />
+            <TextAreaInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "100%",
+              }}
+              label={{
+                title: "Validity :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              textarea={{
+                disabled: props.disabled,
+                rows: 2,
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    unitRef.current?.focus();
+                  }
+                },
+              }}
+              _inputRef={validityRef}
+            />
+          </div>
+        </div>
+        {/* Last Field*/}
+        {/* Insured Unit*/}
+        <div
+          className="container-fields"
+          style={{
+            width: "100%",
+            border: "1px solid #9ca3af",
+            boxSizing: "border-box",
+            padding: "10px",
+            position: "relative",
+            display: "flex",
+            flexDirection: "column",
+            rowGap: "5px",
+          }}
+        >
+          <span
+            style={{
+              position: "absolute",
+              top: "-12px",
+              left: "20px",
+              fontSize: "14px",
+              background: "#F1F1F1",
+              padding: "0 2px",
+              fontWeight: "bold",
             }}
-            textarea={{
-              disabled: props.disabled,
-              rows: 4,
-              style: { width: "calc(100% - 150px) " },
-              onKeyDown: (e) => {
-                if (e.code === "NumpadEnter" || e.code === "Enter") {
-                  // occupancyRef.current?.focus();
-                }
-              },
-            }}
-            _inputRef={obligeeRef}
-          />
+          >
+            Insured Unit
+          </span>
+          <div
+            className="container-fields-tpl"
+            style={{ display: "flex", columnGap: "100px" }}
+          >
+            <TextAreaInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "50%",
+                alignItems: "flex-start",
+              }}
+              label={{
+                title: "Unit :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              textarea={{
+                disabled: props.disabled,
+                rows: 4,
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    obligeeRef.current?.focus();
+                  }
+                },
+              }}
+              _inputRef={unitRef}
+            />
+            <TextAreaInput
+              containerClassName="custom-input"
+              containerStyle={{
+                width: "50%",
+                alignItems: "flex-start",
+              }}
+              label={{
+                title: "Obligee :",
+                style: {
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  width: "150px",
+                },
+              }}
+              textarea={{
+                disabled: props.disabled,
+                rows: 4,
+                style: { width: "calc(100% - 150px) " },
+                onKeyDown: (e) => {
+                  if (e.code === "NumpadEnter" || e.code === "Enter") {
+                    // occupancyRef.current?.focus();
+                  }
+                },
+              }}
+              _inputRef={obligeeRef}
+            />
+          </div>
         </div>
       </div>
-    </div>
+      <UpwardTableModalSearch
+        ref={clientModalRef}
+        link={"/task/production/search-client-by-id-or-name"}
+        column={[
+          { key: "IDNo", label: "ID No", width: 120 },
+          { key: "Name", label: "Name", width: 200 },
+          {
+            key: "IDType",
+            label: "ID Type",
+            width: 90,
+          },
+          {
+            key: "address",
+            label: "Address",
+            width: 90,
+            hide: true,
+          },
+          {
+            key: "sale_officer",
+            label: "Sale Officer",
+            width: 90,
+            hide: true,
+          },
+        ]}
+        handleSelectionChange={(rowItm) => {
+          if (rowItm) {
+            if (clientIDRef.current) {
+              clientIDRef.current.value = rowItm.IDNo;
+            }
+            if (clientNameRef.current) {
+              clientNameRef.current.value = rowItm.Name;
+            }
+            if (clientAddressRef.current) {
+              clientAddressRef.current.value = rowItm.address;
+            }
+            if (saleOfficerRef.current) {
+              saleOfficerRef.current.value = rowItm.sale_officer;
+            }
+            wait(100).then(() => {
+              agentIdRef.current?.focus();
+            });
+            clientModalRef.current.closeModal();
+          }
+        }}
+      />
+      <UpwardTableModalSearch
+        ref={agentModalRef}
+        link={"/task/production/search-agent-by-id-or-name"}
+        column={[
+          { key: "IDNo", label: "ID No", width: 120 },
+          { key: "Name", label: "Name", width: 200 },
+          {
+            key: "IDType",
+            label: "ID Type",
+            width: 90,
+          },
+        ]}
+        handleSelectionChange={(rowItm) => {
+          if (rowItm) {
+            if (agentIdRef.current) {
+              agentIdRef.current.value = rowItm.IDNo;
+            }
+            if (agentNameRef.current) {
+              agentNameRef.current.value = rowItm.Name;
+            }
+
+            wait(100).then(() => {
+              accountRef.current?.focus();
+            });
+            agentModalRef.current.closeModal();
+          }
+        }}
+      />
+    </>
   );
 });
 const PolicyPremium = forwardRef((props: any, ref) => {

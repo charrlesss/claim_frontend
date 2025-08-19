@@ -8,9 +8,8 @@ import {
 } from "react";
 import { wait } from "../Lib/wait";
 import {
-  DataGridViewReact,
+  DataGridViewReactUpgraded,
   UpwardTableModalSearch,
-  useUpwardTableModalSearchSafeMode,
 } from "./DataGridViewReact";
 import { Loading } from "./Loading";
 import SearchIcon from "@mui/icons-material/Search";
@@ -39,10 +38,10 @@ const columns = [
   { key: "reference", label: "REF#", width: 100 },
   { key: "claim_type", label: "CLAIM TYPE", width: 100 },
   { key: "date_report", label: "DATE REPORT", width: 100 },
-  { key: "date_accident", label: "DATE ACCIDENT", width: 100 },
+  { key: "date_accident", label: "DATE ACCIDENT", width: 120 },
   { key: "claimStatus", label: "STATUS", width: 130 },
-  { key: "date_receive", label: "DATE RECEIVED ", width: 100 },
-  { key: "amount_claim", label: "AMOUNT CLAIM", width: 100, type: "number" },
+  { key: "date_receive", label: "DATE RECEIVED ", width: 120 },
+  { key: "amount_claim", label: "AMOUNT CLAIM", width: 120, type: "number" },
   {
     key: "amount_approved",
     label: "AMOUNT APPROVED",
@@ -417,55 +416,9 @@ const Dashboard = forwardRef(({}, ref) => {
         });
         return itm;
       });
-      tableRef.current.setDataFormated(claimDetails);
+      tableRef.current.setData(claimDetails);
     },
   });
-
-  // const {
-  //   UpwardTableModalSearch: SearchClaimUpwardTableModalSearch,
-  //   openModal: openSearchClaimUpwardTableModalSearch,
-  //   closeModal: closeSearchClaimUpwardTableModalSearch,
-  // } = useUpwardTableModalSearchSafeMode({
-  //   size: "large",
-  //   link: "/search-claim",
-  //   column: [
-  //     { key: "claim_id", label: "Claim ID.", width: 65 },
-  //     { key: "PolicyNo", label: "Policy No", width: 200 },
-  //     { key: "PolicyType", label: "Policy Type.", width: 75 },
-  //     { key: "IDNo", label: "ID No.", width: 100 },
-  //     { key: "Name", label: "Name", width: 300 },
-  //     { key: "ChassisNo", label: "Chassis No", width: 300 },
-  //     {
-  //       key: "Department",
-  //       label: "Department",
-  //       width: 90,
-  //     },
-  //     {
-  //       key: "remarks",
-  //       label: "Remarks",
-  //       width: 200,
-  //     },
-  //     {
-  //       key: "from_d",
-  //       label: "from_d",
-  //       width: 0,
-  //       hide: true,
-  //     },
-  //   ],
-  //   getSelectedItem: async (rowItm: any, _: any, rowIdx: any, __: any) => {
-  //     if (rowItm) {
-  //       setClaiMode("update");
-  //       mutateSelectedClaimSearch({
-  //         claim_id: rowItm[0],
-  //         policyNo: rowItm[1],
-  //         policyType: rowItm[2],
-  //         department: rowItm[6],
-  //         from: rowItm[8],
-  //       });
-  //       closeSearchClaimUpwardTableModalSearch();
-  //     }
-  //   },
-  // });
 
   useEffect(() => {
     if (policyDetails) {
@@ -728,53 +681,33 @@ const Dashboard = forwardRef(({}, ref) => {
 
     for (const itm of data) {
       const fileByMeta: any = [];
-      console.log({
-        reference: itm[0],
-        claim_type: itm[1],
-        date_report: itm[2],
-        date_accident: itm[3],
-        claimStatus: itm[4],
-        date_receive: itm[5],
-        amount_claim: itm[6],
-        amount_approved: itm[7],
-        amount_participation: itm[8],
-        amount_net: itm[9],
-        name_ttpd: itm[10],
-        remarks: itm[11],
-        date_report_not_formated: itm[14],
-        date_accident_not_formated: itm[15],
-        date_receive_not_formated: itm[16],
-        date_approved_not_formated: itm[13],
-        status: itm[17],
-        documentId: itm[18],
-        claimId: claimNoRef.current?.value,
-      });
+   
       formData.append(
         "metadata",
         JSON.stringify({
-          reference: itm[0],
-          claim_type: itm[1],
-          date_report: itm[2],
-          date_accident: itm[3],
-          claimStatus: itm[4],
-          date_receive: itm[5],
-          amount_claim: itm[6],
-          amount_approved: itm[7],
-          amount_participation: itm[8],
-          amount_net: itm[9],
-          name_ttpd: itm[10],
-          remarks: itm[11],
-          date_report_not_formated: itm[14],
-          date_accident_not_formated: itm[15],
-          date_receive_not_formated: itm[16],
-          date_approved_not_formated: itm[13],
-          status: itm[17],
-          documentId: itm[18],
+          reference: itm.reference,
+          claim_type: itm.claim_type,
+          date_report: itm.date_report,
+          date_accident: itm.date_accident,
+          claimStatus: itm.claimStatus,
+          date_receive: itm.date_receive,
+          amount_claim: itm.amount_claim,
+          amount_approved: itm.amount_approved,
+          amount_participation: itm.amount_participation,
+          amount_net: itm.amount_net,
+          name_ttpd: itm.name_ttpd,
+          remarks: itm.remarks,
+          date_report_not_formated: itm.date_report_not_formated,
+          date_accident_not_formated: itm.date_accident_not_formated,
+          date_receive_not_formated: itm.date_receive_not_formated,
+          date_approved_not_formated: itm.date_approved_not_formated,
+          status: itm.status,
+          documentId: itm.documentId,
           claimId: claimNoRef.current?.value,
         })
       );
 
-      const filesArray = itm[itm.length - 1];
+      const filesArray = itm.files;
       for (const files of filesArray) {
         if (files.files) {
           for (const file of files.files) {
@@ -866,7 +799,7 @@ const Dashboard = forwardRef(({}, ref) => {
       window.localStorage.removeItem("table-data");
       window.localStorage.removeItem("policy-details");
       window.localStorage.removeItem("configuration");
-      tableRef.current.resetCheckBox();
+      // tableRef.current.resetCheckBox();
       tableRef.current?.resetTable();
     });
   };
@@ -951,9 +884,7 @@ const Dashboard = forwardRef(({}, ref) => {
             onIconClick={(e) => {
               e.preventDefault();
               if (inputSearchRef.current)
-                searchClaimRef.current.openModal(
-                  inputSearchRef.current.value
-                );
+                searchClaimRef.current.openModal(inputSearchRef.current.value);
             }}
             inputRef={inputSearchRef}
           />
@@ -1135,9 +1066,7 @@ const Dashboard = forwardRef(({}, ref) => {
                   onKeyDown: (e) => {
                     if (e.key === "Enter" || e.key === "NumpadEnter") {
                       e.preventDefault();
-                      searchPolicyRef.current.openModal(
-                        e.currentTarget.value
-                      );
+                      searchPolicyRef.current.openModal(e.currentTarget.value);
                     }
                   },
                 }}
@@ -1333,6 +1262,73 @@ const Dashboard = forwardRef(({}, ref) => {
         </fieldset>
         <div
           style={{
+            marginTop: "10px",
+            width: "100%",
+            position: "relative",
+            flex: 1,
+            display: "flex",
+          }}
+        >
+          <DataGridViewReactUpgraded
+            ref={tableRef}
+            adjustVisibleRowCount={350}
+            columns={columns}
+            handleSelectionChange={(rowItm: any) => {
+              if (rowItm) {
+                setCheckCodeLoading(true);
+
+                wait(100).then(() => {
+                  const tableData = tableRef.current.getData();
+                  const encodedData = encodeURIComponent(
+                    JSON.stringify({
+                      state: {
+                        claimType: rowItm.claim_type,
+                        reference: rowItm.reference,
+                        id: rowItm.documentId,
+                        policyNo: policyDetails.policyNo,
+                        policyType: policyDetails.policyType,
+                        policyDepartment: policyDetails.Department,
+                        claimMode,
+                      },
+                      dataPreview: {
+                        claimMode: JSON.stringify(claimMode),
+                        claimId: JSON.stringify(claimNoRef.current?.value),
+                        tableData: JSON.stringify(tableData),
+                        policyDetails: JSON.stringify(policyDetails),
+                        basicDocuments: JSON.stringify(basicDocuments),
+                      },
+                      fields: {
+                        date_report: rowItm.date_report_not_formated,
+                        date_accident: rowItm.date_accident_not_formated,
+                        date_receive: rowItm.date_receive_not_formated,
+                        amount_claim: rowItm.amount_claim,
+                        amount_approved: rowItm.amount_approved,
+                        amount_participation: rowItm.amount_participation,
+                        amount_net: rowItm.amount_net,
+                        name_ttpd: rowItm.name_ttpd,
+                        remarks: rowItm.remarks,
+                        date_approved: rowItm.date_approved_not_formated,
+                        status: rowItm.status,
+                        claimStatus: rowItm.claimStatus,
+                        documentId: rowItm.documentId,
+                      },
+                      documents: rowItm.files,
+                      selectedIndex: tableRef.current.getSelectedRow(),
+                    })
+                  );
+
+                  navigate(
+                    `/${DEPARTMENT}/attactment/update?Mkr44Rt2iuy13R=${encodedData}`
+                  );
+                  setCheckCodeLoading(false);
+                });
+              } else {
+              }
+            }}
+          />
+        </div>
+        {/* <div
+          style={{
             width: "99%",
             boxSizing: "border-box",
             flex: 1,
@@ -1415,7 +1411,7 @@ const Dashboard = forwardRef(({}, ref) => {
               }
             }}
           />
-        </div>
+        </div> */}
         <div className="mobile-actions-button">
           {claimMode === "" && (
             <Button
@@ -1527,7 +1523,7 @@ const Dashboard = forwardRef(({}, ref) => {
         ]}
         handleSelectionChange={(rowItm) => {
           if (rowItm) {
-            console.log(rowItm)
+            console.log(rowItm);
             mutateSelectedPolicySearch({
               policyNo: rowItm.PolicyNo,
               policyType: rowItm.PolicyType,
@@ -1538,12 +1534,12 @@ const Dashboard = forwardRef(({}, ref) => {
           }
         }}
       />
-        <UpwardTableModalSearch
+      <UpwardTableModalSearch
         ref={searchClaimRef}
         size="large"
         link={"/search-claim"}
         column={[
-         { key: "claim_id", label: "Claim ID.", width: 100 },
+          { key: "claim_id", label: "Claim ID.", width: 100 },
           { key: "PolicyNo", label: "Policy No", width: 200 },
           { key: "PolicyType", label: "Policy Type.", width: 90 },
           { key: "IDNo", label: "ID No.", width: 150 },
@@ -1568,7 +1564,7 @@ const Dashboard = forwardRef(({}, ref) => {
         ]}
         handleSelectionChange={(rowItm) => {
           if (rowItm) {
-           setClaiMode("update");
+            setClaiMode("update");
             mutateSelectedClaimSearch({
               claim_id: rowItm.claim_id,
               policyNo: rowItm.PolicyNo,

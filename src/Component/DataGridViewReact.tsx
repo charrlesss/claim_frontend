@@ -1787,7 +1787,6 @@ export const DataGridViewReactUpgraded = forwardRef(
       data.length,
       startIndex + visibleRowCount + buffer
     );
-
     const handleContextMenu = (e: React.MouseEvent, row: any, col: any) => {
       e.preventDefault();
       setRightClickRowIndex(row);
@@ -2367,7 +2366,8 @@ export const DataGridViewReactUpgraded = forwardRef(
             }}
           >
             <div style={{ width: "120px" }}>
-              Total Rows : {data.length.toLocaleString("en-US")}
+              Total Rows :
+              {(data.length > 0 ? data.length : 0).toLocaleString("en-US")}
             </div>
             <FooterComponent />
           </div>
@@ -2469,7 +2469,6 @@ export const DataGridViewReactUpgraded = forwardRef(
     );
   }
 );
-
 export const UpwardTableModalSearch = forwardRef(
   (
     {
@@ -2478,12 +2477,24 @@ export const UpwardTableModalSearch = forwardRef(
       column,
       handleSelectionChange,
       otherFormData = () => ({}),
+      disableUnselection = false,
+      DisplayData = ({ row, col }: any) => {
+        return <>{row[col.key]}</>;
+      },
+      autoselection = true,
+      showSearchInput = true,
+      onCloseModal = () => ({}),
     }: {
       link: string;
       size?: "small" | "large" | "medium";
       column: Array<any>;
       handleSelectionChange: (row: any) => void;
       otherFormData?: any;
+      disableUnselection?: Boolean;
+      DisplayData?: any;
+      autoselection?: Boolean;
+      showSearchInput?: Boolean;
+      onCloseModal?: () => void;
     },
     ref
   ) => {
@@ -2618,7 +2629,7 @@ export const UpwardTableModalSearch = forwardRef(
               style={{
                 background: "#F1F1F1",
                 width: customWidth(blick),
-                height: blick ? "501px" : "500px",
+                height: blick ? "511px" : "510px",
                 position: "absolute",
                 zIndex: 111111,
                 top: "50%",
@@ -2727,16 +2738,14 @@ export const UpwardTableModalSearch = forwardRef(
                 }}
               >
                 <DataGridViewReactUpgraded
-                  adjustVisibleRowCount={200}
+                  adjustVisibleRowCount={180}
                   ref={tableRef}
                   columns={column}
                   handleSelectionChange={handleSelectionChange}
                   onMaxScrollUp={() => {
                     searchInputRef.current?.focus();
                   }}
-                  adjustRightClickClientXAndY={adjustRightClickClientXAndY(
-                    size
-                  )}
+                  fixedRowCount={21}
                   adjustOnRezise={false}
                 />
               </div>
